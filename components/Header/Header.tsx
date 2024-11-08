@@ -68,13 +68,6 @@ export function Header() {
           value={formData.version}
           onChange={onInputChange}
         />
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={resetForm}>Reset</Button>
-          <Button disabled={status === 'saving'}>
-            {status === 'saving' ? 'Saving...' : 'Save'}
-          </Button>
-          <AIAssistButton />
-        </div>
       </div>
     </div>
   )

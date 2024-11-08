@@ -22,8 +22,16 @@ export function CompanyEditDialog() {
     updateField('companyDescription', tempDescription)
   }
 
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setTempName(formData.companyName || '')
+      setTempDescription(formData.companyDescription || '')
+      setIsValid(true)
+    }
+  }
+
   return (
-    <Dialog>
+    <Dialog onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon">
           <Pencil className="h-4 w-4" />
@@ -39,13 +47,8 @@ export function CompanyEditDialog() {
               placeholder="Company Name"
               value={tempName}
               onChange={(e) => {
-                var trimmed = e.target.value.trim()
-                if (trimmed) {
-                  setIsValid(true)
-                  setTempName(trimmed)
-                } else {
-                  setIsValid(false)
-                }
+                setTempName(e.target.value)
+                setIsValid(!!e.target.value.trim())
               }}
               className={!isValid ? 'border-red-500' : ''}
             />

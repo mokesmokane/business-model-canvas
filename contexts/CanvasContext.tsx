@@ -23,15 +23,16 @@ const initialCanvasState: BusinessModelCanvas = {
   designedBy: '',
   date: new Date().toISOString().split('T')[0],
   version: '1.0',
-  keyPartners: '',
-  keyActivities: '',
-  valuePropositions: '',
-  customerRelationships: '',
-  channels: '',
-  customerSegments: '',
-  keyResources: '',
-  costStructure: '',
-  revenueStreams: '',
+  keyPartners: [],
+  keyActivities: [],
+  valuePropositions: [],
+  customerRelationships: [],
+  channels: [],
+  channels_ai_suggestion_markdown: '',
+  customerSegments: [],
+  keyResources: [],
+  costStructure: [],
+  revenueStreams: []
 };
 
 interface CanvasContextType {
@@ -40,6 +41,7 @@ interface CanvasContextType {
   status: 'idle' | 'loading' | 'saving' | 'error';
   error: string | null;
   updateField: (field: keyof BusinessModelCanvas, value: string) => void;
+  updateSection: (sectionKey: string, value: string[]) => void;
   loadCanvas: (id: string) => Promise<void>;
   createNewCanvas: (data: { name: string, description: string }) => Promise<string | undefined>;
   resetForm: () => void;
@@ -52,6 +54,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   status: 'idle',
   error: null,
   updateField: () => {},
+  updateSection: () => {},
   loadCanvas: async () => {},
   createNewCanvas: async () => { return ''  },
   resetForm: () => {},
@@ -134,6 +137,13 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
       };
     });
   }, [saveToFirebase]);
+
+  const updateSection = useCallback((sectionKey: string, value: string[]) => {
+    setState(prev => ({
+      ...prev,
+      formData: { ...prev.formData, [sectionKey]: value }
+    }));
+  }, []);
 
   const loadCanvas = useCallback(async (id: string) => {
     try {
@@ -239,6 +249,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         status: state.status,
         error: state.error,
         updateField,
+        updateSection,
         loadCanvas,
         createNewCanvas,
         resetForm,
