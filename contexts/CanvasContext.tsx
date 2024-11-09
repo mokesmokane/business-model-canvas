@@ -28,7 +28,6 @@ const initialCanvasState: BusinessModelCanvas = {
   valuePropositions: [],
   customerRelationships: [],
   channels: [],
-  channels_ai_suggestion_markdown: '',
   customerSegments: [],
   keyResources: [],
   costStructure: [],
@@ -63,6 +62,45 @@ export const CanvasContext = createContext<CanvasContextType>({
 
 const AUTOSAVE_DELAY = 1000;
 
+// Add this helper function at the top of the file
+const serializeCanvas = (canvas: BusinessModelCanvas) => {
+  const serialized = {
+    ...canvas,
+    createdAt: canvas.createdAt instanceof Date ? canvas.createdAt.toISOString() : canvas.createdAt,
+    updatedAt: new Date().toISOString(),
+    // Ensure AI suggestions are plain objects
+    keyPartners_ai_suggestions: canvas.keyPartners_ai_suggestions || [],
+    keyActivities_ai_suggestions: canvas.keyActivities_ai_suggestions || [],
+    valuePropositions_ai_suggestions: canvas.valuePropositions_ai_suggestions || [],
+    customerRelationships_ai_suggestions: canvas.customerRelationships_ai_suggestions || [],
+    channels_ai_suggestions: canvas.channels_ai_suggestions || [],
+    customerSegments_ai_suggestions: canvas.customerSegments_ai_suggestions || [],
+    keyResources_ai_suggestions: canvas.keyResources_ai_suggestions || [],
+    costStructure_ai_suggestions: canvas.costStructure_ai_suggestions || [],
+    revenueStreams_ai_suggestions: canvas.revenueStreams_ai_suggestions || []
+  };
+  return serialized;
+};
+
+// Add this helper function to deserialize data from Firestore
+const deserializeCanvas = (data: any): BusinessModelCanvas => {
+  return {
+    ...data,
+    createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
+    updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
+    // Ensure AI suggestions are properly typed
+    keyPartners_ai_suggestions: data.keyPartners_ai_suggestions || [],
+    keyActivities_ai_suggestions: data.keyActivities_ai_suggestions || [],
+    valuePropositions_ai_suggestions: data.valuePropositions_ai_suggestions || [],
+    customerRelationships_ai_suggestions: data.customerRelationships_ai_suggestions || [],
+    channels_ai_suggestions: data.channels_ai_suggestions || [],
+    customerSegments_ai_suggestions: data.customerSegments_ai_suggestions || [],
+    keyResources_ai_suggestions: data.keyResources_ai_suggestions || [],
+    costStructure_ai_suggestions: data.costStructure_ai_suggestions || [],
+    revenueStreams_ai_suggestions: data.revenueStreams_ai_suggestions || []
+  };
+};
+
 export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = React.useState<CanvasState>({
     currentCanvas: null,
@@ -79,49 +117,18 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     setState(prev => ({ ...prev, status, error }));
   }, []);
 
-  const saveToFirebase = useCallback(
-    debounce(async (updatedData: BusinessModelCanvas) => {
-      if (!user) return;
-
-      try {
-        setStatus('saving');
-        const dataToSave = {
-          ...updatedData,
-          userId: user.uid,
-          updatedAt: new Date(),
-        };
-
-        if (updatedData.id) {
-          const { id, ...saveData } = dataToSave;
-          if (!id) throw new Error('Canvas ID is required for updating');
-          await updateDoc(
-            doc(db, 'businessModelCanvases', id),
-            saveData
-          );
-          setState(prev => ({
-            ...prev,
-            currentCanvas: dataToSave,
-            status: 'idle'
-          }));
-        } else {
-          const docRef = await addDoc(collection(db, 'businessModelCanvases'), {
-            ...dataToSave,
-            createdAt: new Date(),
-          });
-          const newData = { ...dataToSave, id: docRef.id };
-          setState(prev => ({
-            ...prev,
-            currentCanvas: newData,
-            formData: newData,
-            status: 'idle'
-          }));
-        }
-      } catch (err) {
-        setStatus('error', err instanceof Error ? err.message : 'Failed to save canvas');
-      }
-    }, AUTOSAVE_DELAY),
-    [user, setStatus]
-  );
+  const saveToFirebase = useCallback(async (data: BusinessModelCanvas) => {
+    if (!user || !data.id) return;
+    try {
+      setStatus('saving');
+      const serializedData = serializeCanvas(data);
+      await updateDoc(doc(db, 'businessModelCanvases', data.id), serializedData);
+      setStatus('idle');
+    } catch (error) {
+      console.error('Error saving to Firebase:', error);
+      setStatus('error', error instanceof Error ? error.message : 'Failed to save');
+    }
+  }, [user, setStatus]);
 
   const updateField = useCallback((field: keyof BusinessModelCanvas, value: string) => {
     setState(prev => {
@@ -154,13 +161,12 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         throw new Error('Canvas not found');
       }
 
-      const canvasData = canvasDoc.data() as BusinessModelCanvas;
-      const canvasWithId = { ...canvasData, id: canvasDoc.id };
+      const canvasData = deserializeCanvas({ ...canvasDoc.data(), id: canvasDoc.id });
       
       setState(prev => ({
         ...prev,
-        currentCanvas: canvasWithId,
-        formData: canvasWithId,
+        currentCanvas: canvasData,
+        formData: canvasData,
         status: 'idle',
         error: null,
       }));

@@ -2,19 +2,21 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Sparkles } from 'lucide-react'
 import { useCanvas } from '@/contexts/CanvasContext'
+import { v4 as uuidv4 } from 'uuid';
 
-interface Suggestion {
-    id: string
-    content: string
-  }
-  
+interface AISuggestion {
+  id: string;
+  suggestion: string;
+  rationale: string;
+}
+
 interface AISuggestionItemProps {
-    suggestion: Suggestion
-    onLike: () => void
-    onDismiss: () => void
-    onExpand: () => void
-  }
-  
+  suggestion: AISuggestion;
+  onLike: () => void;
+  onDismiss: () => void;
+  onExpand: () => void;
+}
+
 export function AIAssistButton({ section, sectionKey }: { section: string, sectionKey: string }) {
   const { formData, updateField } = useCanvas()
   const [isLoading, setIsLoading] = React.useState(false)
@@ -37,30 +39,18 @@ export function AIAssistButton({ section, sectionKey }: { section: string, secti
         throw new Error('Failed to get AI assistance')
       }
 
-      const reader = response.body?.getReader()
-      if (!reader) throw new Error('No reader available')
-
-      const decoder = new TextDecoder()
-      let accumulatedContent = ''
-
-      // Read the stream chunk by chunk
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        // Decode the chunk and update immediately
-        const chunk = decoder.decode(value, { stream: true })
-        accumulatedContent += chunk
+      const data = await response.json()
+      if (data.content) {
+        const parsedData = JSON.parse(data.content)
+        const suggestionsWithIds = parsedData.suggestions.map((s: Omit<AISuggestion, 'id'>) => ({
+          id: uuidv4(),
+          suggestion: s.suggestion,
+          rationale: s.rationale
+        }))
         
-        // Update the UI immediately with each new chunk
-        updateField(`${sectionKey}_ai_suggestion_markdown` as keyof typeof formData, accumulatedContent)
-      }
-
-      // Final decode to handle any remaining bytes
-      const finalChunk = decoder.decode()
-      if (finalChunk) {
-        accumulatedContent += finalChunk
-        updateField(`${sectionKey}_ai_suggestion_markdown` as keyof typeof formData, accumulatedContent)
+        updateField(`${sectionKey}_ai_suggestions` as keyof typeof formData, 
+          suggestionsWithIds
+        )
       }
     } catch (error) {
       console.error('Error getting AI assistance:', error)

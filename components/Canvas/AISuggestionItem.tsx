@@ -3,21 +3,20 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import ReactMarkdown from 'react-markdown'
 import { useState, useEffect } from 'react'
 
-interface Suggestion {
-    id: string
-    content: string
-  }
+interface AISuggestion {
+  id: string;
+  suggestion: string;
+  rationale: string;
+}
 
-  
 interface AISuggestionItemProps {
-    suggestion: Suggestion
-    onLike: () => void
-    onDismiss: () => void
-    onExpand: () => void
-  }
+  suggestion: AISuggestion;
+  onLike: () => void;
+  onDismiss: () => void;
+  onExpand: () => void;
+}
 
 function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggestionItemProps) {
     const [isHovered, setIsHovered] = useState(false)
@@ -63,7 +62,10 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
       >
         <CardContent className="p-3 relative">
           <div className="text-sm mb-2 prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown>{suggestion.content}</ReactMarkdown>
+            {suggestion.suggestion}
+          </div>
+          <div className="text-xs text-muted-foreground mb-2">
+            {suggestion.rationale}
           </div>
           <div 
             className={`transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${

@@ -13,21 +13,23 @@ import { Check, X, Edit2, Trash2 } from 'lucide-react'
 import { DynamicInput } from './DynamicInput'
 import AISuggestionItem from './AISuggestionItem'
 import SectionItem from './SectionItem'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
-interface CanvasSectionProps {
-  title: string
-  sectionKey: string
-  icon: LucideIcon
-  items: string[]
-  aiSuggestionMd?: string
-  onChange: (value: string[]) => void
-  placeholder: string
-  className?: string
+interface AISuggestion {
+  id: string;
+  suggestion: string;
+  rationale: string;
 }
 
-interface Suggestion {
-  id: string
-  content: string
+interface CanvasSectionProps {
+  title: string;
+  sectionKey: string;
+  icon: LucideIcon;
+  items: string[];
+  aiSuggestions?: AISuggestion[];
+  onChange: (value: string[]) => void;
+  placeholder: string;
+  className?: string;
 }
 
 export function CanvasSection({ 
@@ -35,30 +37,23 @@ export function CanvasSection({
   sectionKey, 
   icon: Icon, 
   items, 
-  aiSuggestionMd, 
+  aiSuggestions, 
   onChange, 
   placeholder, 
   className 
 }: CanvasSectionProps) {
   const itemsArray = Array.isArray(items) ? items : items ? [items] : [];
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
+  const [suggestions, setSuggestions] = useState<AISuggestion[]>([])
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
 
   useEffect(() => {
-    if (aiSuggestionMd) {
-      const newSuggestions = aiSuggestionMd
-        .split('\n')
-        .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
-        .map((line, index) => ({
-          id: `${sectionKey}-${index}-${Date.now()}`,
-          content: line.trim().replace(/^[-*]\s*/, '')
-        }))
-      setSuggestions(newSuggestions)
+    if (aiSuggestions) {
+      setSuggestions(aiSuggestions)
     }
-  }, [aiSuggestionMd, sectionKey])
+  }, [aiSuggestions, sectionKey])
 
-  const handleAddSuggestion = (suggestion: Suggestion) => {
-    const newItems = [...itemsArray, suggestion.content]
+  const handleAddSuggestion = (suggestion: AISuggestion) => {
+    const newItems = [...itemsArray, `${suggestion.suggestion}\n\n${suggestion.rationale}`]
     onChange(newItems)
     setSuggestions(prev => prev.filter(s => s.id !== suggestion.id))
   }
@@ -101,24 +96,42 @@ export function CanvasSection({
   return (
     <Card className={`flex flex-col ${className}`}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Icon className="h-5 w-5" />
-          {title}
-          <div className="flex-1" />
-          <AIAssistButton section={title} sectionKey={sectionKey} />
-        </CardTitle>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CardTitle className="flex items-center gap-2">
+                <Icon className="h-5 w-5" />
+                {title}
+                <div className="flex-1" />
+                <AIAssistButton section={title} sectionKey={sectionKey} />
+              </CardTitle>
+            </TooltipTrigger>
+            {(itemsArray.length > 0 || suggestions.length > 0) && (
+              <TooltipContent className="whitespace-pre-line text-sm text-muted-foreground">
+                {placeholder}
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <ScrollArea className="flex-1 mb-4">
-          {itemsArray.map((item, index) => (
-            <SectionItem
-              key={index}
-              item={item}
-              onDelete={() => handleDeleteItem(index)}
-              isEditing={editingIndex === index}
-              onEditStart={() => handleEditStart(index)}
-            />
-          ))}
+          {itemsArray.length === 0 && suggestions.length === 0 ? (
+            <p className="text-gray-500 text-sm whitespace-pre-line">
+              {placeholder}
+            </p>
+          ) : (
+            itemsArray.map((item, index) => (
+              <SectionItem
+                key={index}
+                item={item}
+                onDelete={() => handleDeleteItem(index)}
+                isEditing={editingIndex === index}
+                onEditStart={() => handleEditStart(index)}
+                onEditEnd={() => handleEditCancel()}
+              />
+            ))
+          )}
         </ScrollArea>
         
         {suggestions.length > 0 && (

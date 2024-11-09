@@ -1,3 +1,9 @@
+export interface AISuggestion {
+  id: string;
+  suggestion: string;
+  rationale: string;
+}
+
 export interface BusinessModelCanvas {
   id?: string;
   companyName: string;
@@ -7,26 +13,26 @@ export interface BusinessModelCanvas {
   date: string;
   version: string;
   keyPartners: string[];
-  keyPartners_ai_suggestion_markdown?: string;
   keyActivities: string[];
-  keyActivities_ai_suggestion_markdown?: string;
   valuePropositions: string[];
-  valuePropositions_ai_suggestion_markdown?: string;
   customerRelationships: string[];
-  customerRelationships_ai_suggestion_markdown?: string;
   channels: string[];
-  channels_ai_suggestion_markdown?: string;
   customerSegments: string[];
-  customerSegments_ai_suggestion_markdown?: string;
   keyResources: string[];
-  keyResources_ai_suggestion_markdown?: string;
   costStructure: string[];
-  costStructure_ai_suggestion_markdown?: string;
   revenueStreams: string[];
-  revenueStreams_ai_suggestion_markdown?: string;
   userId?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  keyPartners_ai_suggestions?: AISuggestion[];
+  keyActivities_ai_suggestions?: AISuggestion[];
+  valuePropositions_ai_suggestions?: AISuggestion[];
+  customerRelationships_ai_suggestions?: AISuggestion[];
+  channels_ai_suggestions?: AISuggestion[];
+  customerSegments_ai_suggestions?: AISuggestion[];
+  keyResources_ai_suggestions?: AISuggestion[];
+  costStructure_ai_suggestions?: AISuggestion[];
+  revenueStreams_ai_suggestions?: AISuggestion[];
 }
 
 export interface CanvasState {
@@ -45,23 +51,23 @@ const getInitialCanvasState = (): BusinessModelCanvas => ({
     date: '',
     version: '',
     keyPartners: [],
-    keyPartners_ai_suggestion_markdown: '',
+    keyPartners_ai_suggestions: [],
     keyActivities: [],
-    keyActivities_ai_suggestion_markdown: '',
+    keyActivities_ai_suggestions: [],
     keyResources: [],
-    keyResources_ai_suggestion_markdown: '',
+    keyResources_ai_suggestions: [],
     valuePropositions: [],
-    valuePropositions_ai_suggestion_markdown: '',
+    valuePropositions_ai_suggestions: [],
     customerRelationships: [],
-    customerRelationships_ai_suggestion_markdown: '',
+    customerRelationships_ai_suggestions: [],
     channels: [],
-    channels_ai_suggestion_markdown: '',
+    channels_ai_suggestions: [],
     customerSegments: [],
-    customerSegments_ai_suggestion_markdown: '',
+    customerSegments_ai_suggestions: [],
     costStructure: [],
-    costStructure_ai_suggestion_markdown: '',
+    costStructure_ai_suggestions: [],
     revenueStreams: [],
-    revenueStreams_ai_suggestion_markdown: '',
+    revenueStreams_ai_suggestions: [],
     userId: '',
     createdAt: undefined,
     updatedAt: undefined

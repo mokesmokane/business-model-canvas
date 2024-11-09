@@ -39,7 +39,7 @@ export function CanvasContent() {
           sectionKey="keyPartners"
           icon={Building2}
           items={formData.keyPartners}
-          aiSuggestionMd={formData.keyPartners_ai_suggestion_markdown}
+          aiSuggestions={formData.keyPartners_ai_suggestions}
           onChange={(value: string[]) => updateSection('keyPartners', value)}
           placeholder={`Who are our Key Partners?
 Who are our key suppliers?
@@ -52,7 +52,7 @@ Which Key Activities do partners perform?`}
             sectionKey="keyActivities"
             icon={Workflow}
             items={formData.keyActivities}
-            aiSuggestionMd={formData.keyActivities_ai_suggestion_markdown}
+            aiSuggestions={formData.keyActivities_ai_suggestions}
             onChange={(value: string[]) => updateSection('keyActivities', value)}
             placeholder={`What Key Activities do our Value Propositions require?
 Our Distribution Channels?
@@ -65,7 +65,7 @@ Revenue Streams?`}
             sectionKey="keyResources"
             icon={Receipt}
             items={formData.keyResources} 
-            aiSuggestionMd={formData.keyResources_ai_suggestion_markdown}
+            aiSuggestions={formData.keyResources_ai_suggestions}
             onChange={(value: string[]) => updateSection('keyResources', value)}
             placeholder={`What Key Resources do our Value Propositions require?
 Our Distribution Channels? Customer Relationships?
@@ -78,7 +78,7 @@ Revenue Streams?`}
           sectionKey="valuePropositions"
           icon={Gift}
           items={formData.valuePropositions}
-          aiSuggestionMd={formData.valuePropositions_ai_suggestion_markdown}
+          aiSuggestions={formData.valuePropositions_ai_suggestions}
           onChange={(value: string[]) => updateSection('valuePropositions', value)}
           placeholder={`What value do we deliver to the customer?
 Which one of our customer's problems are we helping to solve?
@@ -91,7 +91,7 @@ Which customer needs are we satisfying?`}
             sectionKey="customerRelationships"
             icon={Heart}
             items={formData.customerRelationships}
-            aiSuggestionMd={formData.customerRelationships_ai_suggestion_markdown}
+            aiSuggestions={formData.customerRelationships_ai_suggestions}
             onChange={(value: string[]) => updateSection('customerRelationships', value)}
             placeholder={`What type of relationship does each of our Customer Segments expect us to establish and maintain with them?
 Which ones have we established?
@@ -104,7 +104,7 @@ How costly are they?`}
             sectionKey="channels"
             icon={Truck}
             items={formData.channels}
-            aiSuggestionMd={formData.channels_ai_suggestion_markdown}
+            aiSuggestions={formData.channels_ai_suggestions}
             onChange={(value: string[]) => updateSection('channels', value)}
             placeholder={`Through which Channels do our Customer Segments want to be reached?
 How are we reaching them now?
@@ -120,7 +120,7 @@ How are we integrating them with customer routines?`}
           sectionKey="customerSegments"
           icon={Users2}
           items={formData.customerSegments}
-          aiSuggestionMd={formData.customerSegments_ai_suggestion_markdown}
+          aiSuggestions={formData.customerSegments_ai_suggestions}
           onChange={(value: string[]) => updateSection('customerSegments', value)}
           placeholder={`For whom are we creating value?
 Who are our most important customers?`}
@@ -132,7 +132,7 @@ Who are our most important customers?`}
           sectionKey="costStructure"
           icon={Users}
           items={formData.costStructure}
-          aiSuggestionMd={formData.costStructure_ai_suggestion_markdown}
+          aiSuggestions={formData.costStructure_ai_suggestions}
           onChange={(value: string[]) => updateSection('costStructure', value)}
           placeholder={`What are the most important costs inherent in our business model?
 Which Key Resources are most expensive?
@@ -143,7 +143,7 @@ Which Key Activities are most expensive?`}
           sectionKey="revenueStreams"
           icon={Coins}
           items={formData.revenueStreams}
-          aiSuggestionMd={formData.revenueStreams_ai_suggestion_markdown}
+          aiSuggestions={formData.revenueStreams_ai_suggestions}
           onChange={(value: string[]) => updateSection('revenueStreams', value)}
           placeholder={`For what value are our customers really willing to pay?
 For what do they currently pay?

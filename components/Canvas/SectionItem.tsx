@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -17,23 +16,27 @@ interface SectionItemProps {
     onDelete: () => void
     isEditing: boolean
     onEditStart: () => void
+    onEditEnd: () => void
   }
   export function SectionItem({ 
     item, 
     onDelete, 
     isEditing,
-    onEditStart
+    onEditStart,
+    onEditEnd
   }: SectionItemProps) {
     return (
       <Card className={`mb-2 p-3 flex items-center justify-between transition-all duration-300 ${
         isEditing ? 'border-primary/50 bg-primary/5 shadow-md' : ''
       }`}>
-        <p className="text-sm flex-grow">
+        <p className="text-sm flex-grow whitespace-pre-wrap">
           {item}
         </p>
         <div>
           <Button 
-            onClick={onEditStart}
+            onClick={
+                isEditing ? onEditEnd : onEditStart
+            }
             size="sm" 
             variant={isEditing ? "default" : "ghost"}
             className="mr-2"

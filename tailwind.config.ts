@@ -11,7 +11,10 @@ const config: Config = {
   	extend: {
   		colors: {
   			background: 'var(--background)',
-  			foreground: 'var(--foreground)'
+  			foreground: 'var(--foreground)',
+			muted: {
+			foreground: "hsl(var(--muted-foreground))"
+			}
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

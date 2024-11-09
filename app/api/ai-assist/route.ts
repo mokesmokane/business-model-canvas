@@ -16,65 +16,55 @@ export async function POST(request: Request) {
   try {
     const { currentContent, section } = await request.json()
 
-    const prompt = `As a business model expert, analyze the following business model canvas content and suggest improvements or fill in missing sections. The current content is:
+    const prompt = `As a business model expert, analyze the following business model canvas content and suggest exactly 3 improvements for the specified section. The current content is:
 
 Company Name: ${currentContent.companyName}
 Company Description: ${currentContent.companyDescription}
 
-Key Partners: ${currentContent.keyPartners}
-Key Activities: ${currentContent.keyActivities}
-Key Resources: ${currentContent.keyResources}
-Value Propositions: ${currentContent.valuePropositions}
-Customer Relationships: ${currentContent.customerRelationships}
-Channels: ${currentContent.channels}
-Customer Segments: ${currentContent.customerSegments}
-Cost Structure: ${currentContent.costStructure}
-Revenue Streams: ${currentContent.revenueStreams}
+You are providing suggestions for the ${section} section of the Business Model Canvas.
+Provide exactly 3 clear, actionable suggestions.`
 
-You are filling out an online form which represents the ${section} section of the Business Model Canvas.
-Provide the input for the ${section} section of the Business Model Canvas and the ${section} ONLY. Keep it concise but insightful.
-Your response will be entered directly into the form so do not respond with anything other than the input for the ${section} section of the Business Model Canvas and the ${section}.
-Markdown is REQUIRED.
-Suggest a MAXIMUM of 3 items.
-`
-
-    // Create encoder for the stream
-    const encoder = new TextEncoder()
-
-    // Create the stream
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          const completion = await openai.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            model: "gpt-4-turbo-preview",
-            stream: true,
-          })
-
-          // Process each chunk
-          for await (const chunk of completion) {
-            const content = chunk.choices[0]?.delta?.content || ''
-            if (content) {
-              // Encode and enqueue the chunk
-              controller.enqueue(encoder.encode(content))
+    const completion = await openai.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4o",
+      response_format: { 
+        type: "json_schema",
+        json_schema: {
+          strict: true,
+          name: "suggestions",
+          schema: {
+            type: "object",
+            properties: {
+              suggestions: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  suggestion: {
+                    type: "string",
+                    description: "The suggested improvement"
+                  },
+                  rationale: {
+                    type: "string",
+                    description: "Brief explanation of why this suggestion would be valuable"
+                  }
+                },
+                required: ["suggestion", "rationale"],
+                additionalProperties: false
+              }
+            }
+          },
+          required: ["suggestions"],
+              additionalProperties: false
             }
           }
-          controller.close()
-        } catch (error) {
-          console.error('Streaming error:', error)
-          controller.error(error)
         }
       }
+    )
+    return NextResponse.json({
+      content: completion.choices[0].message.content
     })
 
-    // Return the stream with appropriate headers
-    return new Response(stream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    })
   } catch (error) {
     console.error('AI assist error:', error)
     return NextResponse.json(
