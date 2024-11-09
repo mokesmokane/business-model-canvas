@@ -21,3 +21,7 @@ runConfig:
   # See https://firebase.google.com/docs/app-hosting/configure#secret-parameters
   # - variable: MY_SECRET
   #   secret: mySecretRef
+
+  # Grant access to OpenAI API key from Cloud Secret Manager
+  - variable: OPENAI_API_KEY
+    secret: OPENAI_API_KEY
