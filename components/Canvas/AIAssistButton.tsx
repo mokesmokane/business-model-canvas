@@ -1,59 +1,111 @@
+'use client'
+
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Sparkles } from 'lucide-react'
+import { useChat } from '@/contexts/ChatContext'
+import { Message } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { v4 as uuidv4 } from 'uuid';
 
-interface AISuggestion {
-  id: string;
-  suggestion: string;
-  rationale: string;
+interface AIAssistButtonProps {
+  section: string
+  sectionKey: string
+  onExpandSidebar: () => void
 }
 
-interface AISuggestionItemProps {
-  suggestion: AISuggestion;
-  onLike: () => void;
-  onDismiss: () => void;
-  onExpand: () => void;
-}
+export function AIAssistButton({ section, sectionKey, onExpandSidebar }: AIAssistButtonProps) {
+  const { setIsLoading, addMessages, isLoading, messages } = useChat()
+  const { formData } = useCanvas()
 
-export function AIAssistButton({ section, sectionKey }: { section: string, sectionKey: string }) {
-  const { formData, updateField } = useCanvas()
-  const [isLoading, setIsLoading] = React.useState(false)
+  const handleSend = async () => {
+      try {
+        const currentMessages = [...messages.filter((m: Message) => m.role !== 'error')]
+        const currentContent = formData
+
+        const response = await fetch('/api/ai-chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: [...messages.filter((m: Message) => m.role !== 'error')],
+            currentContent: formData
+          }),
+        })
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: 'No additional error details available' }));
+            addMessages([...messages, { 
+                role: 'error', 
+                content: `Error: ${response.status} ${response.statusText}\n\nDetails: ${JSON.stringify(errorData, null, 2)}` 
+            }]);
+        } else {
+            const data = await response.json();
+            addMessages([...messages, { 
+                role: 'assistant', 
+                content: data.message,
+                suggestions: data.suggestions 
+            }]);
+        }
+
+      } catch (error) {
+        const errorMessage = error instanceof Error 
+            ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
+            : String(error);
+        
+        addMessages([...messages, { 
+            role: 'error', 
+            content: `An error occurred:\n\n${errorMessage}` 
+        }]);
+      } 
+  }
 
   const handleAIAssist = async () => {
+    onExpandSidebar()
+    const message = {
+      role: 'user',
+      content: `Please help me improve the ${section} section of my business model canvas`
+    } as Message
+    
+    const updatedMessages = [...messages, message]
+    
+    await addMessages(updatedMessages)
     setIsLoading(true)
     try {
-      const response = await fetch('/api/ai-assist', {
+      const response = await fetch('/api/ai-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          section: section,
+          messages: updatedMessages.filter((m: Message) => m.role !== 'error'),
           currentContent: formData
         }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to get AI assistance')
-      }
-
-      const data = await response.json()
-      if (data.content) {
-        const parsedData = JSON.parse(data.content)
-        const suggestionsWithIds = parsedData.suggestions.map((s: Omit<AISuggestion, 'id'>) => ({
-          id: uuidv4(),
-          suggestion: s.suggestion,
-          rationale: s.rationale
-        }))
-        
-        updateField(`${sectionKey}_ai_suggestions` as keyof typeof formData, 
-          suggestionsWithIds
-        )
+        const errorData = await response.json().catch(() => ({ message: 'No additional error details available' }));
+        addMessages([...updatedMessages, { 
+          role: 'error', 
+          content: `Error: ${response.status} ${response.statusText}\n\nDetails: ${JSON.stringify(errorData, null, 2)}` 
+        }]);
+      } else {
+        const data = await response.json();
+        addMessages([...updatedMessages, { 
+          role: 'assistant', 
+          content: data.message,
+          suggestions: data.suggestions 
+        }]);
       }
     } catch (error) {
-      console.error('Error getting AI assistance:', error)
+      const errorMessage = error instanceof Error 
+        ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
+        : String(error);
+      
+      addMessages([...updatedMessages, { 
+        role: 'error', 
+        content: `An error occurred:\n\n${errorMessage}` 
+      }]);
     } finally {
       setIsLoading(false)
     }

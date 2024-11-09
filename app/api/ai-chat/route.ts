@@ -1,6 +1,7 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
+import { Message } from '@/contexts/ChatContext'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -41,6 +42,18 @@ export async function POST(request: Request) {
 
   try {
     const { currentContent, messages } = await request.json()
+    
+    // Expand any messages that contain suggestions into individual messages
+    const expanded_messages = messages.flatMap((msg: Message) => {
+      if (msg.suggestions) {
+        return msg.suggestions.map((suggestion) => ({
+          role: "assistant",
+          content: `Suggestion for ${suggestion.section}:\n${suggestion.suggestion}\n\nRationale: ${suggestion.rationale}`
+        }))
+      }
+      return [msg]
+    })
+
     let messages_list = [
       {
         role: "system",
@@ -63,7 +76,7 @@ export async function POST(request: Request) {
         
         `
       },
-      ...messages
+      ...expanded_messages
     ]
 
     //print out messages for debugging

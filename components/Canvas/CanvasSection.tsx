@@ -26,7 +26,6 @@ interface CanvasSectionProps {
   sectionKey: string;
   icon: LucideIcon;
   items: string[];
-  aiSuggestions?: AISuggestion[];
   onChange: (value: string[]) => void;
   placeholder: string;
   className?: string;
@@ -37,30 +36,12 @@ export function CanvasSection({
   sectionKey, 
   icon: Icon, 
   items, 
-  aiSuggestions, 
   onChange, 
   placeholder, 
   className 
 }: CanvasSectionProps) {
   const itemsArray = Array.isArray(items) ? items : items ? [items] : [];
-  const [suggestions, setSuggestions] = useState<AISuggestion[]>([])
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
-
-  useEffect(() => {
-    if (aiSuggestions) {
-      setSuggestions(aiSuggestions)
-    }
-  }, [aiSuggestions, sectionKey])
-
-  const handleAddSuggestion = (suggestion: AISuggestion) => {
-    const newItems = [...itemsArray, `${suggestion.suggestion}\n\n${suggestion.rationale}`]
-    onChange(newItems)
-    setSuggestions(prev => prev.filter(s => s.id !== suggestion.id))
-  }
-
-  const handleDismissSuggestion = (id: string) => {
-    setSuggestions(prev => prev.filter(s => s.id !== id))
-  }
 
   const handleAddOrUpdateItem = (content: string) => {
     if (editingIndex !== null) {
@@ -103,10 +84,10 @@ export function CanvasSection({
                 <Icon className="h-5 w-5" />
                 {title}
                 <div className="flex-1" />
-                <AIAssistButton section={title} sectionKey={sectionKey} />
+                <AIAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {}} />
               </CardTitle>
             </TooltipTrigger>
-            {(itemsArray.length > 0 || suggestions.length > 0) && (
+            {(itemsArray.length > 0) && (
               <TooltipContent className="whitespace-pre-line text-sm text-muted-foreground">
                 {placeholder}
               </TooltipContent>
@@ -116,7 +97,7 @@ export function CanvasSection({
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         <ScrollArea className="flex-1 mb-4">
-          {itemsArray.length === 0 && suggestions.length === 0 ? (
+          {itemsArray.length === 0 ? (
             <p className="text-gray-500 text-sm whitespace-pre-line">
               {placeholder}
             </p>
@@ -133,22 +114,6 @@ export function CanvasSection({
             ))
           )}
         </ScrollArea>
-        
-        {suggestions.length > 0 && (
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold mb-2">AI Suggestions:</h3>
-            {suggestions.map((suggestion) => (
-              <AISuggestionItem
-
-                key={suggestion.id}
-                suggestion={suggestion}
-                onLike={() => handleAddSuggestion(suggestion)}
-                onDismiss={() => handleDismissSuggestion(suggestion.id)}
-                onExpand={()=>{}}
-              />
-            ))}
-          </div>
-        )}
         
         <div className="flex items-center space-x-2">
           <DynamicInput 

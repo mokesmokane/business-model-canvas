@@ -9,17 +9,8 @@ import AISuggestionItem from '@/components/Canvas/AISuggestionItem'
 import { AIThinkingIndicator } from '@/components/ui/ai-thinking'
 import { useCanvas } from '@/contexts/CanvasContext'
 import ReactMarkdown from 'react-markdown'
-
-interface Message {
-  role: 'user' | 'assistant' | 'error'
-  content: string
-  suggestions?: {
-    id: string
-    section: string
-    suggestion: string
-    rationale: string
-  }[]
-}
+import { useChat } from '@/contexts/ChatContext'
+import { Message } from '@/contexts/ChatContext'
 
 interface AIChatAreaProps {
   isExpanded: boolean
@@ -27,32 +18,29 @@ interface AIChatAreaProps {
 
 export function AIChatArea({ isExpanded }: AIChatAreaProps) {
   const { updateSection, formData } = useCanvas()
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const { messages, addMessage, addMessages, input, setInput, isLoading, setIsLoading } = useChat()
 
   const handleAddSuggestion = (section: string, suggestion: string, rationale: string, suggestionId: string) => {
     const currentItems = (formData[section as keyof typeof formData] as string[]) || []
     const newItems = [...currentItems, `${suggestion}\n\n${rationale}`]
     updateSection(section, newItems)
     
-    setMessages(prevMessages => 
-      prevMessages.map(message => {
-        if (message.role === 'assistant' && message.suggestions) {
-          return {
-            ...message,
-            suggestions: message.suggestions.filter(s => s.id !== suggestionId)
-          }
+    const updatedMessages = messages.map((message: Message) => {
+      if (message.role === 'assistant' && message.suggestions) {
+        return {
+          ...message,
+          suggestions: message.suggestions.filter(s => s.id !== suggestionId)
         }
-        return message
-      })
-    )
+      }
+      return message
+    })
+    addMessages(updatedMessages)
   }
 
   const handleSend = async () => {
     if (input.trim()) {
       const userMessage = { role: 'user', content: input } as Message
-      setMessages([...messages, userMessage])      
+      addMessages([...messages, userMessage])      
       setInput('')
       setIsLoading(true)
 
@@ -63,20 +51,20 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            messages: [...messages.filter(m => m.role !== 'error'), userMessage],
+            messages: [...messages.filter((m: Message) => m.role !== 'error'), userMessage],
             currentContent: formData
           }),
         })
 
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: 'No additional error details available' }));
-            setMessages(prev => [...prev, { 
+            addMessages([...messages, { 
                 role: 'error', 
                 content: `Error: ${response.status} ${response.statusText}\n\nDetails: ${JSON.stringify(errorData, null, 2)}` 
             }]);
         } else {
             const data = await response.json();
-            setMessages(prev => [...prev, { 
+            addMessages([...messages, { 
                 role: 'assistant', 
                 content: data.message,
                 suggestions: data.suggestions 
@@ -88,7 +76,7 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
             ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
             : String(error);
         
-        setMessages(prev => [...prev, { 
+        addMessages([...messages, { 
             role: 'error', 
             content: `An error occurred:\n\n${errorMessage}` 
         }]);
@@ -105,7 +93,7 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
 
     try {
       const userMessage = { role: 'user', content: 'Tell me more' } as Message
-      setMessages(prev => [...prev, userMessage])
+      addMessages([...messages, userMessage])
 
       const response = await fetch('/api/ai-chat', {
         method: 'POST',
@@ -113,20 +101,20 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [...messages.filter(m => m.role !== 'error'), { role: 'user', content: expandMessage }],
+          messages: [...messages.filter((m: Message) => m.role !== 'error'), { role: 'user', content: expandMessage }],
           currentContent: formData
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ message: 'No additional error details available' }))
-        setMessages(prev => [...prev, { 
+        addMessages([...messages, { 
           role: 'error', 
           content: `Error: ${response.status} ${response.statusText}\n\nDetails: ${JSON.stringify(errorData, null, 2)}` 
         }])
       } else {
         const data = await response.json()
-        setMessages(prev => [...prev, { 
+        addMessages([...messages, { 
           role: 'assistant', 
           content: data.message,
           suggestions: data.suggestions 
@@ -137,7 +125,7 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
         ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
         : String(error)
       
-      setMessages(prev => [...prev, { 
+      addMessages([...messages, { 
         role: 'error', 
         content: `An error occurred:\n\n${errorMessage}` 
       }])
@@ -154,7 +142,7 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
         {isExpanded && 'AI Chat'}
       </div>
       <ScrollArea className="flex-1 px-2">
-        {messages.map((message, index) => (
+        {messages.map((message: Message, index: number) => (
           <div key={index} className={`flex flex-col gap-2 mb-2`}>
             <div className={`flex gap-2 ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
               {message.role === 'assistant' && <Bot className="h-5 w-5 shrink-0" />}

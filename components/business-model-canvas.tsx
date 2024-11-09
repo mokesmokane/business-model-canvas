@@ -41,6 +41,10 @@ export function BusinessModelCanvasComponent() {
   const [isDrawerExpanded, setIsDrawerExpanded] = React.useState(false);
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
 
+  const handleExpandSidebar = React.useCallback(() => {
+    setIsDrawerExpanded(true);
+  }, []);
+
   useEffect(() => {
     // If there's a canvas ID in the URL or stored somewhere, load it
     const storedCanvasId = localStorage.getItem('lastCanvasId');
@@ -67,7 +71,9 @@ export function BusinessModelCanvasComponent() {
         />
         <div className="flex flex-col flex-1 overflow-hidden">
           <Header />
-          <CanvasContent/>
+          <CanvasContent 
+            onExpandSidebar={handleExpandSidebar}
+          />
         </div>
       </div>
       <AuthDialog 
