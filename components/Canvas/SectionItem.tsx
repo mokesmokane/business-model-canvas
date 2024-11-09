@@ -25,31 +25,45 @@ interface SectionItemProps {
     onEditStart,
     onEditEnd
   }: SectionItemProps) {
+    const [isHovered, setIsHovered] = useState(false)
+
+    const showControls = isHovered || isEditing
+
     return (
-      <Card className={`mb-2 p-3 flex items-center justify-between transition-all duration-300 ${
-        isEditing ? 'border-primary/50 bg-primary/5 shadow-md' : ''
-      }`}>
-        <p className="text-sm flex-grow whitespace-pre-wrap">
+      <Card 
+        className={`mb-2 p-3 transition-all duration-300 ${
+          isEditing ? 'border-primary/50 bg-primary/5 shadow-md' : ''
+        }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <p className="text-sm whitespace-pre-wrap mb-2">
           {item}
         </p>
-        <div>
-          <Button 
-            onClick={
-                isEditing ? onEditEnd : onEditStart
-            }
-            size="sm" 
-            variant={isEditing ? "default" : "ghost"}
-            className="mr-2"
-          >
-            <Edit2 className="h-4 w-4" />
-          </Button>
-          <Button 
-            onClick={onDelete} 
-            size="sm" 
-            variant="ghost"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+        <div 
+          className={`transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+            showControls ? 'opacity-100 max-h-24 translate-y-0' : 'opacity-0 max-h-0 translate-y-2'
+          } overflow-hidden`}
+        >
+          <div className="flex items-center space-x-2 mt-2 justify-end">
+            <AIAssistButton section={item} sectionKey={item} />
+            <Button 
+              onClick={isEditing ? onEditEnd : onEditStart}
+              size="sm" 
+              variant={isEditing ? "default" : "outline"}
+              className="flex items-center"
+            >
+              <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button 
+              onClick={onDelete} 
+              size="sm" 
+              variant="outline"
+              className="flex items-center"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </Card>
     )

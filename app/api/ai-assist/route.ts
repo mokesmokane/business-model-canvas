@@ -40,6 +40,11 @@ Provide exactly 3 clear, actionable suggestions.`
               items: {
                 type: "object",
                 properties: {
+                  section: {
+                    type: "enum",
+                    enum: ["keyPartners", "keyActivities", "keyResources", "valuePropositions", "customerRelationships", "channels", "customerSegments", "costStructure", "revenueStreams"],
+                    description: "The section of the Business Model Canvas that the suggestion is for"
+                  },
                   suggestion: {
                     type: "string",
                     description: "The suggested improvement"

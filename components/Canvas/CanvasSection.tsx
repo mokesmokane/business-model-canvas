@@ -152,7 +152,7 @@ export function CanvasSection({
         
         <div className="flex items-center space-x-2">
           <DynamicInput 
-            placeholder={placeholder}
+            placeholder={title}
             onSubmit={handleAddOrUpdateItem}
             onCancel={editingIndex !== null ? handleEditCancel : undefined}
             initialValue={editingIndex !== null ? itemsArray[editingIndex] : ''}
