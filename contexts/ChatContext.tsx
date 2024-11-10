@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { useCanvas } from './CanvasContext';
 
 export interface Message {
@@ -22,6 +22,7 @@ interface ChatContextType {
   setIsLoading: (loading: boolean) => void;
   addMessage: (message: Message) => void;
   addMessages: (messages: Message[]) => void;
+  clearMessages: () => void;
 }
 
 const ChatContext = createContext<ChatContextType>({
@@ -32,6 +33,7 @@ const ChatContext = createContext<ChatContextType>({
   setIsLoading: () => {},
   addMessage: () => {},
   addMessages: () => {},
+  clearMessages: () => {},
 });
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
@@ -53,6 +55,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setMessages(newMessages);
   };
 
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    setInput('');
+    setIsLoading(false);
+  }, []);
+
   return (
     <ChatContext.Provider value={{
       messages,
@@ -62,6 +70,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       setIsLoading,
       addMessage,
       addMessages,
+      clearMessages,
     }}>
       {children}
     </ChatContext.Provider>

@@ -86,6 +86,14 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
     }
   }
 
+  const handleLike = (suggestionId: string) => {
+    console.log(`Like suggestion with id: ${suggestionId}`)
+  }
+
+  const handleDismiss = (suggestionId: string) => {
+    console.log(`Dismiss suggestion with id: ${suggestionId}`)
+  }
+
   const handleExpand = async (suggestion: { suggestion: string }) => {
     const expandMessage = `Tell me more about "${suggestion.suggestion}"`
     setInput('')
@@ -135,77 +143,101 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
   }
 
   return (
-    isExpanded ? (
-    <div className="flex flex-col h-full border-t">
-      <div className="p-2 font-semibold text-sm flex items-center gap-2 shrink-0">
-        <Bot className="h-4 w-4" />
-        {isExpanded && 'AI Chat'}
-      </div>
-      <ScrollArea className="flex-1 px-2">
-        {messages.map((message: Message, index: number) => (
-          <div key={index} className={`flex flex-col gap-2 mb-2`}>
-            <div className={`flex gap-2 ${message.role === 'assistant' ? 'justify-start' : 'justify-end'}`}>
-              {message.role === 'assistant' && <Bot className="h-5 w-5 shrink-0" />}
-              <div className={`rounded-lg p-2 text-sm ${
-                message.role === 'assistant' 
-                  ? 'bg-zinc-100 text-zinc-900' 
-                  : 'bg-zinc-900 text-zinc-50'
-              }`}>
-                {message.role === 'assistant' ? (
-                  <ReactMarkdown className="prose prose-sm dark:prose-invert max-w-none">
-                    {message.content}
-                  </ReactMarkdown>
-                ) : (
-                  message.content
-                )}
-              </div>
-              {message.role === 'user' && <User className="h-5 w-5 shrink-0" />}
-              {message.role === 'error' && <AlertTriangle className="h-5 w-5 shrink-0" />}
+    <>
+      {isExpanded ? (
+        <div className="h-full flex flex-col">
+          <div className="flex items-center gap-2 p-4 border-b border-gray-800">
+            <Bot className="h-4 w-4 text-gray-400" />
+            <h3 className="text-sm font-semibold text-gray-300">AI Assistant</h3>
+          </div>
+          <ScrollArea className="flex-grow p-4">
+            <div className="space-y-4">
+              {messages.map((message, index) => (
+                <div key={index} className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  {message.role === 'assistant' && (
+                    <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-gray-300" />
+                    </div>
+                  )}
+                  <div className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === 'user' 
+                      ? 'bg-gray-800 text-gray-100' 
+                      : message.role === 'assistant'
+                      ? 'bg-gray-800/50 text-gray-100'
+                      : 'bg-red-900/50 text-gray-100'
+                  }`}>
+                    {message.role === 'error' ? (
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-red-400" />
+                        <span>{message.content}</span>
+                      </div>
+                    ) : (
+                      <ReactMarkdown className="prose prose-invert prose-sm">
+                        {message.content}
+                      </ReactMarkdown>
+                    )}
+                    {message.suggestions && (
+                      <div className="mt-2 space-y-2">
+                        {message.suggestions.map((suggestion) => (
+                          <AISuggestionItem
+                            key={suggestion.id}
+                            suggestion={suggestion}
+                            onLike={() => handleLike(suggestion.id)}
+                            onDismiss={() => handleDismiss(suggestion.id)}
+                            onExpand={() => handleExpand(suggestion)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {message.role === 'user' && (
+                    <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center">
+                      <User className="w-4 h-4 text-gray-300" />
+                    </div>
+                  )}
+                </div>
+              ))}
+              {isLoading && (
+                <div className="flex gap-2">
+                  <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-gray-300" />
+                  </div>
+                  <AIThinkingIndicator />
+                </div>
+              )}
             </div>
-            {message.role === 'assistant' && message.suggestions && (
-              <div className="flex flex-col gap-2">
-                {message.suggestions.map((suggestion) => (
-                  <AISuggestionItem
-                    key={`${index}-${suggestion.id}`}
-                    suggestion={suggestion}
-                    onLike={() => {
-                      handleAddSuggestion(
-                        suggestion.section,
-                        suggestion.suggestion,
-                        suggestion.rationale,
-                        suggestion.id
-                      )
-                    }}
-                    onDismiss={() => {
-                      console.log('Dismissed suggestion:', suggestion.id)
-                    }}
-                    onExpand={() => handleExpand(suggestion)}
-                  />
-                ))}
-              </div>
-            )}
+          </ScrollArea>
+          <div className="p-2">
+            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isExpanded ? "Type your message..." : "Chat..."}
+                className="flex-grow bg-gray-900 border-gray-800 text-gray-100 placeholder:text-gray-500"
+              />
+              <Button 
+                type="submit" 
+                size="icon" 
+                disabled={isLoading}
+                variant="ghost"
+                className="text-gray-400 hover:text-gray-100"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
           </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <AIThinkingIndicator />
-          </div>
-        )}
-      </ScrollArea>
-      <div className="p-2">
-        <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={isExpanded ? "Type your message..." : "Chat..."}
-            className="flex-grow"
-          />
-          <Button type="submit" size="icon" disabled={isLoading}>
-            <Send className="h-4 w-4" />
+        </div>
+      ) : (
+        <div className="p-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-8 h-8 text-gray-400 hover:text-gray-100"
+          >
+            <Bot className="h-4 w-4" />
           </Button>
-        </form>
-      </div>
-      </div>
-    ) : null
+        </div>
+      )}
+    </>
   )
 }

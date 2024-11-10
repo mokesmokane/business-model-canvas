@@ -45,6 +45,7 @@ interface CanvasContextType {
   createNewCanvas: (data: { name: string, description: string }) => Promise<string | undefined>;
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
+  clearState: () => void;
 }
 
 export const CanvasContext = createContext<CanvasContextType>({
@@ -58,6 +59,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   createNewCanvas: async () => { return ''  },
   resetForm: () => {},
   deleteCanvas: async () => {},
+  clearState: () => {},
 });
 
 const AUTOSAVE_DELAY = 1000;
@@ -247,6 +249,16 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, setStatus, state.currentCanvas?.id]);
 
+  const clearState = useCallback(() => {
+    setState({
+      currentCanvas: null,
+      formData: initialCanvasState,
+      status: 'idle',
+      error: null
+    });
+    localStorage.removeItem('lastCanvasId');
+  }, []);
+
   return (
     <CanvasContext.Provider 
       value={{
@@ -259,7 +271,8 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         loadCanvas,
         createNewCanvas,
         resetForm,
-        deleteCanvas
+        deleteCanvas,
+        clearState,
       }}
     >
       {children}

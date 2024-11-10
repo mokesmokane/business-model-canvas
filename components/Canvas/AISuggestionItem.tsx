@@ -14,7 +14,9 @@ import {
   Truck, 
   Receipt, 
   Coins,
-  LucideIcon
+  LucideIcon,
+  ThumbsUp,
+  X
 } from 'lucide-react'
 
 // Map section names to their corresponding icons
@@ -76,71 +78,43 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
 
   return (
     <Card 
-      className={`mb-2 border-2 ${
-        isHovered ? 'border-primary shadow-lg' : 'border-gray-100'
+      className={`mb-2 border-2 bg-gray-800/50 ${
+        isHovered ? 'border-gray-700' : 'border-gray-800'
       } ${
         isRemoving
           ? isLiked
             ? 'scale-110 opacity-0 translate-y-[-20px]'
             : 'scale-90 opacity-0 translate-y-[20px]'
           : ''
-      }`}
+      } transition-all duration-300`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <CardContent className="p-3 relative">
         <div className="flex items-start gap-2">
-          {Icon && (
-            <div className="flex-shrink-0 mt-1">
-              <Icon className="h-4 w-4 text-muted-foreground" />
-            </div>
-          )}
-          <div className="flex-grow">
-            <div className="text-sm mb-2 prose prose-sm dark:prose-invert max-w-none">
-              {suggestion.suggestion}
-            </div>
-            <div className="text-xs text-muted-foreground mb-2">
-              {suggestion.rationale}
-            </div>
-            <div 
-              className={`transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-                isHovered ? 'opacity-100 max-h-24 translate-y-0' : 'opacity-0 max-h-0 translate-y-2'
-              } overflow-hidden`}
-            >
-              <div className="flex items-center space-x-1 mt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleLike}
-                  aria-label="Like suggestion"
-                  className="flex items-center text-xs py-1 px-2"
-                >
-                  <span role="img" aria-label="Bullseye" className="mr-1">🎯</span>
-                  Spot on!
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleDismiss}
-                  aria-label="Dismiss suggestion"
-                  className="flex items-center text-xs py-1 px-2"
-                >
-                  <span role="img" aria-label="Face vomiting" className="mr-1">🤮</span>
-                  Way off!
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={onExpand}
-                  aria-label="Expand suggestion"
-                  className="flex items-center text-xs py-1 px-2"
-                >
-                  <span role="img" aria-label="Thinking face" className="mr-1">🤔</span>
-                  Tell me more
-                </Button>
-              </div>
-            </div>
+          {Icon && <Icon className="w-4 h-4 mt-1 text-gray-400" />}
+          <div className="flex-1">
+            <p className="text-sm text-gray-200 mb-1">{suggestion.suggestion}</p>
+            <p className="text-xs text-gray-400">{suggestion.rationale}</p>
           </div>
+        </div>
+        <div className="flex gap-1 mt-2 justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-gray-400 hover:text-gray-100"
+            onClick={handleLike}
+          >
+            <ThumbsUp className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="text-gray-400 hover:text-gray-100"
+            onClick={handleDismiss}
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       </CardContent>
     </Card>

@@ -6,9 +6,10 @@ import { useAuth } from '@/contexts/AuthContext'
 
 interface SidebarContentProps {
   isExpanded: boolean
+  onToggle: () => void
 }
 
-export function SidebarContent({ isExpanded }: SidebarContentProps) {
+export function SidebarContent({ isExpanded, onToggle }: SidebarContentProps) {
   const { userCanvases } = useAuth()
 
   return (
@@ -19,6 +20,7 @@ export function SidebarContent({ isExpanded }: SidebarContentProps) {
             icon={LayoutDashboard}
             title="Business Models"
             isExpanded={isExpanded}
+            onToggle={onToggle}
             items={userCanvases.map(canvas => ({
               id: canvas.id,
               name: canvas.companyName || 'Untitled Canvas'

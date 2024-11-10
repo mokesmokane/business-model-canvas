@@ -15,16 +15,11 @@ interface SidebarProps {
 export function Sidebar({ isExpanded, onToggle, setShowAuthDialog}: SidebarProps) {
   return (
     <TooltipProvider>
-      <div className={`flex flex-col h-screen border-r transition-all duration-300 ${isExpanded ? "w-96" : "w-16"}`}>
-        <div className="flex items-center justify-between p-4">
-          {isExpanded && <h2 className="text-lg font-semibold">Menu</h2>}
-          <Button variant="ghost" size="icon" onClick={onToggle}>
-            <Menu className="h-4 w-4" />
-          </Button>
-        </div>
+      <div className={`flex flex-col h-screen bg-gray-950 border-r border-gray-800 transition-all duration-300 ${isExpanded ? "w-96" : "w-16"}`}>
         <div className="flex-none">
-          <SidebarContent isExpanded={isExpanded}/>
+          <SidebarContent isExpanded={isExpanded} onToggle={onToggle} />
         </div>
+        <div className="border-t border-gray-800 my-2"></div>
         <div className="flex-grow overflow-hidden">
           <AIChatArea isExpanded={isExpanded} />
         </div>

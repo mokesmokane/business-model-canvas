@@ -6,6 +6,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCanvas } from '@/contexts/CanvasContext'
+import { useChat } from '@/contexts/ChatContext'
 
 interface SidebarFooterProps {
   isExpanded: boolean
@@ -14,10 +16,14 @@ interface SidebarFooterProps {
 
 export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterProps) {
   const { user, logout } = useAuth();
+  const { clearState } = useCanvas();
+  const { clearMessages } = useChat();
 
   const handleSignOut = async () => {
     try {
       await logout();
+      clearState();
+      clearMessages();
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -25,7 +31,7 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
 
   return (
     <div className="mt-auto">
-      <div className="border-t p-4">
+      <div className="border-t border-gray-800 p-4">
         {isExpanded ? (
           <div className="flex flex-col gap-2">
             <Button variant="ghost" className="w-full justify-start">
@@ -74,36 +80,6 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
               </TooltipContent>
             </Tooltip>
           </div>
-        )}
-      </div>
-      <div className="p-2 border-t border-gray-200 dark:border-gray-800">
-        {user ? (
-          <div className={`flex items-center gap-2 ${!isExpanded && 'justify-center'}`}>
-            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-              <User className="w-4 h-4" />
-            </div>
-            {isExpanded && (
-              <div className="flex-1 overflow-hidden">
-                <p className="text-sm truncate">{user.email}</p>
-              </div>
-            )}
-            <button
-              onClick={handleSignOut}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
-              title="Sign out"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setShowAuthDialog(true)}
-            className={`w-full p-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md ${
-              !isExpanded && 'flex justify-center'
-            }`}
-          >
-            {isExpanded ? 'Sign In' : <User className="w-4 h-4" />}
-          </button>
         )}
       </div>
     </div>

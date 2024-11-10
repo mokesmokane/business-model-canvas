@@ -30,6 +30,7 @@ interface SidebarSectionProps {
   title: string;
   items: SectionItem[];
   isExpanded: boolean;
+  onToggle: () => void;
   onItemClick?: (id: string) => void;
   onNewItem?: () => void;
 }
@@ -38,7 +39,8 @@ export function SidebarSection({
   icon: Icon, 
   title, 
   items, 
-  isExpanded
+  isExpanded,
+  onToggle
 }: SidebarSectionProps) {
   const { loadCanvas, createNewCanvas, deleteCanvas, resetForm } = useCanvas();
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -71,36 +73,48 @@ export function SidebarSection({
     <div className={isExpanded ? "space-y-2" : undefined}>
       {isExpanded ? (
         <>
-          <h3 className="px-2 text-sm font-semibold flex items-center gap-2">
-            <Icon className="h-4 w-4" />
-            {title}
+          <h3 className="px-2 text-sm font-semibold text-gray-300 flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full flex items-center gap-2 justify-start text-gray-300 hover:text-gray-100"
+              onClick={onToggle}
+            >
+              <Icon className="h-4 w-4" />
+              {title}
+            </Button>
           </h3>
           <NewCanvasDialog/>
           {items.map((item) => (
             <div key={item.id} className="flex items-center gap-1">
               <Button
                 variant="ghost"
-                className="flex-1 justify-start pl-8"
+                className="flex-1 justify-start pl-8 text-gray-400 hover:text-gray-100"
                 onClick={() => handleCanvasSelect(item.id)}
               >
                 {item.name}
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Trash2 className="h-4 w-4 text-muted-foreground" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-100">
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="bg-gray-900 border-gray-800">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Canvas</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="text-gray-100">Delete Canvas</AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-400">
                       Are you sure you want to delete "{item.name}"? This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDeleteCanvas(item.id)}>
+                    <AlertDialogCancel className="bg-gray-800 text-gray-100 hover:bg-gray-700 border-gray-700">
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => handleDeleteCanvas(item.id)}
+                      className="bg-red-600 text-gray-100 hover:bg-red-700"
+                    >
                       Delete
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -108,18 +122,20 @@ export function SidebarSection({
               </AlertDialog>
             </div>
           ))}
-          {items.length === 0 && (
-            <p className="text-sm text-gray-500 px-2">No canvases yet</p>
-          )}
         </>
       ) : (
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-gray-400 hover:text-gray-100"
+              onClick={onToggle}
+            >
               <Icon className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right">
+          <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-800">
             {title}
           </TooltipContent>
         </Tooltip>
