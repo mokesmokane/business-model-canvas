@@ -46,7 +46,11 @@ interface SectionItemProps {
           } overflow-hidden`}
         >
           <div className="flex items-center space-x-2 mt-2 justify-end">
-            <AIAssistButton section={item} sectionKey={item} />
+            <AIAssistButton 
+              section={item} 
+              sectionKey={item} 
+              onExpandSidebar={() => {}} 
+            />
             <Button 
               onClick={isEditing ? onEditEnd : onEditStart}
               size="sm" 

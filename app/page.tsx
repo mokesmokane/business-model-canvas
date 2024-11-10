@@ -3,9 +3,11 @@ import { SiteHeader } from "@/components/site/SiteHeader"
 
 export default function Page() {
   return (
-    <div className="min-h-screen bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-gray-900">
       <SiteHeader />
-      <BusinessModelCanvasComponent />
+      <div className="flex-1">
+        <BusinessModelCanvasComponent />
+      </div>
     </div>
   )
 }

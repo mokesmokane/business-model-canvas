@@ -15,7 +15,7 @@ interface SidebarProps {
 export function Sidebar({ isExpanded, onToggle, setShowAuthDialog}: SidebarProps) {
   return (
     <TooltipProvider>
-      <div className={`flex flex-col h-screen bg-gray-950 border-r border-gray-800 transition-all duration-300 ${isExpanded ? "w-96" : "w-16"}`}>
+      <div className={`flex flex-col h-[calc(100vh-64px)] bg-gray-950 border-r border-gray-800 transition-all duration-300 ${isExpanded ? "w-96" : "w-16"}`}>
         <div className="flex-none">
           <SidebarContent isExpanded={isExpanded} onToggle={onToggle} />
         </div>

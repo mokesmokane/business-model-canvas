@@ -46,13 +46,11 @@ export function BusinessModelCanvasComponent() {
   }, []);
 
   useEffect(() => {
-    // If there's a canvas ID in the URL or stored somewhere, load it
     const storedCanvasId = localStorage.getItem('lastCanvasId');
     if (storedCanvasId) {
       loadCanvas(storedCanvasId);
     }
   }, [loadCanvas]);
-
 
   const handleSave = React.useCallback(async () => {
     if (!user) {
@@ -63,7 +61,7 @@ export function BusinessModelCanvasComponent() {
 
   return (
     <>
-      <div className="flex h-screen bg-white dark:bg-gray-950">
+      <div className="flex h-[calc(100vh-64px)] bg-white dark:bg-gray-950">
         <Sidebar 
           isExpanded={isDrawerExpanded}
           onToggle={() => setIsDrawerExpanded(!isDrawerExpanded)}
