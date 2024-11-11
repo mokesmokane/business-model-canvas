@@ -4,7 +4,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { LucideIcon, Send } from 'lucide-react'
-import { AIAssistButton } from './AIAssistButton'
+import { AIItemAssistButton } from './AIItemAssistButton'
+// import { AISectionAssistButton } from './AISectionAssistButton' 
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '../ui/input'
 import { Check, X, Edit2, Trash2 } from 'lucide-react'
@@ -26,8 +27,9 @@ interface SectionItemProps {
     onEditEnd
   }: SectionItemProps) {
     const [isHovered, setIsHovered] = useState(false)
+    const [isInteractingWithDropdown, setIsInteractingWithDropdown] = useState(false)
 
-    const showControls = isHovered || isEditing
+    const showControls = isHovered || isEditing || isInteractingWithDropdown
 
     return (
       <Card 
@@ -35,7 +37,7 @@ interface SectionItemProps {
           isEditing ? 'border-primary/50 bg-primary/5 shadow-md' : ''
         }`}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseLeave={() => !isInteractingWithDropdown && setIsHovered(false)}
       >
         <p className="text-sm whitespace-pre-wrap mb-2">
           {item}
@@ -46,11 +48,14 @@ interface SectionItemProps {
           } overflow-hidden`}
         >
           <div className="flex items-center space-x-2 mt-2 justify-end">
-            <AIAssistButton 
-              section={item} 
-              sectionKey={item} 
-              onExpandSidebar={() => {}} 
-            />
+            <div onClick={(e) => e.stopPropagation()}>
+              <AIItemAssistButton 
+                section={item} 
+                sectionKey={item} 
+                onExpandSidebar={() => {}} 
+                onDropdownStateChange={setIsInteractingWithDropdown}
+              />
+            </div>
             <Button 
               onClick={isEditing ? onEditEnd : onEditStart}
               size="sm" 

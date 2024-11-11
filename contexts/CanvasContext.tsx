@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useCallback, useRef, useState } from 'react';
+import React, { createContext, useContext, useCallback, useRef, useState, useEffect } from 'react';
 import { collection, doc, getDoc, setDoc, addDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
@@ -148,11 +148,19 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   }, [saveToFirebase]);
 
   const updateSection = useCallback((sectionKey: string, value: string[]) => {
-    setState(prev => ({
-      ...prev,
-      formData: { ...prev.formData, [sectionKey]: value }
-    }));
-  }, []);
+    setState(prev => {
+      const updatedData = {
+        ...prev.formData,
+        [sectionKey]: value,
+        id: prev.currentCanvas?.id || prev.formData.id
+      };
+      saveToFirebase(updatedData);
+      return {
+        ...prev,
+        formData: updatedData
+      };
+    });
+  }, [saveToFirebase]);
 
   const loadCanvas = useCallback(async (id: string) => {
     try {
@@ -258,6 +266,13 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     });
     localStorage.removeItem('lastCanvasId');
   }, []);
+
+  useEffect(() => {
+    const storedCanvasId = localStorage.getItem('lastCanvasId');
+    if (storedCanvasId) {
+      loadCanvas(storedCanvasId);
+    }
+  }, [loadCanvas]);
 
   return (
     <CanvasContext.Provider 

@@ -10,6 +10,7 @@ export default function PricingPage() {
   const { user } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
+
   const handleSubscribe = async (priceId: string) => {
     if (!user) {
       // Handle authentication required

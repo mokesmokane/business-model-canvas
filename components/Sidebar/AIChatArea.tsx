@@ -1,40 +1,55 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Send, Bot, User, AlertTriangle } from 'lucide-react'
+import { Send, Bot, User, AlertTriangle, Shrink, Expand } from 'lucide-react'
 import AISuggestionItem from '@/components/Canvas/AISuggestionItem'
 import { AIThinkingIndicator } from '@/components/ui/ai-thinking'
 import { useCanvas } from '@/contexts/CanvasContext'
 import ReactMarkdown from 'react-markdown'
 import { useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
+import { SectionButtons } from './SectionButtons'
+import { ActionButtons } from './ActionButtons'
+import { sendChatRequest } from '@/services/aiService'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface AIChatAreaProps {
   isExpanded: boolean
+  isWide: boolean
+  onToggle: () => void
 }
 
-export function AIChatArea({ isExpanded }: AIChatAreaProps) {
+export function AIChatArea({ isExpanded, isWide, onToggle }: AIChatAreaProps) {
   const { updateSection, formData } = useCanvas()
   const { messages, addMessage, addMessages, input, setInput, isLoading, setIsLoading } = useChat()
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [activeSection, setActiveSection] = useState<string | null>(null)
 
-  const handleAddSuggestion = (section: string, suggestion: string, rationale: string, suggestionId: string) => {
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages, isLoading])
+
+  const handleAddSuggestion = (index: number, section: string, suggestion: string, rationale: string, suggestionId: string) => {
     const currentItems = (formData[section as keyof typeof formData] as string[]) || []
     const newItems = [...currentItems, `${suggestion}\n\n${rationale}`]
+    console.log(`Adding suggestion to section: ${section}`)
     updateSection(section, newItems)
-    
-    const updatedMessages = messages.map((message: Message) => {
-      if (message.role === 'assistant' && message.suggestions) {
-        return {
-          ...message,
-          suggestions: message.suggestions.filter(s => s.id !== suggestionId)
-        }
-      }
-      return message
-    })
+    handleRemoveSuggestion(index, suggestionId)
+  }
+
+  const handleRemoveSuggestion = (index: number, suggestionId: string) => {
+    console.log(`Removing suggestion with id: ${suggestionId} from message index: ${index}`)
+    let updatedMessage = {...messages[index],
+      suggestions: messages[index]?.suggestions?.filter((s: any) => s.id !== suggestionId)
+    }
+    console.log(`Updated message: ${JSON.stringify(updatedMessage, null, 2)}`)
+    const updatedMessages = [...messages.slice(0, index), updatedMessage, ...messages.slice(index + 1)]
+    console.log(`Updated messages: ${JSON.stringify(updatedMessages, null, 2)}`)
     addMessages(updatedMessages)
+    
   }
 
   const handleSend = async () => {
@@ -45,53 +60,27 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
       setIsLoading(true)
 
       try {
-        const response = await fetch('/api/ai-chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            messages: [...messages.filter((m: Message) => m.role !== 'error'), userMessage],
-            currentContent: formData
-          }),
-        })
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: 'No additional error details available' }));
-            addMessages([...messages, { 
-                role: 'error', 
-                content: `Error: ${response.status} ${response.statusText}\n\nDetails: ${JSON.stringify(errorData, null, 2)}` 
-            }]);
-        } else {
-            const data = await response.json();
-            addMessages([...messages, { 
-                role: 'assistant', 
-                content: data.message,
-                suggestions: data.suggestions 
-            }]);
-        }
-
+        const currentMessages = [...messages.filter((m: Message) => m.role == 'system' || m.role == 'user' || m.role == 'assistant')]
+        const aiResponse = await sendChatRequest([...currentMessages, userMessage], formData)
+        addMessages([...messages, aiResponse as Message])
       } catch (error) {
         const errorMessage = error instanceof Error 
-            ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
-            : String(error);
+          ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
+          : String(error)
         
         addMessages([...messages, { 
-            role: 'error', 
-            content: `An error occurred:\n\n${errorMessage}` 
-        }]);
+          role: 'error', 
+          content: `An error occurred:\n\n${errorMessage}` 
+        }])
       } finally {
         setIsLoading(false)
       }
     }
   }
 
-  const handleLike = (suggestionId: string) => {
-    console.log(`Like suggestion with id: ${suggestionId}`)
-  }
 
-  const handleDismiss = (suggestionId: string) => {
-    console.log(`Dismiss suggestion with id: ${suggestionId}`)
+  const handleDismiss = (index: number, suggestionId: string) => {
+    handleRemoveSuggestion(index, suggestionId)
   }
 
   const handleExpand = async (suggestion: { suggestion: string }) => {
@@ -101,39 +90,43 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
 
     try {
       const userMessage = { role: 'user', content: 'Tell me more' } as Message
-      addMessages([...messages, userMessage])
+      const currentMessages = [...messages.filter((m: Message) => m.role == 'system' || m.role == 'user' || m.role == 'assistant')]
+      addMessages([...currentMessages, userMessage])
 
-      const response = await fetch('/api/ai-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [...messages.filter((m: Message) => m.role !== 'error'), { role: 'user', content: expandMessage }],
-          currentContent: formData
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'No additional error details available' }))
-        addMessages([...messages, { 
-          role: 'error', 
-          content: `Error: ${response.status} ${response.statusText}\n\nDetails: ${JSON.stringify(errorData, null, 2)}` 
-        }])
-      } else {
-        const data = await response.json()
-        addMessages([...messages, { 
-          role: 'assistant', 
-          content: data.message,
-          suggestions: data.suggestions 
-        }])
-      }
+      const aiResponse = await sendChatRequest([...currentMessages, { role: 'user', content: expandMessage }], formData)
+      addMessages([...messages, aiResponse as Message])
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
         : String(error)
       
       addMessages([...messages, { 
+        role: 'error', 
+        content: `An error occurred:\n\n${errorMessage}` 
+      }])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleAction = async (action: string) => {
+    const actionMessage = action === 'question' ? `Question me about ${activeSection}` : action === 'critique' ? `Critique the ${activeSection}` : action === 'research' ? `Research the ${activeSection}` : `Suggest things for ${activeSection}`
+    setIsLoading(true)
+    setActiveSection(null)
+    const userMessage = { role: 'user', content: actionMessage, action: action } as Message
+    const currentMessages = [...messages.filter((m: Message) => m.role == 'system' || m.role == 'user' || m.role == 'assistant')]
+
+    try {
+      addMessages([...currentMessages, userMessage])
+
+      const aiResponse = await sendChatRequest([...currentMessages, userMessage], formData)
+      addMessages([...currentMessages, userMessage, aiResponse as Message])
+    } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
+        : String(error)
+      
+      addMessages([...currentMessages, userMessage, { 
         role: 'error', 
         content: `An error occurred:\n\n${errorMessage}` 
       }])
@@ -149,21 +142,30 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
           <div className="flex items-center gap-2 p-4 border-b border-gray-800">
             <Bot className="h-4 w-4 text-gray-400" />
             <h3 className="text-sm font-semibold text-gray-300">AI Assistant</h3>
+            <div className="flex-grow"></div>
+            <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-gray-100"
+                onClick={onToggle}
+              >
+                {isWide ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+              </Button>
           </div>
           <ScrollArea className="flex-grow p-4">
             <div className="space-y-4">
-              {messages.map((message, index) => (
-                <div key={index} className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              {messages.map((message, messageIndex) => (
+                <div key={messageIndex} className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {message.role === 'assistant' && (
                     <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center">
                       <Bot className="w-4 h-4 text-gray-300" />
                     </div>
                   )}
-                  <div className={`max-w-[80%] rounded-lg p-3 ${
+                  <div className={`max-w-[600px] rounded-lg p-3 ${
                     message.role === 'user' 
-                      ? 'bg-gray-800 text-gray-100' 
+                      ? 'bg-gray-800 text-gray-100 ml-6' 
                       : message.role === 'assistant'
-                      ? 'bg-gray-800/50 text-gray-100'
+                      ? 'bg-gray-800/50 text-gray-100 mr-6'
                       : 'bg-red-900/50 text-gray-100'
                   }`}>
                     {message.role === 'error' ? (
@@ -177,16 +179,25 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
                       </ReactMarkdown>
                     )}
                     {message.suggestions && (
-                      <div className="mt-2 space-y-2">
-                        {message.suggestions.map((suggestion) => (
-                          <AISuggestionItem
-                            key={suggestion.id}
-                            suggestion={suggestion}
-                            onLike={() => handleLike(suggestion.id)}
-                            onDismiss={() => handleDismiss(suggestion.id)}
-                            onExpand={() => handleExpand(suggestion)}
-                          />
-                        ))}
+                      <div className="mt-2">
+                        <AnimatePresence initial={false}>
+                          {message.suggestions.map((suggestion, index) => (
+                            <motion.div
+                              key={suggestion.id || index}
+                              initial={{ opacity: 1, height: "auto", marginBottom: "0.5rem" }}
+                              animate={{ opacity: 1, height: "auto", marginBottom: "0.5rem" }}
+                              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                              <AISuggestionItem 
+                                suggestion={suggestion}
+                                onLike={() => handleAddSuggestion(messageIndex, suggestion.section, suggestion.suggestion, suggestion.rationale, suggestion.id)}
+                                onDismiss={() => handleDismiss(messageIndex, suggestion.id)}
+                                onExpand={() => handleExpand(suggestion)}
+                              />
+                            </motion.div>
+                          ))}
+                        </AnimatePresence>
                       </div>
                     )}
                   </div>
@@ -205,26 +216,42 @@ export function AIChatArea({ isExpanded }: AIChatAreaProps) {
                   <AIThinkingIndicator />
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
-          <div className="p-2">
-            <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={isExpanded ? "Type your message..." : "Chat..."}
-                className="flex-grow bg-gray-900 border-gray-800 text-gray-100 placeholder:text-gray-500"
+          <div className="flex-shrink-0">
+            <SectionButtons 
+              activeSection={activeSection}
+              onSectionSelect={setActiveSection}
+            />
+            <div className={`transition-all duration-200 ease-in-out ${
+              activeSection 
+                ? 'opacity-100 max-h-20 translate-y-0' 
+                : 'opacity-0 max-h-0 -translate-y-2 pointer-events-none'
+            }`}>
+              <ActionButtons
+                onActionSelect={handleAction}
               />
-              <Button 
-                type="submit" 
-                size="icon" 
-                disabled={isLoading}
-                variant="ghost"
-                className="text-gray-400 hover:text-gray-100"
-              >
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
+            </div>
+            <div className="p-2">
+              <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex gap-2">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={isExpanded ? "Type your message..." : "Chat..."}
+                  className="flex-grow bg-gray-900 border-gray-800 text-gray-100 placeholder:text-gray-500"
+                />
+                <Button 
+                  type="submit" 
+                  size="icon" 
+                  disabled={isLoading}
+                  variant="ghost"
+                  className="text-gray-400 hover:text-gray-100"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </form>
+            </div>
           </div>
         </div>
       ) : (

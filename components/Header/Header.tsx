@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { BusinessModelCanvas } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { AIAssistButton } from '../Canvas/AIAssistButton'
+import { AIAssistButton } from '../Canvas/AISectionAssistButton'
 
 interface HeaderProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void

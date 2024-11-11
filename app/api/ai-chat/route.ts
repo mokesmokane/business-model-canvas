@@ -53,29 +53,63 @@ export async function POST(request: Request) {
       }
       return [msg]
     })
+    //if the last message is an action, chaneg the system prompt accordingly
+    const action = messages[messages.length - 1].action
+    let canvasInfo = `The Canvas currently looks like this:
+      
+    Company Name: ${currentContent.companyName}
+    Company Description: ${currentContent.companyDescription}
+
+    Key Partners: ${currentContent.keyPartners}
+    Key Activities: ${currentContent.keyActivities}
+    Key Resources: ${currentContent.keyResources}
+    Value Propositions: ${currentContent.valuePropositions}
+    Customer Relationships: ${currentContent.customerRelationships}
+    Channels: ${currentContent.channels}
+    Customer Segments: ${currentContent.customerSegments}
+    Cost Structure: ${currentContent.costStructure}
+    Revenue Streams: ${currentContent.revenueStreams}
+    `
+
+    let systemPrompt = {
+      role: "system",
+      content: `You are a business model expert. 
+      You can either provide structured suggestions using the business_model_suggestions function, or engage in a natural conversation about business models.
+
+      ${canvasInfo}
+      
+      `
+    }
+    let tool_call = 'auto'
+    if (action === 'question') {
+      systemPrompt.content = `You are a business model expert helping a client understand their business model. 
+      Based on your expertise, you come up with insightful questions that makes it easy for the client to develop their business model.
+      give your response in Markdown format.
+      ${canvasInfo}
+      `
+    } else if (action === 'critique') {
+      systemPrompt.content = `You are a business model expert. Your task is to critique the business model and drill down on any weaknesses
+        You should focus one one section, or one specific point at a time and provide a detailed critique.
+        Give your response in Markdown format.
+
+      ${canvasInfo}
+      `
+    } else if (action === 'research') {
+      systemPrompt.content = `You are a business model expert. 
+      You suggest ways in which the client needs to research aspects of their business model. give very specific advice on how they can do this and areas of research to focus on.
+      Give your response in Markdown format.
+      ${canvasInfo}
+      `
+    } else if (action === 'suggest') {
+      systemPrompt.content = `You are a business model expert. You can suggest items to add to the business model canvas.
+      
+      ${canvasInfo}
+      `
+      tool_call = 'required'
+    }
 
     let messages_list = [
-      {
-        role: "system",
-        content: `You are a business model expert. You can either provide structured suggestions using the business_model_suggestions function, or engage in a natural conversation about business models.
-
-        The Canvas currently looks like this:
-        
-        Company Name: ${currentContent.companyName}
-        Company Description: ${currentContent.companyDescription}
-
-        Key Partners: ${currentContent.keyPartners}
-        Key Activities: ${currentContent.keyActivities}
-        Key Resources: ${currentContent.keyResources}
-        Value Propositions: ${currentContent.valuePropositions}
-        Customer Relationships: ${currentContent.customerRelationships}
-        Channels: ${currentContent.channels}
-        Customer Segments: ${currentContent.customerSegments}
-        Cost Structure: ${currentContent.costStructure}
-        Revenue Streams: ${currentContent.revenueStreams}
-        
-        `
-      },
+      systemPrompt,
       ...expanded_messages
     ]
 

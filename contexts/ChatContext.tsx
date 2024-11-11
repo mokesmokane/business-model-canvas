@@ -6,6 +6,7 @@ import { useCanvas } from './CanvasContext';
 export interface Message {
   role: 'user' | 'assistant' | 'error' | 'system';
   content: string;
+  action?: string;
   suggestions?: Array<{
     id: string;
     section: string;

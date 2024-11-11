@@ -2,15 +2,18 @@
 
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
-import { User, LogOut, CreditCard, Settings, ChevronDown } from "lucide-react"
+import { User, LogOut, CreditCard, Settings, Menu } from "lucide-react"
 import { useState } from "react"
 import { AuthDialog } from "@/components/auth/AuthDialog"
 import Link from 'next/link'
+import { useExpanded } from "@/contexts/ExpandedContext"
+
 
 export function SiteHeader() {
   const { user, logout, subscriptionStatus, userData } = useAuth()
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const { isExpanded, setIsExpanded } = useExpanded()
 
   console.log('SiteHeader Render:', {
     userExists: !!user,
@@ -29,9 +32,19 @@ export function SiteHeader() {
   return (
     <header className="w-full bg-gray-800 p-4 shadow-md">
       <div className="flex justify-between items-center">
-        <Link href="/">
-          <h1 className="text-2xl font-bold text-white hover:text-gray-200 transition-colors">cavvy.ai</h1>
-        </Link>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-gray-400 hover:text-gray-100"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          <Link href="/">
+            <h1 className="text-2xl font-bold text-white hover:text-gray-200 transition-colors">cavvy.ai</h1>
+          </Link>
+        </div>
         
         <div className="flex items-center gap-8">
           {!user && (

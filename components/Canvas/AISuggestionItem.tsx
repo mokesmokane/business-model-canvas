@@ -3,7 +3,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useState, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { 
   Building2, 
   Users, 
@@ -37,6 +37,7 @@ interface AISuggestion {
   suggestion: string;
   rationale: string;
   section?: string;
+  itemId?: string;
 }
 
 interface AISuggestionItemProps {
@@ -50,13 +51,16 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
   const [isHovered, setIsHovered] = useState(false)
   const [isRemoving, setIsRemoving] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
+  const actionExecuted = useRef(false)
 
   const Icon = suggestion.section ? sectionIcons[suggestion.section] : undefined
 
   useEffect(() => {
-    if (isRemoving) {
+    if (isRemoving && !actionExecuted.current) {
+      actionExecuted.current = true;
       const timer = setTimeout(() => {
         if (isLiked) {
+          console.log(`Like suggestion with id: ${suggestion.id}`)
           onLike()
         } else {
           onDismiss()
@@ -64,7 +68,7 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
       }, 500)
       return () => clearTimeout(timer)
     }
-  }, [isRemoving, isLiked, onLike, onDismiss])
+  }, [isRemoving, isLiked, onLike, onDismiss, suggestion.id])
 
   const handleLike = () => {
     setIsLiked(true)

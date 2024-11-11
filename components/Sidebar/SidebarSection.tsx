@@ -30,7 +30,6 @@ interface SidebarSectionProps {
   title: string;
   items: SectionItem[];
   isExpanded: boolean;
-  onToggle: () => void;
   onItemClick?: (id: string) => void;
   onNewItem?: () => void;
 }
@@ -39,10 +38,9 @@ export function SidebarSection({
   icon: Icon, 
   title, 
   items, 
-  isExpanded,
-  onToggle
+  isExpanded
 }: SidebarSectionProps) {
-  const { loadCanvas, createNewCanvas, deleteCanvas, resetForm } = useCanvas();
+  const { loadCanvas, createNewCanvas, deleteCanvas, resetForm, currentCanvas } = useCanvas();
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   const handleCanvasSelect = React.useCallback(async (canvasId: string) => {
@@ -78,7 +76,6 @@ export function SidebarSection({
               variant="ghost"
               size="sm"
               className="w-full flex items-center gap-2 justify-start text-gray-300 hover:text-gray-100"
-              onClick={onToggle}
             >
               <Icon className="h-4 w-4" />
               {title}
@@ -89,7 +86,9 @@ export function SidebarSection({
             <div key={item.id} className="flex items-center gap-1">
               <Button
                 variant="ghost"
-                className="flex-1 justify-start pl-8 text-gray-400 hover:text-gray-100"
+                className={`flex-1 justify-start pl-8 text-gray-400 hover:text-gray-100 ${
+                  currentCanvas?.id === item.id ? 'bg-gray-800/50 text-gray-100 font-medium' : ''
+                }`}
                 onClick={() => handleCanvasSelect(item.id)}
               >
                 {item.name}
@@ -130,7 +129,6 @@ export function SidebarSection({
               variant="ghost" 
               size="icon" 
               className="text-gray-400 hover:text-gray-100"
-              onClick={onToggle}
             >
               <Icon className="h-4 w-4" />
             </Button>

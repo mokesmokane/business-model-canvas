@@ -1,9 +1,10 @@
 import { SiteHeader } from "@/components/site/SiteHeader"
+import { useState } from "react";
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gray-900">
-      <SiteHeader />
+    <div className="min-h-screen bg-gray-900"> 
+    <SiteHeader />
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">Pricing Plans</h1>

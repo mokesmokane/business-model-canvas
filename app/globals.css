@@ -17,3 +17,9 @@ body {
     --radius: 0.5rem;
   }
 }
+
+/* Add this to your existing CSS */
+.resize-handle-active {
+  user-select: none;
+  pointer-events: none;
+}

@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { LucideIcon, Send } from 'lucide-react'
-import { AIAssistButton } from './AIAssistButton'
+import { AISectionAssistButton } from './AISectionAssistButton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '../ui/input'
 import { Check, X, Edit2, Trash2 } from 'lucide-react'
@@ -84,7 +84,7 @@ export function CanvasSection({
                 <Icon className="h-5 w-5" />
                 {title}
                 <div className="flex-1" />
-                <AIAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {}} />
+                <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {}} />
               </CardTitle>
             </TooltipTrigger>
             {(itemsArray.length > 0) && (

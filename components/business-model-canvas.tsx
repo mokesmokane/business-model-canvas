@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from './auth/AuthDialog';
 import { useEffect } from 'react';
 import { useCanvas } from "@/contexts/CanvasContext"
+import { useExpanded } from "@/contexts/ExpandedContext"
 
 interface BusinessModelCanvas {
   companyName: string;
@@ -38,11 +39,11 @@ export function BusinessModelCanvasComponent() {
     resetForm
   } = useCanvas();
   
-  const [isDrawerExpanded, setIsDrawerExpanded] = React.useState(false);
+  const { isExpanded, setIsExpanded } = useExpanded()
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
 
   const handleExpandSidebar = React.useCallback(() => {
-    setIsDrawerExpanded(true);
+    setIsExpanded(true)
   }, []);
 
   useEffect(() => {
@@ -63,8 +64,7 @@ export function BusinessModelCanvasComponent() {
     <>
       <div className="flex h-[calc(100vh-64px)] bg-white dark:bg-gray-950">
         <Sidebar 
-          isExpanded={isDrawerExpanded}
-          onToggle={() => setIsDrawerExpanded(!isDrawerExpanded)}
+          isExpanded={isExpanded}
           setShowAuthDialog={setShowAuthDialog}
         />
         <div className="flex flex-col flex-1 overflow-hidden">
