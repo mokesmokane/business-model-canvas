@@ -109,3 +109,5 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
     </div>
   )
 } 
+
+export default AISectionAssistButton
