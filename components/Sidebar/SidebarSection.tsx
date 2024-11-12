@@ -1,4 +1,4 @@
-import { LucideIcon, Plus, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LucideIcon, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -19,6 +19,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { NewCanvasDialog } from '@/components/NewCanvasDialog';
+import { useExpanded } from '@/contexts/ExpandedContext';
 
 interface SectionItem {
   id: string;
@@ -42,6 +43,7 @@ export function SidebarSection({
 }: SidebarSectionProps) {
   const { loadCanvas, createNewCanvas, deleteCanvas, resetForm, currentCanvas } = useCanvas();
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const { setIsExpanded, setIsWide } = useExpanded()
 
   const handleCanvasSelect = React.useCallback(async (canvasId: string) => {
     await loadCanvas(canvasId);
@@ -56,8 +58,6 @@ export function SidebarSection({
     await deleteCanvas(canvasId);
     if (localStorage.getItem('lastCanvasId') === canvasId) {
       localStorage.removeItem('lastCanvasId');
-      // await createNewCanvas();
-      //pick the first item
       if (items.length > 0) {
         handleCanvasSelect(items[0].id);
       } else {
@@ -68,25 +68,23 @@ export function SidebarSection({
   }, [deleteCanvas, createNewCanvas, handleCanvasSelect, items]);
 
   return (
-    <div className={isExpanded ? "space-y-2" : undefined}>
+    <div className={isExpanded ? "space-y-2 w-full" : "flex flex-col items-center"}>
       {isExpanded ? (
         <>
-          <h3 className="px-2 text-sm font-semibold text-gray-300 flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full flex items-center gap-2 justify-start text-gray-300 hover:text-gray-100"
-            >
-              <Icon className="h-4 w-4" />
-              {title}
+          <h3 className="text-sm font-semibold text-gray-300 flex items-center px-4 py-2">
+            <Icon className="h-4 w-4 mr-2" />
+            {title}
+            <div className="flex-grow"></div>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-100" onClick={()=>setIsExpanded(false)}>
+              <ChevronLeft className="h-4 w-4" />
             </Button>
           </h3>
           <NewCanvasDialog/>
           {items.map((item) => (
-            <div key={item.id} className="flex items-center gap-1">
+            <div key={item.id} className="flex items-center gap-1 px-4">
               <Button
                 variant="ghost"
-                className={`flex-1 justify-start pl-8 text-gray-400 hover:text-gray-100 ${
+                className={`flex-1 justify-start text-gray-400 hover:text-gray-100 ${
                   currentCanvas?.id === item.id ? 'bg-gray-800/50 text-gray-100 font-medium' : ''
                 }`}
                 onClick={() => handleCanvasSelect(item.id)}
@@ -128,9 +126,10 @@ export function SidebarSection({
             <Button 
               variant="ghost" 
               size="icon" 
-              className="text-gray-400 hover:text-gray-100"
+              className="w-10 h-10 p-0 text-gray-400 hover:text-gray-100"
+              onClick={()=>{setIsExpanded(true); setIsWide(false)}}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-800">
@@ -140,4 +139,4 @@ export function SidebarSection({
       )}
     </div>
   )
-} 
+}

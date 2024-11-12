@@ -4,20 +4,23 @@ import React, { createContext, useContext, useState, useCallback } from 'react';
 
 interface ExpandedContextType {
   isExpanded: boolean;
+  isWide: boolean;
   setIsExpanded: (isExpanded: boolean) => void;
+  setIsWide: (isWide: boolean) => void;
 }
 
 const ExpandedContext = createContext<ExpandedContextType | undefined>(undefined);
 
 export function ContextProvider({ children }: { children: React.ReactNode }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isWide, setIsWide] = useState(false);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
   }
 
   return (
-    <ExpandedContext.Provider value={{ isExpanded, setIsExpanded }}>
+    <ExpandedContext.Provider value={{ isExpanded, setIsExpanded, isWide, setIsWide }}>
       {children}
     </ExpandedContext.Provider>
   );

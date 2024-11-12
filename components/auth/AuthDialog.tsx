@@ -6,12 +6,14 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthDialogProps {
   isOpen: boolean;
+  openSignUp: boolean;
   onClose: () => void;
   onSuccess: () => void;
 }
 
-export function AuthDialog({ isOpen, onClose, onSuccess }: AuthDialogProps) {
-  const [isSignUp, setIsSignUp] = React.useState(false);
+export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess }: AuthDialogProps) {
+
+  const [isSignUp, setIsSignUp] = React.useState(openSignUp);
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
@@ -77,7 +79,7 @@ export function AuthDialog({ isOpen, onClose, onSuccess }: AuthDialogProps) {
               required
               id="email"
               name="email"
-              autoComplete="email"
+              autoComplete="username"
             />
           </div>
           <div>
@@ -87,8 +89,8 @@ export function AuthDialog({ isOpen, onClose, onSuccess }: AuthDialogProps) {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              id="current-password"
-              name="current-password"
+              id="password"
+              name="password"
               autoComplete="current-password"
             />
           </div>

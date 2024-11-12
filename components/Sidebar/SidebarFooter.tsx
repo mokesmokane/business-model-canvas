@@ -1,3 +1,4 @@
+import React from 'react'
 import { Settings, HelpCircle, Users, LogOut, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -29,59 +30,51 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
     }
   };
 
+  const footerItems = [
+    { icon: Users, label: 'Profile', action: () => {} },
+    { icon: Settings, label: 'Settings', action: () => {} },
+    { icon: HelpCircle, label: 'Help', action: () => {} },
+    { icon: LogOut, label: 'Sign Out', action: handleSignOut },
+  ];
+
   return (
-    <div className="mt-auto">
-      <div className="border-t border-gray-800 p-4">
-        {isExpanded ? (
-          <div className="flex flex-col gap-2">
-            <Button variant="ghost" className="w-full justify-start">
-              <Users className="mr-2 h-4 w-4" />
-              Profile
+    <div className={`mt-auto border-t border-gray-800 ${isExpanded ? 'py-2 px-4' : 'py-4'}`}>
+      {isExpanded ? (
+        <div className="flex flex-col gap-2">
+          {footerItems.map(({ icon: Icon, label, action }) => (
+            <Button
+              key={label}
+              variant="ghost"
+              className="w-full justify-start text-gray-400 hover:text-gray-100 px-2"
+              onClick={action}
+            >
+              <Icon className="mr-2 h-4 w-4" />
+              {label}
             </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-            <Button variant="ghost" className="w-full justify-start">
-              <HelpCircle className="mr-2 h-4 w-4" />
-              Help
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <Tooltip>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-4">
+          {footerItems.map(({ icon: Icon, label, action }) => (
+            <Tooltip key={label}>
               <TooltipTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start">
-                  <Users className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-10 h-10 p-0 text-gray-400 hover:text-gray-100"
+                  onClick={action}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="sr-only">{label}</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right">
-                Profile
+              <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-800">
+                {label}
               </TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start">
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                Settings
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" className="w-full justify-start">
-                  <HelpCircle className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                Help
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
-} 
+}

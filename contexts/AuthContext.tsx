@@ -121,7 +121,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    //clear out all data
+    setUser(null);
+    setUserData(null);
+    setUserCanvases([]);
+    setSubscriptionStatus(null);
     await signOut(auth);
+    window.location.href = '/';
   };
 
   return (

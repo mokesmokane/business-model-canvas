@@ -12,9 +12,9 @@ export function SidebarContent({ isExpanded }: SidebarContentProps) {
   const { userCanvases } = useAuth()
 
   return (
-    <div className="flex flex-col h-full">
-      <ScrollArea className="flex-grow">
-        <div className="flex flex-col gap-4 p-4">
+    <div className={`flex flex-col h-full ${isExpanded ? '' : 'items-center'}`}>
+      <ScrollArea className={`flex-grow ${isExpanded ? 'w-full' : 'w-16'}`}>
+        <div className={`flex flex-col gap-4 ${isExpanded ? 'px-4 py-2' : 'items-center py-2'}`}>
           <SidebarSection
             icon={LayoutDashboard}
             title="Business Models"
@@ -28,4 +28,4 @@ export function SidebarContent({ isExpanded }: SidebarContentProps) {
       </ScrollArea>
     </div>
   )
-} 
+}

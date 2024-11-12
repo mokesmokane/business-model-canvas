@@ -15,19 +15,19 @@ import { SectionButtons } from './SectionButtons'
 import { ActionButtons } from './ActionButtons'
 import { sendChatRequest } from '@/services/aiService'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useExpanded } from '@/contexts/ExpandedContext'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
-interface AIChatAreaProps {
-  isExpanded: boolean
-  isWide: boolean
-  onToggle: () => void
-}
-
-export function AIChatArea({ isExpanded, isWide, onToggle }: AIChatAreaProps) {
+export function AIChatArea() {
   const { updateSection, formData } = useCanvas()
   const { messages, addMessage, addMessages, input, setInput, isLoading, setIsLoading } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
-
+  const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
@@ -49,7 +49,6 @@ export function AIChatArea({ isExpanded, isWide, onToggle }: AIChatAreaProps) {
     const updatedMessages = [...messages.slice(0, index), updatedMessage, ...messages.slice(index + 1)]
     console.log(`Updated messages: ${JSON.stringify(updatedMessages, null, 2)}`)
     addMessages(updatedMessages)
-    
   }
 
   const handleSend = async () => {
@@ -77,7 +76,6 @@ export function AIChatArea({ isExpanded, isWide, onToggle }: AIChatAreaProps) {
       }
     }
   }
-
 
   const handleDismiss = (index: number, suggestionId: string) => {
     handleRemoveSuggestion(index, suggestionId)
@@ -136,21 +134,22 @@ export function AIChatArea({ isExpanded, isWide, onToggle }: AIChatAreaProps) {
   }
 
   return (
-    <>
+    <div className={`h-full flex flex-col ${isExpanded ? '' : 'items-center'}`}>
       {isExpanded ? (
-        <div className="h-full flex flex-col">
-          <div className="flex items-center gap-2 p-4 border-b border-gray-800">
-            <Bot className="h-4 w-4 text-gray-400" />
-            <h3 className="text-sm font-semibold text-gray-300">AI Assistant</h3>
-            <div className="flex-grow"></div>
+        <>
+          <div className="flex items-center justify-between gap-2 p-4 border-b border-gray-800">
+            <div className="flex items-center gap-2">
+              <Bot className="h-4 w-4 text-gray-400" />
+              <h3 className="text-sm font-semibold text-gray-300">AI Assistant</h3>
+            </div>
             <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-400 hover:text-gray-100"
-                onClick={onToggle}
-              >
-                {isWide ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
-              </Button>
+              variant="ghost"
+              size="icon"
+              className="text-gray-400 hover:text-gray-100"
+              onClick={()=>setIsWide(!isWide)}
+            >
+              {isWide ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+            </Button>
           </div>
           <ScrollArea className="flex-grow p-4">
             <div className="space-y-4">
@@ -253,18 +252,25 @@ export function AIChatArea({ isExpanded, isWide, onToggle }: AIChatAreaProps) {
               </form>
             </div>
           </div>
-        </div>
+        </>
       ) : (
-        <div className="p-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-8 h-8 text-gray-400 hover:text-gray-100"
-          >
-            <Bot className="h-4 w-4" />
-          </Button>
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="w-10 h-10 p-0 text-gray-400 hover:text-gray-100"
+              onClick={()=>{setIsExpanded(true); setIsWide(true)}}
+            >
+              <Bot className="h-5 w-5" />
+              <span className="sr-only">AI Assistant</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-800">
+            AI Assistant
+          </TooltipContent>
+        </Tooltip>
       )}
-    </>
+    </div>
   )
 }

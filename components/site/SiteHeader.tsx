@@ -30,32 +30,34 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="w-full bg-gray-800 p-4 shadow-md">
+    <header className={`w-full bg-white p-4 ${user ? 'border-b' : ''}`}>
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
+          {userData && (
+            <Button
+              variant="ghost"
             size="icon"
-            className="text-gray-400 hover:text-gray-100"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-          <Link href="/">
-            <h1 className="text-2xl font-bold text-white hover:text-gray-200 transition-colors">cavvy.ai</h1>
+            className="text-gray-500 hover:text-gray-900"
+              onClick={() => setIsExpanded(!isExpanded)}
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+          )}
+          <Link className="flex items-center justify-center" href="#">
+            <span className="text-2xl font-extrabold">cavvy.ai</span>
           </Link>
         </div>
         
         <div className="flex items-center gap-8">
           {!user && (
             <nav className="flex gap-6">
-              <Link href="/features" className="text-gray-300 hover:text-white transition-colors">
+              <Link href="/features" className="text-gray-900 hover:underline underline-offset-4 transition-colors font-extrabold">
                 Features
               </Link>
-              <Link href="/faq" className="text-gray-300 hover:text-white transition-colors">
+              <Link href="/faq" className="text-gray-900 hover:underline underline-offset-4 transition-colors font-extrabold">
                 FAQ
               </Link>
-              <Link href="/pricing" className="text-gray-300 hover:text-white transition-colors">
+              <Link href="/pricing" className="text-gray-900 hover:underline underline-offset-4 transition-colors font-extrabold">
                 Pricing
               </Link>
             </nav>
@@ -63,14 +65,14 @@ export function SiteHeader() {
           {user && (
             <>
               {subscriptionStatus === 'free' && (
-                <Link href="/upgrade" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/upgrade" className="text-gray-600 hover:text-gray-900 transition-colors">
                   Upgrade Plan
                 </Link>
               )}
               {(subscriptionStatus === 'pro' || subscriptionStatus === 'enterprise') && (
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-full">
                   <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                  <span className="text-sm font-medium text-blue-400">
+                  <span className="text-sm font-medium text-blue-600">
                     {subscriptionStatus === 'pro' ? 'Pro' : 'Enterprise'} Plan
                   </span>
                 </div>
@@ -87,10 +89,10 @@ export function SiteHeader() {
             >
               <Button 
                 variant="ghost" 
-                className="h-8 w-8 rounded-full p-0 hover:bg-gray-700"
+                className="h-8 w-8 rounded-full p-0 hover:bg-gray-100"
               >
-                <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
-                  <User className="h-4 w-4 text-white" />
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                  <User className="h-4 w-4 text-gray-600" />
                 </div>
               </Button>
 
@@ -132,7 +134,7 @@ export function SiteHeader() {
             <Button
               onClick={() => setShowAuthDialog(true)}
               variant="outline"
-              className="text-gray-100 border-gray-100 bg-transparent hover:bg-gray-700 hover:text-white"
+              className="bg-gray-900 font-extrabold text-white hover:bg-gray-600 hover:text-white"
             >
               Sign In
             </Button>
@@ -141,6 +143,7 @@ export function SiteHeader() {
       </div>
       <AuthDialog 
         isOpen={showAuthDialog}
+        openSignUp={false}
         onClose={() => setShowAuthDialog(false)}
         onSuccess={() => setShowAuthDialog(false)}
       />

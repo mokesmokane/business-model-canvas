@@ -76,6 +76,7 @@ export function BusinessModelCanvasComponent() {
       </div>
       <AuthDialog 
         isOpen={showAuthDialog}
+        openSignUp={false}
         onClose={() => setShowAuthDialog(false)}
         onSuccess={handleSave}
       />
