@@ -1,19 +1,75 @@
+'use client'
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Bot, Building2, Users2, Sparkles, ArrowRight, Check } from "lucide-react"
-import { SiteHeader } from "../site/SiteHeader"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { AuthDialog } from "@/components/auth/AuthDialog"
 
 export default function LandingPage() {
+  const [windowHeight, setWindowHeight] = useState(0)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
+  const [isSignUp, setIsSignUp] = useState(false)
+
+  useEffect(() => {
+    const updateHeight = () => {
+      setWindowHeight(window.innerHeight)
+    }
+    updateHeight()
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
+  }, [])
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
-      <SiteHeader />
-      <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
+      <header className="w-full bg-white p-4 fixed top-0 z-50">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <Link className="flex items-center justify-center" href="#">
+              <span className="text-2xl font-extrabold">cavvy.ai</span>
+            </Link>
+          </div>
+          
+          <div className="flex items-center gap-8">
+            <nav className="flex gap-6">
+              <button 
+                onClick={() => scrollToSection('features')} 
+                className="text-gray-900 hover:underline underline-offset-4 transition-colors font-extrabold"
+              >
+                Features
+              </button>
+              <button 
+                onClick={() => scrollToSection('pricing')} 
+                className="text-gray-900 hover:underline underline-offset-4 transition-colors font-extrabold"
+              >
+                Pricing
+              </button>
+            </nav>
+
+            <Button
+              onClick={() => {
+                setIsSignUp(false)
+                setShowAuthDialog(true)
+              }}
+              variant="outline"
+              className="bg-gray-900 font-extrabold text-white hover:bg-gray-600 hover:text-white"
+            >
+              Sign In
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 pt-16">
+        <section id="hero" className="w-full flex items-center justify-center" style={{ minHeight: `${windowHeight * 0.75}px` }}>
           <div className="container px-4 md:px-6 mx-auto max-w-7xl">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px] items-center">
               <div className="flex flex-col justify-center space-y-4">
@@ -29,6 +85,7 @@ export default function LandingPage() {
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <form className="flex-1 space-y-2" onSubmit={(e) => {
                     e.preventDefault()
+                    setIsSignUp(true)
                     setShowAuthDialog(true)
                   }}>
                     <Input placeholder="Enter your email" type="email" />
@@ -73,7 +130,8 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100 dark:bg-gray-800">
+        
+        <section id="features" className="w-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center" style={{ minHeight: `${windowHeight * 0.75}px` }}>
           <div className="container px-4 md:px-6 mx-auto">
             <div className="max-w-[900px] mx-auto text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-4">Features</h2>
@@ -139,7 +197,8 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-24 lg:py-32">
+        
+        <section id="pricing" className="w-full flex items-center justify-center" style={{ minHeight: `${windowHeight * 0.75}px` }}>
           <div className="container px-4 md:px-6 mx-auto">
             <div className="max-w-[900px] mx-auto text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-4">Pricing</h2>
@@ -231,6 +290,7 @@ export default function LandingPage() {
           </div>
         </section>
       </main>
+
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-gray-500 dark:text-gray-400">
           © 2024 cavvy.ai. All rights reserved.
@@ -244,9 +304,10 @@ export default function LandingPage() {
           </Link>
         </nav>
       </footer>
+
       <AuthDialog 
         isOpen={showAuthDialog}
-        openSignUp={true}
+        openSignUp={isSignUp}
         onClose={() => setShowAuthDialog(false)}
         onSuccess={() => setShowAuthDialog(false)}
       />

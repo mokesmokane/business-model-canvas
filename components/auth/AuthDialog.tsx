@@ -20,6 +20,10 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess }: AuthDialo
   const [verificationSent, setVerificationSent] = React.useState(false);
   const { signUp, signIn } = useAuth();
 
+  React.useEffect(() => {
+    setIsSignUp(openSignUp);
+  }, [openSignUp]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -69,19 +73,20 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess }: AuthDialo
           onSubmit={handleSubmit} 
           className="space-y-4" 
           method="post"
+          autoComplete="on"
+          name={isSignUp ? "signup" : "login"}
         >
-          <div>
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              id="email"
-              name="email"
-              autoComplete="username"
-            />
-          </div>
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            id="email"
+            name="email"
+            autoComplete="username"
+          />
+
           <div>
             <Input
               type="password"
@@ -91,7 +96,9 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess }: AuthDialo
               required
               id="password"
               name="password"
-              autoComplete="current-password"
+              autoComplete={isSignUp ? "new-password" : "current-password"}
+              minLength={8}
+              aria-label={isSignUp ? "Create password" : "Enter password"}
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
