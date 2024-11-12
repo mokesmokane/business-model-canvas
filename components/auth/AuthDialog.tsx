@@ -9,12 +9,13 @@ interface AuthDialogProps {
   openSignUp: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  initialEmail?: string;
 }
 
-export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess }: AuthDialogProps) {
+export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmail }: AuthDialogProps) {
 
   const [isSignUp, setIsSignUp] = React.useState(openSignUp);
-  const [email, setEmail] = React.useState('');
+  const [email, setEmail] = React.useState(initialEmail || '');
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [verificationSent, setVerificationSent] = React.useState(false);
@@ -23,6 +24,12 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess }: AuthDialo
   React.useEffect(() => {
     setIsSignUp(openSignUp);
   }, [openSignUp]);
+
+  React.useEffect(() => {
+    if (initialEmail) {
+      setEmail(initialEmail);
+    }
+  }, [initialEmail]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

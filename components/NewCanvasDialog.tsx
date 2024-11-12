@@ -39,10 +39,12 @@ export function NewCanvasDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-          <Button variant="ghost" className="w-full justify-start pl-8">
+      <div className="flex items-center gap-1 px-4">
+          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800">
             <Plus className="h-4 w-4" />
             New Canvas
           </Button>
+        </div>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -65,10 +67,13 @@ export function NewCanvasDialog() {
             )}
           </div>
           <Textarea
-            placeholder="Business Description"
+            placeholder={`Business description
+
+The more detail you provide, the better the AI can understand your business and the more insightful the advice will be.
+              `}
             value={tempDescription}
             onChange={(e) => setTempDescription(e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[200px]"
           />
           <DialogFooter>
             <DialogClose asChild>

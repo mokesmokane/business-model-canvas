@@ -23,11 +23,17 @@ export async function sendChatRequest(messages: Message[], currentContent: any) 
   }
 
   let data = await response.json()
-  return { 
-    role: 'assistant', 
+
+  console.log('chat response', data)
+  return {
+    role: 'assistant',
     content: data.message,
-    suggestions:data.suggestions?.map((suggestion: any) => ({
+    suggestions: data.suggestions?.map((suggestion: any) => ({
       ...suggestion,
+      id: uuidv4()
+    })),
+    questions: data.questions?.map((question: any) => ({
+      ...question,
       id: uuidv4()
     }))
   }

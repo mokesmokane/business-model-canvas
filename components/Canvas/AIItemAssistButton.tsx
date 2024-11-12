@@ -64,7 +64,25 @@ export function AIItemAssistButton({
     setIsLoading(true)
     try {
       const aiResponse = await sendChatRequest(updatedMessages, formData)
-      addMessages([...updatedMessages, aiResponse as Message])
+      const formattedResponse: Message = {
+        role: 'assistant',
+        content: aiResponse.content || '',
+        suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
+          id: suggestion.id,
+          section: suggestion.section || sectionKey,
+          suggestion: suggestion.suggestion,
+          rationale: suggestion.rationale
+        })),
+        questions: aiResponse.questions?.map((question: any) => ({
+          id: question.id,
+          section: sectionKey,
+          question: question.question,
+          type: question.type || 'open',
+          options: question.options || [],
+          scale: question.scale || null
+        }))
+      }
+      addMessages([...updatedMessages, formattedResponse])
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`

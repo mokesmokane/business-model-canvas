@@ -48,7 +48,7 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
             <Button
               key={label}
               variant="ghost"
-              className="w-full justify-start text-muted-foreground hover:text-foreground px-2"
+              className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 px-2"
               onClick={action}
             >
               <Icon className="mr-2 h-4 w-4" />
@@ -64,7 +64,7 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground"
+                  className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   onClick={action}
                 >
                   <Icon className="h-5 w-5" />

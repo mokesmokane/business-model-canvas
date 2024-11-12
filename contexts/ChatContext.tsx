@@ -13,6 +13,17 @@ export interface Message {
     suggestion: string;
     rationale: string;
   }>;
+  questions?: Array<{
+    id: string;
+    question: string;
+    type: 'open' | 'rating' | 'multipleChoice';
+    options?: string[];
+    scale?: {
+      min: number;
+      max: number;
+      label: string;
+    };
+  }>;
 }
 
 interface ChatContextType {

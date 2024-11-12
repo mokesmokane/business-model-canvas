@@ -50,14 +50,35 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
       action: action
     } as Message
 
-    const currentMessages = [...messages.filter((m: Message) => m.role == 'system' || m.role == 'user' || m.role == 'assistant')]
+    const currentMessages = [...messages.filter((m: Message) => 
+      m.role === 'system' || m.role === 'user' || m.role === 'assistant'
+    )]
     const updatedMessages = [...currentMessages, message]
     
     await addMessages(updatedMessages)
     setIsLoading(true)
     try {
       const aiResponse = await sendChatRequest(updatedMessages, formData)
-      addMessages([...updatedMessages, aiResponse as Message])
+      const formattedResponse: Message = {
+        role: 'assistant',
+        content: aiResponse.content || '',
+        suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
+          id: suggestion.id,
+          section: suggestion.section || sectionKey,
+          suggestion: suggestion.suggestion,
+          rationale: suggestion.rationale
+        })),
+        questions: aiResponse.questions?.map((question: any) => ({
+          id: question.id,
+          question: question.question,
+          section: sectionKey,
+          type: question.type || 'open',
+          options: question.options || [],
+          scale: question.scale || null
+        }))
+      }
+      console.log('formatted response', formattedResponse)
+      addMessages([...updatedMessages, formattedResponse])
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
@@ -66,7 +87,7 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
       addMessages([...updatedMessages, { 
         role: 'error', 
         content: `An error occurred:\n\n${errorMessage}` 
-      }])
+      } as Message])
     } finally {
       setIsLoading(false)
     }

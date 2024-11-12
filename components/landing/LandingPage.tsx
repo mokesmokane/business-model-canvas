@@ -11,6 +11,7 @@ export default function LandingPage() {
   const [windowHeight, setWindowHeight] = useState(0)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
+  const [emailInput, setEmailInput] = useState('')
 
   useEffect(() => {
     const updateHeight = () => {
@@ -77,7 +78,7 @@ export default function LandingPage() {
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
                     Build Your Business Model Canvas with AI
                   </h1>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
+                  <p className="max-w-[600px] text-gray-500 md:text-xl ">
                     Create, iterate, and perfect your business model with intelligent AI assistance. Get suggestions,
                     insights, and real-time feedback.
                   </p>
@@ -88,7 +89,12 @@ export default function LandingPage() {
                     setIsSignUp(true)
                     setShowAuthDialog(true)
                   }}>
-                    <Input placeholder="Enter your email" type="email" />
+                    <Input 
+                      placeholder="Enter your email" 
+                      type="email" 
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                    />
                     <Button type="submit" className="w-full">
                       Get Started Free
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -98,29 +104,29 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center justify-center">
                 <div className="grid gap-4 lg:gap-8 w-full">
-                  <div className="flex items-center gap-4 rounded-lg border p-4 dark:border-gray-800">
+                  <div className="flex items-center gap-4 rounded-lg border p-4">
                     <Bot className="h-6 w-6" />
                     <div className="space-y-1">
                       <h3 className="font-medium">AI Assistant</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500">
                         Get intelligent suggestions for each section of your canvas
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 rounded-lg border p-4 dark:border-gray-800">
+                  <div className="flex items-center gap-4 rounded-lg border p-4">
                     <Building2 className="h-6 w-6" />
                     <div className="space-y-1">
                       <h3 className="font-medium">Business Model Canvas</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500">
                         Industry-standard 9-block canvas with real-time collaboration
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 rounded-lg border p-4 dark:border-gray-800">
+                  <div className="flex items-center gap-4 rounded-lg border p-4">
                     <Users2 className="h-6 w-6" />
                     <div className="space-y-1">
                       <h3 className="font-medium">Team Collaboration</h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm text-gray-500">
                         Work together with your team in real-time
                       </p>
                     </div>
@@ -131,11 +137,11 @@ export default function LandingPage() {
           </div>
         </section>
         
-        <section id="features" className="w-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center" style={{ minHeight: `${windowHeight * 0.75}px` }}>
+        <section id="features" className="w-full bg-gray-100 flex items-center justify-center" style={{ minHeight: `${windowHeight * 0.75}px` }}>
           <div className="container px-4 md:px-6 mx-auto">
             <div className="max-w-[900px] mx-auto text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-4">Features</h2>
-              <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+              <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 Everything you need to create and perfect your business model
               </p>
             </div>
@@ -143,7 +149,7 @@ export default function LandingPage() {
               <div className="flex flex-col items-center text-center justify-center space-y-4">
                 <Sparkles className="h-12 w-12" />
                 <h3 className="text-xl font-bold">AI-Powered Insights</h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-500">
                   Get intelligent suggestions and feedback for each section of your canvas
                 </p>
                 <ul className="grid gap-2 text-sm">
@@ -161,7 +167,7 @@ export default function LandingPage() {
               <div className="flex flex-col items-center text-center justify-center space-y-4">
                 <Building2 className="h-12 w-12" />
                 <h3 className="text-xl font-bold">Business Model Canvas</h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-500">
                   Industry-standard 9-block canvas with powerful editing features
                 </p>
                 <ul className="grid gap-2 text-sm">
@@ -179,7 +185,7 @@ export default function LandingPage() {
               <div className="flex flex-col items-center text-center justify-center space-y-4">
                 <Users2 className="h-12 w-12" />
                 <h3 className="text-xl font-bold">Team Collaboration</h3>
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-gray-500">
                   Work together with your team in real-time on your business model
                 </p>
                 <ul className="grid gap-2 text-sm">
@@ -202,18 +208,18 @@ export default function LandingPage() {
           <div className="container px-4 md:px-6 mx-auto">
             <div className="max-w-[900px] mx-auto text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-4">Pricing</h2>
-              <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+              <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 Choose the perfect plan for your needs
               </p>
             </div>
             <div className="grid max-w-5xl mx-auto gap-6 py-12 lg:grid-cols-3 lg:gap-12">
-              <div className="flex flex-col justify-between rounded-lg border p-6 dark:border-gray-800">
+              <div className="flex flex-col justify-between rounded-lg border p-6">
                 <div>
                   <h3 className="text-xl font-bold">Free</h3>
-                  <p className="mt-2 text-gray-500 dark:text-gray-400">Get started with the basics</p>
+                  <p className="mt-2 text-gray-500">Get started with the basics</p>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">£0</span>
-                    <span className="text-gray-500 dark:text-gray-400">/month</span>
+                    <span className="text-gray-500">/month</span>
                   </div>
                   <ul className="mt-4 grid gap-2">
                     <li className="flex items-center gap-2">
@@ -231,16 +237,16 @@ export default function LandingPage() {
                   Get Started
                 </Button>
               </div>
-              <div className="relative flex flex-col justify-between rounded-lg border p-6 dark:border-gray-800">
+              <div className="relative flex flex-col justify-between rounded-lg border p-6">
                 <div className="absolute -top-2 right-0 rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground">
                   Popular
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">Pro</h3>
-                  <p className="mt-2 text-gray-500 dark:text-gray-400">Perfect for growing businesses</p>
+                  <p className="mt-2 text-gray-500">Perfect for growing businesses</p>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">£10</span>
-                    <span className="text-gray-500 dark:text-gray-400">/month</span>
+                    <span className="text-gray-500">/month</span>
                   </div>
                   <ul className="mt-4 grid gap-2">
                     <li className="flex items-center gap-2">
@@ -259,13 +265,13 @@ export default function LandingPage() {
                 </div>
                 <Button className="mt-6">Get Started</Button>
               </div>
-              <div className="flex flex-col justify-between rounded-lg border p-6 dark:border-gray-800">
+              <div className="flex flex-col justify-between rounded-lg border p-6">
                 <div>
                   <h3 className="text-xl font-bold">Enterprise</h3>
-                  <p className="mt-2 text-gray-500 dark:text-gray-400">For large organizations</p>
+                  <p className="mt-2 text-gray-500">For large organizations</p>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">£100</span>
-                    <span className="text-gray-500 dark:text-gray-400">/month</span>
+                    <span className="text-gray-500">/month</span>
                   </div>
                   <ul className="mt-4 grid gap-2">
                     <li className="flex items-center gap-2">
@@ -292,7 +298,7 @@ export default function LandingPage() {
       </main>
 
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
+        <p className="text-xs text-gray-500">
           © 2024 cavvy.ai. All rights reserved.
         </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
@@ -310,6 +316,7 @@ export default function LandingPage() {
         openSignUp={isSignUp}
         onClose={() => setShowAuthDialog(false)}
         onSuccess={() => setShowAuthDialog(false)}
+        initialEmail={emailInput}
       />
     </div>
   )

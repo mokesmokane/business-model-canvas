@@ -16,11 +16,13 @@ import { ActionButtons } from './ActionButtons'
 import { sendChatRequest } from '@/services/aiService'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useExpanded } from '@/contexts/ExpandedContext'
+import AIQuestionItem from './AIQuestionItem'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+
 
 export function AIChatArea() {
   const { updateSection, formData } = useCanvas()
@@ -64,7 +66,25 @@ export function AIChatArea() {
           m.role == 'system' || m.role == 'user' || m.role == 'assistant'
         )]
         const aiResponse = await sendChatRequest([...currentMessages], formData)
-        addMessages([...updatedMessages, aiResponse as Message])
+        const formattedResponse: Message = {
+          role: 'assistant',
+          content: aiResponse.content || '',
+          suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
+            id: suggestion.id,
+            section: suggestion.section || activeSection,
+            suggestion: suggestion.suggestion,
+            rationale: suggestion.rationale
+          })),
+          questions: aiResponse.questions?.map((question: any) => ({
+            id: question.id,
+            question: question.question,
+            section: question.section || activeSection,
+            type: question.type || 'open',
+            options: question.options || [],
+            scale: question.scale || null
+          }))
+        }
+        addMessages([...updatedMessages, formattedResponse])
       } catch (error) {
         const errorMessage = error instanceof Error 
           ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
@@ -95,7 +115,25 @@ export function AIChatArea() {
       addMessages([...currentMessages, userMessage])
 
       const aiResponse = await sendChatRequest([...currentMessages, { role: 'user', content: expandMessage }], formData)
-      addMessages([...messages, aiResponse as Message])
+      const formattedResponse: Message = {
+        role: 'assistant',
+        content: aiResponse.content || '',
+        suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
+          id: suggestion.id,
+          section: suggestion.section || activeSection,
+          suggestion: suggestion.suggestion,
+          rationale: suggestion.rationale
+        })),
+        questions: aiResponse.questions?.map((question: any) => ({
+          id: question.id,
+          question: question.question,
+          section: question.section || activeSection,
+          type: question.type || 'open',
+          options: question.options || [],
+          scale: question.scale || null
+        }))
+      }
+      addMessages([...messages, formattedResponse])
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
@@ -121,7 +159,25 @@ export function AIChatArea() {
       addMessages([...currentMessages, userMessage])
 
       const aiResponse = await sendChatRequest([...currentMessages, userMessage], formData)
-      addMessages([...currentMessages, userMessage, aiResponse as Message])
+      const formattedResponse: Message = {
+        role: 'assistant',
+        content: aiResponse.content || '',
+        suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
+          id: suggestion.id,
+          section: suggestion.section || activeSection,
+          suggestion: suggestion.suggestion,
+          rationale: suggestion.rationale
+        })),
+        questions: aiResponse.questions?.map((question: any) => ({
+          id: question.id,
+          question: question.question,
+          section: question.section || activeSection,
+          type: question.type || 'open',
+          options: question.options || [],
+          scale: question.scale || null
+        }))
+      }
+      addMessages([...currentMessages, userMessage, formattedResponse])
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
@@ -191,7 +247,7 @@ export function AIChatArea() {
                               exit={{ opacity: 0, height: 0, marginBottom: 0 }}
                               transition={{ duration: 0.2, ease: "easeOut" }}
                             >
-                              <AISuggestionItem 
+                              <AISuggestionItem   
                                 suggestion={suggestion}
                                 onLike={() => handleAddSuggestion(messageIndex, suggestion.section, suggestion.suggestion, suggestion.rationale, suggestion.id)}
                                 onDismiss={() => handleDismiss(messageIndex, suggestion.id)}
@@ -199,9 +255,29 @@ export function AIChatArea() {
                               />
                             </motion.div>
                           ))}
+                          
                         </AnimatePresence>
                       </div>
                     )}
+                    {message.questions && (
+                            <motion.div
+                              key="questions"
+                              initial={{ opacity: 1, height: "auto", marginBottom: "0.5rem" }}
+                              animate={{ opacity: 1, height: "auto", marginBottom: "0.5rem" }}
+                              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                              {message.questions.map((question: any, index: number) => (
+                                <AIQuestionItem
+                                  key={index}
+                                  question={question}
+                                  onSubmit={(id, answer) => {
+                                    console.log(`Question ${id} answered with: ${answer}`)
+                                  }}
+                                />
+                              ))}
+                            </motion.div>
+                          )}
                   </div>
                   {message.role === 'user' && (
                     <div className="w-8 h-8 rounded-full bg-secondary dark:bg-secondary flex items-center justify-center">

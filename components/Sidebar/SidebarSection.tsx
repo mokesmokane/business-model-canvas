@@ -84,7 +84,7 @@ export function SidebarSection({
             <div key={item.id} className="flex items-center gap-1 px-4">
               <Button
                 variant="ghost"
-                className={`flex-1 justify-start text-muted-foreground hover:text-foreground ${
+                className={`flex-1 justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
                   currentCanvas?.id === item.id 
                     ? 'bg-muted font-medium border-l-2 border-primary pl-3' 
                     : 'pl-4'
@@ -126,7 +126,7 @@ export function SidebarSection({
             <Button 
               variant="ghost" 
               size="icon" 
-              className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground"
+              className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
               onClick={()=>{setIsExpanded(true); setIsWide(false)}}
             >
               <Icon className="h-5 w-5" />

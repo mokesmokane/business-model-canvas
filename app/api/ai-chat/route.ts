@@ -32,6 +32,54 @@ const businessModelSchema = {
   additionalProperties: false
 }
 
+const questionSchema = {
+  type: "object",
+  properties: {
+    questions: { 
+      type: "array", 
+      items: { 
+        type: "object",
+        properties: {
+          question: { 
+            type: "string",
+            description: "The question text to ask the user"
+          },
+          type: { 
+            type: "string",
+            enum: ["open", "rating", "multipleChoice"],
+            description: "The type of question to ask"
+          },
+          section: {
+            type: "string",
+            enum: ["keyPartners", "keyActivities", "keyResources", "valuePropositions", "customerRelationships", "channels", "customerSegments", "costStructure", "revenueStreams"],
+            description: "The section of the Business Model Canvas that the suggestion is for"
+          },
+          options: {
+            type: "array",
+            items: { type: "string" },
+            description: "For multipleChoice questions, provide the options. For other question types, provide an empty array."
+          },
+          scale: {
+            type: "object",
+            properties: {
+              min: { type: "number" },
+              max: { type: "number" },
+              label: { type: "string" }
+            },
+            required: ["min", "max", "label"],
+            additionalProperties: false,
+            description: "For rating questions, provide the scale configuration. For other question types, provide null values."
+          }
+        },
+        required: ["question", "type", "options", "scale", "section"],
+        additionalProperties: false
+      }
+    }
+  },
+  required: ["questions"],
+  additionalProperties: false
+}
+
 export async function POST(request: Request) {
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
@@ -87,6 +135,7 @@ export async function POST(request: Request) {
       give your response in Markdown format.
       ${canvasInfo}
       `
+      tool_call = 'required'
     } else if (action === 'critique') {
       systemPrompt.content = `You are a business model expert. Your task is to critique the business model and drill down on any weaknesses
         You should focus one one section, or one specific point at a time and provide a detailed critique.
@@ -115,20 +164,30 @@ export async function POST(request: Request) {
 
     //print out messages for debugging
     console.log(messages_list)
-
+    let questionTool = {
+      type: "function" as const,
+      function: {
+        name: "questions",
+        description: "Ask up to 3 questions to the client about their business model. ask question to help the client surface their thoughts and ideas about their business model. You will later use the data to help them further",
+        strict: true,
+        parameters: questionSchema
+      }
+    }
+    let suggestTool = {
+      type: "function" as const,
+      function: {
+        name: "business_model_suggestions",
+        description: "Provide structured suggestions for improving a section of the Business Model Canvas",
+        parameters: businessModelSchema
+      }
+    }
     const completion = await openai.chat.completions.create({
       messages: messages_list as ChatCompletionMessageParam[],
       model: "gpt-4o",
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "business_model_suggestions",
-            description: "Provide structured suggestions for improving a section of the Business Model Canvas",
-            parameters: businessModelSchema
-          }
-        }
-      ],
+      tools: 
+        action === 'suggest' ? [suggestTool]
+        : action === 'question' ? [questionTool]
+        : [suggestTool, questionTool],
       tool_choice: "auto"
     })
 
@@ -137,10 +196,19 @@ export async function POST(request: Request) {
     // Handle either tool response or regular chat
     if (response.tool_calls) {
       const toolResponse = JSON.parse(response.tool_calls[0].function.arguments)
+      if (response.tool_calls[0].function.name === "business_model_suggestions") {
       return NextResponse.json({ 
         message: "Here are my suggestions:",
         suggestions: toolResponse.suggestions 
-      })
+        })
+      } else if (response.tool_calls[0].function.name === "questions") {
+        console.log('questions tool call', toolResponse)
+
+        return NextResponse.json({ 
+          message: "Here are the questions I came up with:",
+          questions: toolResponse.questions 
+        })
+      }
     }
 
     return NextResponse.json({ 

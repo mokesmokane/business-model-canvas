@@ -93,8 +93,6 @@ export function Header() {
           value={formData.version}
           onChange={onInputChange}
         />
-      </div>
-      <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
