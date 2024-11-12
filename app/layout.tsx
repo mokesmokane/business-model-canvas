@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/providers/AuthProvider";
 import { CanvasProvider } from "@/contexts/CanvasContext";
 import { ChatProvider } from "@/contexts/ChatContext";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,15 +28,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ChatProvider>
-          <AuthProvider>
-            <CanvasProvider>
-              {children}
-            </CanvasProvider>
-          </AuthProvider>
-        </ChatProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ChatProvider>
+            <AuthProvider>
+              <CanvasProvider>
+                {children}
+              </CanvasProvider>
+            </AuthProvider>
+          </ChatProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

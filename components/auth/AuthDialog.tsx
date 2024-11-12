@@ -69,6 +69,54 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess }: AuthDialo
               : ''}
           </DialogDescription>
         </DialogHeader>
+        {isSignUp ?
+        <form 
+          onSubmit={handleSubmit} 
+          className="space-y-4" 
+          method="post"
+          autoComplete="on"
+          name="signup"
+        >
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            id="email"
+            name="email"
+            autoComplete="username"
+          />
+
+          <div>
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              id="password"
+              name="password"
+              autoComplete="new-password"
+              minLength={8}
+              aria-label="Create password"
+            />
+          </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <div className="flex flex-col gap-2">
+            <Button type="submit">
+              {isSignUp ? 'Sign up' : 'Sign in'}
+            </Button>
+            <Button 
+              type="button" 
+              variant="ghost"
+              onClick={() => setIsSignUp(!isSignUp)}
+            >
+              {"Already have an account? Sign in"}
+            </Button>
+          </div>
+        </form>
+        :
         <form 
           onSubmit={handleSubmit} 
           className="space-y-4" 
@@ -96,27 +144,25 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess }: AuthDialo
               required
               id="password"
               name="password"
-              autoComplete={isSignUp ? "new-password" : "current-password"}
-              minLength={8}
-              aria-label={isSignUp ? "Create password" : "Enter password"}
+              autoComplete="current-password"
+              aria-label="Enter password"
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex flex-col gap-2">
             <Button type="submit">
-              {isSignUp ? 'Sign up' : 'Sign in'}
+              {"Sign in"}
             </Button>
             <Button 
               type="button" 
               variant="ghost"
               onClick={() => setIsSignUp(!isSignUp)}
             >
-              {isSignUp 
-                ? 'Already have an account? Sign in' 
-                : "Don't have an account? Sign up"}
+              {"Don't have an account? Sign up"}
             </Button>
           </div>
         </form>
+        }
       </DialogContent>
     </Dialog>
   );

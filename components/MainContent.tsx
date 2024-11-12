@@ -9,7 +9,7 @@ export function MainContent() {
   const { user } = useAuth()
 
   return (
-    <div className={`min-h-screen flex flex-col ${user ? 'dark bg-gray-900' : ''}`}>
+    <div className="min-h-screen flex flex-col">
       {user ? (
         <>
           <SiteHeader />

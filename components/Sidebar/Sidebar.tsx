@@ -27,7 +27,7 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
   return (
     <TooltipProvider>
       <div 
-        className={`relative flex flex-col h-[calc(100vh-64px)] bg-gray-950 border-r border-gray-800 transition-all duration-300 ease-in-out ${
+        className={`relative flex flex-col h-[calc(100vh-64px)] bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 transition-all duration-300 ease-in-out ${
           isExpanded ? 'items-stretch' : 'items-center'
         }`}
         style={{ width: sidebarWidth }}

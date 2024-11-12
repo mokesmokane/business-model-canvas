@@ -62,7 +62,7 @@ export function BusinessModelCanvasComponent() {
 
   return (
     <>
-      <div className="flex h-[calc(100vh-64px)] bg-white dark:bg-gray-950">
+      <div className="flex h-[calc(100vh-64px)] bg-white">
         <Sidebar 
           isExpanded={isExpanded}
           setShowAuthDialog={setShowAuthDialog}

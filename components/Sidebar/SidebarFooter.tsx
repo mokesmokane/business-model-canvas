@@ -1,5 +1,5 @@
 import React from 'react'
-import { Settings, HelpCircle, Users, LogOut, User } from 'lucide-react'
+import { Settings, HelpCircle, Users, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -9,6 +9,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { useChat } from '@/contexts/ChatContext'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 interface SidebarFooterProps {
   isExpanded: boolean
@@ -52,6 +53,10 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
               {label}
             </Button>
           ))}
+          <div className="flex items-center justify-between px-2 pt-2">
+            <span className="text-sm text-gray-400">Theme</span>
+            <ThemeToggle />
+          </div>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4">
@@ -73,6 +78,7 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
               </TooltipContent>
             </Tooltip>
           ))}
+          <ThemeToggle />
         </div>
       )}
     </div>
