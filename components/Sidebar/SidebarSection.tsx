@@ -71,7 +71,7 @@ export function SidebarSection({
     <div className={isExpanded ? "space-y-2 w-full" : "flex flex-col items-center"}>
       {isExpanded ? (
         <>
-          <h3 className="text-sm font-semibold text-foreground flex items-center px-4 py-2">
+          <h3 className="text-sm font-semibold text-muted-foreground flex items-center px-4 py-2">
             <Icon className="h-4 w-4 mr-2" />
             {title}
             <div className="flex-grow"></div>

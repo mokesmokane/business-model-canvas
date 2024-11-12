@@ -143,7 +143,7 @@ export function AIChatArea() {
           <div className="flex items-center justify-between gap-2 p-4 border-b border-zinc-300/50 dark:border-zinc-800/50">
             <div className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-sm font-semibold text-foreground">AI Assistant</h3>
+              <h3 className="text-sm font-semibold text-muted-foreground">AI Assistant</h3>
             </div>
             <Button
               variant="ghost"

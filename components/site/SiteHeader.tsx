@@ -83,8 +83,11 @@ export function SiteHeader() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 rounded-full">
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                <Button 
+                  variant="ghost" 
+                  className="relative h-8 w-8 rounded-full hover:bg-muted-foreground/10"
+                >
+                  <div className="absolute inset-0 rounded-full bg-muted flex items-center justify-center">
                     <User className="h-4 w-4" />
                   </div>
                 </Button>
