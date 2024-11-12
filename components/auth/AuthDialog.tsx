@@ -19,7 +19,7 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmai
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [verificationSent, setVerificationSent] = React.useState(false);
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, sendVerificationEmail } = useAuth();
 
   React.useEffect(() => {
     setIsSignUp(openSignUp);
@@ -37,15 +37,28 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmai
 
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        const user = await signUp(email, password);
         setVerificationSent(true);
       } else {
-        await signIn(email, password);
+        const user = await signIn(email, password);
+        if (!user.emailVerified) {
+          setError('Please verify your email before signing in');
+          return;
+        }
         onSuccess();
         onClose();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await sendVerificationEmail();
+      setError('Verification email resent');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend verification email');
     }
   };
 
@@ -59,7 +72,11 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmai
               We've sent a verification email to {email}. Please check your inbox and click the verification link.
             </DialogDescription>
           </DialogHeader>
-          <Button onClick={onClose}>Close</Button>
+          <div className="flex flex-col gap-2">
+            <Button onClick={handleResendVerification}>Resend verification email</Button>
+            <Button variant="ghost" onClick={onClose}>Close</Button>
+          </div>
+          {error && <p className="text-sm text-red-500">{error}</p>}
         </DialogContent>
       </Dialog>
     );

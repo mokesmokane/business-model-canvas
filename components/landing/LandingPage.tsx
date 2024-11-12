@@ -30,7 +30,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-white">
       <header className="w-full bg-white p-4 fixed top-0 z-50">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">

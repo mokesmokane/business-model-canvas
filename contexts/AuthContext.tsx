@@ -11,16 +11,18 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, DocumentData, doc, setDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, DocumentData, doc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
   userData: DocumentData | null;
   loading: boolean;
   isVerified: boolean;
-  signUp: (email: string, password: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<User>;
+  signIn: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
+  sendVerificationEmail: () => Promise<void>;
   userCanvases: DocumentData[];
   subscriptionStatus: 'free' | 'pro' | 'enterprise' | null;
 }
@@ -34,6 +36,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isVerified, setIsVerified] = useState(false);
   const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
   const [subscriptionStatus, setSubscriptionStatus] = useState<'free' | 'pro' | 'enterprise' | null>(null);
+
+  useEffect(() => {
+    console.log('Auth State:', {
+      loading,
+      user: user?.email,
+      isVerified: user?.emailVerified,
+      userData
+    });
+  }, [loading, user, userData]);
 
   useEffect(() => {
     let unsubscribeCanvases: (() => void) | undefined;
@@ -104,20 +115,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, 'users', userCredential.user.uid), {
-      email: email,
-      createdAt: new Date(),
-      subscriptionStatus: 'free'
-    });
-    await sendEmailVerification(userCredential.user, {
-      url: window.location.origin,
-    });
+  const signUp = async (email: string, password: string): Promise<User> => {
+    console.log('Starting signup process for:', email);
+    
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      console.log('User created successfully:', userCredential.user.uid);
+      
+      try {
+        console.log('Attempting to send verification email...');
+        const actionCodeSettings = {
+          url: `${window.location.origin}/verify-email`,
+          handleCodeInApp: true,
+        };
+        
+        await sendEmailVerification(userCredential.user, actionCodeSettings);
+        console.log('Verification email sent successfully');
+        console.log('Email verified status:', userCredential.user.emailVerified);
+        console.log('User email:', userCredential.user.email);
+        
+        // await signOut(auth);
+        window.location.href = '/verify-email';
+        return userCredential.user;
+        
+      } catch (verificationError) {
+        console.error('Error sending verification email:', verificationError);
+        if (verificationError instanceof Error) {
+          console.error('Error name:', verificationError.name);
+          console.error('Error message:', verificationError.message);
+          console.error('Error stack:', verificationError.stack);
+        }
+        await signOut(auth);
+        throw verificationError;
+      }
+    } catch (signupError) {
+      console.error('Error during signup:', signupError);
+      throw signupError;
+    }
   };
 
-  const signIn = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+  const signIn = async (email: string, password: string): Promise<User> => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    if (!userCredential.user.emailVerified) {
+      throw new Error('Please verify your email before signing in');
+    }
+    return userCredential.user;
+  };
+
+  const resendVerificationEmail = async () => {
+    if (!user) {
+      throw new Error('No user is currently signed in');
+    }
+    await sendEmailVerification(user, {
+      url: `${window.location.origin}/verify-email`,
+    });
   };
 
   const logout = async () => {
@@ -126,8 +177,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserData(null);
     setUserCanvases([]);
     setSubscriptionStatus(null);
+    setIsVerified(false);
     await signOut(auth);
     window.location.href = '/';
+  };
+
+  const sendVerificationEmail = async () => {
+    if (!user) {
+      throw new Error('No user is currently signed in');
+    }
+    await sendEmailVerification(user, {
+      url: `${window.location.origin}/verify-email`,
+    });
   };
 
   return (
@@ -139,6 +200,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signUp, 
       signIn, 
       logout,
+      resendVerificationEmail,
+      sendVerificationEmail,
       userCanvases,
       subscriptionStatus
     }}>
