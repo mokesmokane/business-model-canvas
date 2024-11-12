@@ -5,6 +5,7 @@ import { AuthProvider } from "@/components/providers/AuthProvider";
 import { CanvasProvider } from "@/contexts/CanvasContext";
 import { ChatProvider } from "@/contexts/ChatContext";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { CanvasThemeProvider } from "@/contexts/CanvasThemeContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -39,7 +40,9 @@ export default function RootLayout({
           <ChatProvider>
             <AuthProvider>
               <CanvasProvider>
-                {children}
+                <CanvasThemeProvider>
+                  {children}
+                </CanvasThemeProvider>
               </CanvasProvider>
             </AuthProvider>
           </ChatProvider>

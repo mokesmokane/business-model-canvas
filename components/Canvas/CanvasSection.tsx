@@ -3,17 +3,13 @@
 import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/ui/button'
 import { LucideIcon, Send } from 'lucide-react'
 import { AISectionAssistButton } from './AISectionAssistButton'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Input } from '../ui/input'
-import { Check, X, Edit2, Trash2 } from 'lucide-react'
 import { DynamicInput } from './DynamicInput'
-import AISuggestionItem from './AISuggestionItem'
 import SectionItem from './SectionItem'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 
 interface AISuggestion {
   id: string;
@@ -40,6 +36,7 @@ export function CanvasSection({
   placeholder, 
   className 
 }: CanvasSectionProps) {
+  const { canvasTheme } = useCanvasTheme()
   const itemsArray = Array.isArray(items) ? items : items ? [items] : [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
 
@@ -75,30 +72,48 @@ export function CanvasSection({
   }
 
   return (
-    <Card className={`flex flex-col ${className}`}>
-      <CardHeader>
+    <Card 
+      canvasTheme={canvasTheme}
+    className={`flex flex-col p-1 transition-all duration-300 !bg-transparent ${className}`}>
+      <CardHeader className={`${
+        canvasTheme === 'light' 
+          ? 'bg-white border-gray-200'
+          : 'bg-gray-950 border-gray-800'
+      }`}>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <CardTitle className="flex items-center gap-2">
-                <Icon className="h-5 w-5" />
+              <CardTitle className={`flex items-center gap-2 ${
+                canvasTheme === 'light' ? 'text-gray-900' : 'text-gray-100'
+              }`}>
+                <Icon className={`h-5 w-5 ${
+                  canvasTheme === 'light' ? 'text-gray-700' : 'text-gray-300'
+                }`} />
                 {title}
                 <div className="flex-1" />
                 <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {}} />
               </CardTitle>
             </TooltipTrigger>
             {(itemsArray.length > 0) && (
-              <TooltipContent className="whitespace-pre-line text-sm text-muted-foreground">
+              <TooltipContent className={`whitespace-pre-line text-sm ${
+                canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
+              }`}>
                 {placeholder}
               </TooltipContent>
             )}
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
-        <ScrollArea className="flex-1 mb-4">
+      <CardContent className={`flex-1 flex flex-col ${
+        canvasTheme === 'light' 
+          ? 'bg-white'
+          : 'bg-gray-950'
+      }`}>
+        <ScrollArea className="flex-1 mb-4 h-full">
           {itemsArray.length === 0 ? (
-            <p className="text-gray-500 text-sm whitespace-pre-line">
+            <p className={`text-sm whitespace-pre-line ${
+              canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
+            }`}>
               {placeholder}
             </p>
           ) : (
@@ -115,7 +130,7 @@ export function CanvasSection({
           )}
         </ScrollArea>
         
-        <div className="flex items-center space-x-2">
+        <div className="mt-auto">
           <DynamicInput 
             placeholder={title}
             onSubmit={handleAddOrUpdateItem}

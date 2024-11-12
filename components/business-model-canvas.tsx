@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Header } from "./Header/Header"
+import { Header } from "./Canvas/Header"
 import { CanvasContent } from "./Canvas/CanvasContent"
 import { Sidebar } from "./Sidebar/Sidebar"
 import { useAuth } from '@/contexts/AuthContext';

@@ -31,7 +31,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background border-border">
+    <header className="sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-800 bg-background">
       <div className="flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-4">
           {user && (
@@ -44,7 +44,7 @@ export function SiteHeader() {
             </Button>
           )}
           <Link className="flex items-center justify-center" href="#">
-            <span className="text-2xl font-extrabold">cavvy.ai</span>
+            <span className="text-2xl font-extrabold text-foreground">cavvy.ai</span>
           </Link>
         </div>
         

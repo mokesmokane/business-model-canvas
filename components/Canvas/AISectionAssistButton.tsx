@@ -13,6 +13,7 @@ import { useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { sendChatRequest } from '@/services/aiService'
+import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 
 const actions = [
   { key: 'suggest', label: 'Suggest', icon: Lightbulb },
@@ -31,6 +32,7 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
   const { setIsLoading, addMessages, isLoading, messages } = useChat()
   const { formData } = useCanvas()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const { canvasTheme } = useCanvasTheme()
 
   const handleAction = async (action: string) => {
     onExpandSidebar()
@@ -79,6 +81,7 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
       <Button 
         variant="outline"
         size="icon"
+        canvasTheme={canvasTheme}
         className="ml-2 hover:bg-gray-800/50 hover:text-gray-100 group"
         disabled={isLoading}
       >

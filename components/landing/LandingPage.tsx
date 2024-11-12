@@ -34,7 +34,7 @@ export default function LandingPage() {
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Link className="flex items-center justify-center" href="#">
-              <span className="text-2xl font-extrabold">cavvy.ai</span>
+              <span className="text-2xl font-extrabold ">cavvy.ai</span>
             </Link>
           </div>
           

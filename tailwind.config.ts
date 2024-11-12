@@ -13,7 +13,8 @@ const config: Config = {
   			background: 'var(--background)',
   			foreground: 'var(--foreground)',
 			muted: {
-			foreground: "hsl(var(--muted-foreground))"
+				DEFAULT: 'var(--muted)',
+				foreground: "var(--muted-foreground)"
 			}
   		},
   		borderRadius: {

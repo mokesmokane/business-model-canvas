@@ -15,6 +15,17 @@ body {
 @layer base {
   :root {
     --radius: 0.5rem;
+    --background: hsl(0 0% 100%);
+    --foreground: hsl(222.2 84% 4.9%);
+    --muted: hsl(210 40% 96.1%);
+    --muted-foreground: hsl(216, 8%, 49%);
+  }
+
+  .dark {
+    --background: hsl(222.2 84% 4.9%);
+    --foreground: hsl(220, 3%, 60%);
+    --muted: hsl(217.2 32.6% 17.5%);
+    --muted-foreground: hsl(215, 5%, 49%);  
   }
 }
 

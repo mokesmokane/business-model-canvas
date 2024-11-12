@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 
 const actions = [
   { key: 'suggestEdit', label: 'Suggest Edit', icon: Lightbulb },
@@ -38,6 +39,7 @@ export function AIItemAssistButton({
 }: AIItemAssistButtonProps) {
   const { setIsLoading, addMessages, isLoading, messages } = useChat()
   const { formData } = useCanvas()
+  const { canvasTheme } = useCanvasTheme()
 
   const handleAction = async (action: string) => {
     onExpandSidebar()
@@ -83,17 +85,29 @@ export function AIItemAssistButton({
         <Button 
           variant="outline"
           size="icon"
+          canvasTheme={canvasTheme}
           className="ml-2"
         >
           <Sparkles className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48 bg-gray-900 border-gray-800">
+      <DropdownMenuContent 
+        align="end" 
+        className={`w-48 ${
+          canvasTheme === 'light' 
+            ? 'bg-white border-gray-200' 
+            : 'bg-gray-900 border-gray-700'
+        }`}
+      >
         {actions.map(({ key, label, icon: Icon }) => (
           <DropdownMenuItem
             key={key}
             onClick={() => handleAction(key)}
-            className="text-gray-400 hover:bg-gray-800 hover:text-gray-100 cursor-pointer flex items-center gap-2"
+            className={`cursor-pointer flex items-center gap-2 ${
+              canvasTheme === 'light'
+                ? 'text-gray-700 hover:bg-gray-100'
+                : 'text-gray-300 hover:bg-gray-800'
+            }`}
           >
             <Icon className="h-4 w-4" />
             {label}

@@ -4,13 +4,8 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-react'
-interface DynamicInputProps {
-    onSubmit: (value: string) => void
-    onCancel?: () => void
-    placeholder?: string
-    initialValue?: string
-  }
-  
+import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
+
 interface DynamicInputProps {
     onSubmit: (value: string) => void
     onCancel?: () => void
@@ -20,12 +15,13 @@ interface DynamicInputProps {
   }
   
   export function DynamicInput({ 
+    placeholder = 'Type something...',
     onSubmit, 
     onCancel, 
-    placeholder = "Add item...",
-    initialValue = "",
-    isEditing = false
+    initialValue = '', 
+    isEditing = false 
   }: DynamicInputProps) {
+    const { canvasTheme } = useCanvasTheme()
     const [inputValue, setInputValue] = useState(initialValue)
     const [isExpanded, setIsExpanded] = useState(!!initialValue)
     const [isFocused, setIsFocused] = useState(false)
@@ -94,6 +90,7 @@ interface DynamicInputProps {
         <div className={`relative transition-all duration-300 ease-in-out`}>
           <Textarea
             ref={textareaRef}
+            canvasTheme={canvasTheme}
             className={`w-full resize-none transition-all duration-300 ease-in-out ${
               isExpanded 
                 ? 'h-32 pb-12' 

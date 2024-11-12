@@ -1,5 +1,5 @@
 import React from 'react'
-import { Settings, HelpCircle, Users, LogOut } from 'lucide-react'
+import { Settings, HelpCircle, Users, LogOut, Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { useChat } from '@/contexts/ChatContext'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { useTheme } from 'next-themes'
 
 interface SidebarFooterProps {
   isExpanded: boolean
@@ -20,6 +21,7 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
   const { user, logout } = useAuth();
   const { clearState } = useCanvas();
   const { clearMessages } = useChat();
+  const { theme, setTheme } = useTheme()
 
   const handleSignOut = async () => {
     try {
@@ -30,10 +32,10 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
       console.error('Error signing out:', error);
     }
   };
-
   const footerItems = [
     { icon: Users, label: 'Profile', action: () => {} },
     { icon: Settings, label: 'Settings', action: () => {} },
+    { icon: theme === "light" ? Moon : Sun, label: 'Theme', action: () => { setTheme(theme === "light" ? "dark" : "light") } },
     { icon: HelpCircle, label: 'Help', action: () => {} },
     { icon: LogOut, label: 'Sign Out', action: handleSignOut },
   ];
@@ -53,10 +55,6 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
               {label}
             </Button>
           ))}
-          <div className="flex items-center justify-between px-2 pt-2">
-            <span className="text-sm text-gray-400">Theme</span>
-            <ThemeToggle />
-          </div>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4">
@@ -78,7 +76,6 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
               </TooltipContent>
             </Tooltip>
           ))}
-          <ThemeToggle />
         </div>
       )}
     </div>

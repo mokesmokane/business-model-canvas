@@ -2,12 +2,14 @@ import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins 
 import { CanvasSection } from "./CanvasSection"
 import { useEffect } from "react"
 import { useCanvas } from "@/contexts/CanvasContext"
+import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 
 interface CanvasContentProps {
   onExpandSidebar: () => void
 }
 
 export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
+  const { canvasTheme } = useCanvasTheme()
   const { currentCanvas, formData, updateField, updateSection } = useCanvas();
 
   useEffect(() => {
@@ -15,8 +17,12 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
   }, [formData]);
 
   return (
-    <div className="flex flex-col flex-1 p-4 space-y-4 overflow-auto">
-      <div className="grid grid-cols-5 gap-4 flex-[2]">
+    <div className={`flex flex-col flex-1 p-4 space-y-4 overflow-auto ${
+      canvasTheme === 'light' ? 'bg-white text-black' : 'bg-gray-950 text-white'
+    }`}>
+      <div className={`grid grid-cols-5 gap-4 flex-[2] ${
+        canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
+      }`}>
         <CanvasSection
           title="Key Partners"
           sectionKey="keyPartners"
@@ -102,7 +108,9 @@ How are we integrating them with customer routines?`}
 Who are our most important customers?`}
         />
       </div>
-      <div className="grid grid-cols-2 gap-4 flex-1">
+      <div className={`grid grid-cols-2 gap-4 flex-1 ${
+        canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
+      }`}>
         <CanvasSection
           title="Cost Structure"
           sectionKey="costStructure"
