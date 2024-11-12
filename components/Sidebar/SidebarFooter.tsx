@@ -9,7 +9,6 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { useChat } from '@/contexts/ChatContext'
-import { ThemeToggle } from '@/components/ThemeToggle'
 import { useTheme } from 'next-themes'
 
 interface SidebarFooterProps {
@@ -32,6 +31,7 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
       console.error('Error signing out:', error);
     }
   };
+  
   const footerItems = [
     { icon: Users, label: 'Profile', action: () => {} },
     { icon: Settings, label: 'Settings', action: () => {} },
@@ -41,14 +41,14 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
   ];
 
   return (
-    <div className={`mt-auto border-t border-gray-800 ${isExpanded ? 'py-2 px-4' : 'py-4'}`}>
+    <div className={`mt-auto border-t border-zinc-300/50 dark:border-zinc-800/50 ${isExpanded ? 'py-2 px-4' : 'py-4'}`}>
       {isExpanded ? (
         <div className="flex flex-col gap-2">
           {footerItems.map(({ icon: Icon, label, action }) => (
             <Button
               key={label}
               variant="ghost"
-              className="w-full justify-start text-gray-400 hover:text-gray-100 px-2"
+              className="w-full justify-start text-muted-foreground hover:text-foreground px-2"
               onClick={action}
             >
               <Icon className="mr-2 h-4 w-4" />
@@ -64,14 +64,14 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="w-10 h-10 p-0 text-gray-400 hover:text-gray-100"
+                  className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground"
                   onClick={action}
                 >
                   <Icon className="h-5 w-5" />
                   <span className="sr-only">{label}</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-800">
+              <TooltipContent side="right">
                 {label}
               </TooltipContent>
             </Tooltip>

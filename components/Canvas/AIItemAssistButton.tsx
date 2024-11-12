@@ -80,8 +80,11 @@ export function AIItemAssistButton({
   }
 
   return (
-    <DropdownMenu onOpenChange={onDropdownStateChange}>
-      <DropdownMenuTrigger asChild>
+    <DropdownMenu 
+    onOpenChange={onDropdownStateChange}>
+      <DropdownMenuTrigger 
+        asChild
+      >
         <Button 
           variant="outline"
           size="icon"
@@ -92,24 +95,23 @@ export function AIItemAssistButton({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent 
+        canvasTheme={canvasTheme}
         align="end" 
-        className={`w-48 ${
-          canvasTheme === 'light' 
-            ? 'bg-white border-gray-200' 
-            : 'bg-gray-900 border-gray-700'
-        }`}
+        className={`w-48`}
       >
         {actions.map(({ key, label, icon: Icon }) => (
           <DropdownMenuItem
+            canvasTheme={canvasTheme}
             key={key}
             onClick={() => handleAction(key)}
-            className={`cursor-pointer flex items-center gap-2 ${
-              canvasTheme === 'light'
-                ? 'text-gray-700 hover:bg-gray-100'
-                : 'text-gray-300 hover:bg-gray-800'
-            }`}
+            className={`cursor-pointer flex items-center gap-2`}
+
           >
-            <Icon className="h-4 w-4" />
+            <Icon className={`h-4 w-4 ${
+              canvasTheme === 'light'
+                ? 'text-gray-600'
+                : 'text-gray-400'
+            }`} />
             {label}
           </DropdownMenuItem>
         ))}

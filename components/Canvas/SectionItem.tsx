@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { AISectionAssistButton } from './AISectionAssistButton' 
+import { AIItemAssistButton } from './AIItemAssistButton' 
 import { Check, X, Edit2, Trash2 } from 'lucide-react'
 import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 
@@ -47,10 +47,11 @@ export function SectionItem({
         } overflow-hidden`}
       >
         <div className="flex items-center space-x-2 mt-2 justify-end">
-          <AISectionAssistButton 
+          <AIItemAssistButton 
             section={item} 
             sectionKey={item} 
             onExpandSidebar={() => {}} 
+            onDropdownStateChange={() => {}} 
           />
           <Button 
             onClick={isEditing ? onEditEnd : onEditStart}

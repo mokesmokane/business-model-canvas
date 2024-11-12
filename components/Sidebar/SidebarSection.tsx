@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, LucideIcon, Plus, Trash2 } from 'lucide-react'
+import { ChevronLeft, LucideIcon, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -71,11 +71,11 @@ export function SidebarSection({
     <div className={isExpanded ? "space-y-2 w-full" : "flex flex-col items-center"}>
       {isExpanded ? (
         <>
-          <h3 className="text-sm font-semibold text-gray-300 flex items-center px-4 py-2">
+          <h3 className="text-sm font-semibold text-foreground flex items-center px-4 py-2">
             <Icon className="h-4 w-4 mr-2" />
             {title}
             <div className="flex-grow"></div>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-100" onClick={()=>setIsExpanded(false)}>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={()=>setIsExpanded(false)}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
           </h3>
@@ -84,8 +84,10 @@ export function SidebarSection({
             <div key={item.id} className="flex items-center gap-1 px-4">
               <Button
                 variant="ghost"
-                className={`flex-1 justify-start text-gray-400 hover:text-gray-100 ${
-                  currentCanvas?.id === item.id ? 'bg-gray-800/50 text-gray-100 font-medium' : ''
+                className={`flex-1 justify-start text-muted-foreground hover:text-foreground ${
+                  currentCanvas?.id === item.id 
+                    ? 'bg-muted font-medium border-l-2 border-primary pl-3' 
+                    : 'pl-4'
                 }`}
                 onClick={() => handleCanvasSelect(item.id)}
               >
@@ -93,24 +95,22 @@ export function SidebarSection({
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-100">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="bg-gray-900 border-gray-800">
+                <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="text-gray-100">Delete Canvas</AlertDialogTitle>
-                    <AlertDialogDescription className="text-gray-400">
+                    <AlertDialogTitle>Delete Canvas</AlertDialogTitle>
+                    <AlertDialogDescription>
                       Are you sure you want to delete "{item.name}"? This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel className="bg-gray-800 text-gray-100 hover:bg-gray-700 border-gray-700">
-                      Cancel
-                    </AlertDialogCancel>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction 
                       onClick={() => handleDeleteCanvas(item.id)}
-                      className="bg-red-600 text-gray-100 hover:bg-red-700"
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
                       Delete
                     </AlertDialogAction>
@@ -126,13 +126,13 @@ export function SidebarSection({
             <Button 
               variant="ghost" 
               size="icon" 
-              className="w-10 h-10 p-0 text-gray-400 hover:text-gray-100"
+              className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground"
               onClick={()=>{setIsExpanded(true); setIsWide(false)}}
             >
               <Icon className="h-5 w-5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-800">
+          <TooltipContent side="right">
             {title}
           </TooltipContent>
         </Tooltip>

@@ -54,20 +54,23 @@ export function AIChatArea() {
   const handleSend = async () => {
     if (input.trim()) {
       const userMessage = { role: 'user', content: input } as Message
-      addMessages([...messages, userMessage])      
+      const updatedMessages = [...messages, userMessage]
+      addMessages(updatedMessages)      
       setInput('')
       setIsLoading(true)
 
       try {
-        const currentMessages = [...messages.filter((m: Message) => m.role == 'system' || m.role == 'user' || m.role == 'assistant')]
-        const aiResponse = await sendChatRequest([...currentMessages, userMessage], formData)
-        addMessages([...messages, aiResponse as Message])
+        const currentMessages = [...updatedMessages.filter((m: Message) => 
+          m.role == 'system' || m.role == 'user' || m.role == 'assistant'
+        )]
+        const aiResponse = await sendChatRequest([...currentMessages], formData)
+        addMessages([...updatedMessages, aiResponse as Message])
       } catch (error) {
         const errorMessage = error instanceof Error 
           ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
           : String(error)
         
-        addMessages([...messages, { 
+        addMessages([...updatedMessages, { 
           role: 'error', 
           content: `An error occurred:\n\n${errorMessage}` 
         }])
@@ -137,15 +140,15 @@ export function AIChatArea() {
     <div className={`h-full flex flex-col ${isExpanded ? '' : 'items-center'}`}>
       {isExpanded ? (
         <>
-          <div className="flex items-center justify-between gap-2 p-4 border-b border-gray-800">
+          <div className="flex items-center justify-between gap-2 p-4 border-b border-zinc-300/50 dark:border-zinc-800/50">
             <div className="flex items-center gap-2">
-              <Bot className="h-4 w-4 text-gray-400" />
-              <h3 className="text-sm font-semibold text-gray-300">AI Assistant</h3>
+              <Bot className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold text-foreground">AI Assistant</h3>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-400 hover:text-gray-100"
+              className="text-muted-foreground hover:text-foreground"
               onClick={()=>setIsWide(!isWide)}
             >
               {isWide ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
@@ -156,24 +159,24 @@ export function AIChatArea() {
               {messages.map((message, messageIndex) => (
                 <div key={messageIndex} className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                   {message.role === 'assistant' && (
-                    <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center">
-                      <Bot className="w-4 h-4 text-gray-300" />
+                    <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-blue-600 dark:text-blue-300" />
                     </div>
                   )}
                   <div className={`max-w-[600px] rounded-lg p-3 ${
                     message.role === 'user' 
-                      ? 'bg-gray-800 text-gray-100 ml-6' 
+                      ? 'bg-muted text-mut-foreground dark:bg-secondary dark:text-secondary-foreground' 
                       : message.role === 'assistant'
-                      ? 'bg-gray-800/50 text-gray-100 mr-6'
-                      : 'bg-red-900/50 text-gray-100'
+                      ? 'bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100'
+                      : 'bg-destructive/50 text-destructive-foreground'
                   }`}>
                     {message.role === 'error' ? (
                       <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-red-400" />
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
                         <span>{message.content}</span>
                       </div>
                     ) : (
-                      <ReactMarkdown className="prose prose-invert prose-sm">
+                      <ReactMarkdown className="prose dark:prose-invert prose-sm">
                         {message.content}
                       </ReactMarkdown>
                     )}
@@ -201,16 +204,16 @@ export function AIChatArea() {
                     )}
                   </div>
                   {message.role === 'user' && (
-                    <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center">
-                      <User className="w-4 h-4 text-gray-300" />
+                    <div className="w-8 h-8 rounded-full bg-secondary dark:bg-secondary flex items-center justify-center">
+                      <User className="w-5 h-5 text-secondary-foreground dark:text-secondary-foreground" />
                     </div>
                   )}
                 </div>
               ))}
               {isLoading && (
                 <div className="flex gap-2">
-                  <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-gray-300" />
+                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-muted-foreground" />
                   </div>
                   <AIThinkingIndicator />
                 </div>
@@ -238,14 +241,14 @@ export function AIChatArea() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={isExpanded ? "Type your message..." : "Chat..."}
-                  className="flex-grow bg-gray-900 border-gray-800 text-gray-100 placeholder:text-gray-500"
+                  className="flex-grow bg-background border-input text-foreground placeholder:text-muted-foreground"
                 />
                 <Button 
                   type="submit" 
                   size="icon" 
                   disabled={isLoading}
                   variant="ghost"
-                  className="text-gray-400 hover:text-gray-100"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
@@ -259,14 +262,14 @@ export function AIChatArea() {
             <Button
               variant="ghost"
               size="icon"
-              className="w-10 h-10 p-0 text-gray-400 hover:text-gray-100"
+              className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground"
               onClick={()=>{setIsExpanded(true); setIsWide(true)}}
             >
               <Bot className="h-5 w-5" />
               <span className="sr-only">AI Assistant</span>
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="right" className="bg-gray-900 text-gray-100 border-gray-800">
+          <TooltipContent side="right" className="bg-popover text-popover-foreground border-border">
             AI Assistant
           </TooltipContent>
         </Tooltip>
