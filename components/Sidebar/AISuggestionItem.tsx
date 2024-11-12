@@ -82,8 +82,8 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
 
   return (
     <Card 
-      className={`mb-2 border-2 bg-gray-800/50 ${
-        isHovered ? 'border-gray-700' : 'border-gray-800'
+      className={`mb-2 border-2 dark:bg-gray-900 bg-white ${
+        isHovered ? 'border-gray-700 dark:border-gray-700 border-gray-300' : 'dark:border-gray-800 border-gray-200'
       } ${
         isRemoving
           ? isLiked
@@ -96,17 +96,17 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
     >
       <CardContent className="p-3 relative">
         <div className="flex items-start gap-2">
-          {Icon && <Icon className="w-4 h-4 mt-1 text-gray-400" />}
+          {Icon && <Icon className="w-4 h-4 mt-1 dark:text-gray-400 text-gray-500" />}
           <div className="flex-1">
-            <p className="text-sm text-gray-200 mb-1">{suggestion.suggestion}</p>
-            <p className="text-xs text-gray-400">{suggestion.rationale}</p>
+            <p className="text-sm dark:text-gray-200 text-gray-700 mb-1">{suggestion.suggestion}</p>
+            <p className="text-xs dark:text-gray-400 text-gray-500">{suggestion.rationale}</p>
           </div>
         </div>
         <div className="flex gap-1 mt-2 justify-end">
           <Button
             size="sm"
             variant="ghost"
-            className="text-gray-400 hover:text-gray-100"
+            className="dark:text-gray-400 text-gray-500 dark:hover:text-gray-100 hover:text-gray-900"
             onClick={handleLike}
           >
             <ThumbsUp className="h-4 w-4" />
@@ -114,7 +114,7 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
           <Button
             size="sm"
             variant="ghost"
-            className="text-gray-400 hover:text-gray-100"
+            className="dark:text-gray-400 text-gray-500 dark:hover:text-gray-100 hover:text-gray-900"
             onClick={handleDismiss}
           >
             <X className="h-4 w-4" />

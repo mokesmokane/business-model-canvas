@@ -43,7 +43,11 @@ export function SectionButtons({ activeSection, onSectionSelect }: SectionButton
             <Button
               variant="ghost"
               size="icon"
-              className={`h-8 w-8 ${activeSection === key ? 'bg-gray-800 text-gray-100' : 'text-gray-400'}`}
+              className={`h-8 w-8 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-gray-100 ${
+                activeSection === key 
+                  ? 'dark:bg-gray-800 dark:text-gray-100 bg-gray-100 text-gray-900' 
+                  : 'text-gray-400'
+              }`}
               onClick={() => {
                 if (activeSection !== key) {
                   onSectionSelect(key)
@@ -57,7 +61,10 @@ export function SectionButtons({ activeSection, onSectionSelect }: SectionButton
               <Icon className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-gray-900 text-gray-100 border-gray-800">
+          <TooltipContent 
+            side="top" 
+            className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-800"
+          >
             {name}
           </TooltipContent>
         </Tooltip>
