@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, DocumentData, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, DocumentData, doc, addDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -123,6 +123,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       console.log('User created successfully:', userCredential.user.uid);
+      
+      try {
+        await addDoc(collection(db, 'businessModelCanvases'), {
+          userId: userCredential.user.uid,
+          businessName: 'My Awesome Business',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          keyPartners: [],
+          keyActivities: [],
+          keyResources: [],
+          valuePropositions: [],
+          customerRelationships: [],
+          channels: [],
+          customerSegments: [],
+          costStructure: [],
+          revenueStreams: []
+        });
+      } catch (canvasError) {
+        console.error('Error creating default canvas:', canvasError);
+      }
       
       try {
         console.log('Attempting to send verification email...');

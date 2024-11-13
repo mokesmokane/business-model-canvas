@@ -44,7 +44,10 @@ export function Header() {
             }`}
             readOnly
           />
-          <CompanyEditDialog/>
+          <div className={`${!formData.companyName || !formData.companyDescription ? 
+            'animate-pulse ring-2 ring-blue-500 rounded-md ring-opacity-75 shadow-lg shadow-blue-500/50' : ''}`}>
+            <CompanyEditDialog/>
+          </div>
         </div>
       </div>
       

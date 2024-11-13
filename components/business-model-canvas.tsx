@@ -9,6 +9,7 @@ import { AuthDialog } from './auth/AuthDialog';
 import { useEffect } from 'react';
 import { useCanvas } from "@/contexts/CanvasContext"
 import { useExpanded } from "@/contexts/ExpandedContext"
+import { NewCanvasDialog } from "./NewCanvasDialog"
 
 interface BusinessModelCanvas {
   companyName: string;
@@ -29,7 +30,7 @@ interface BusinessModelCanvas {
 }
 
 export function BusinessModelCanvasComponent() {
-  const { user } = useAuth();
+  const { user, userCanvases } = useAuth();
   const {
     formData,
     status,
