@@ -17,7 +17,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 
 const actions = [
   { key: 'suggestEdit', label: 'Suggest Edit', icon: Lightbulb },
@@ -38,8 +37,7 @@ export function AIItemAssistButton({
   onDropdownStateChange 
 }: AIItemAssistButtonProps) {
   const { setIsLoading, addMessages, isLoading, messages } = useChat()
-  const { formData } = useCanvas()
-  const { canvasTheme } = useCanvasTheme()
+  const { formData, canvasTheme } = useCanvas()
 
   const handleAction = async (action: string) => {
     onExpandSidebar()

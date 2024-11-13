@@ -4,16 +4,38 @@ import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { BusinessModelCanvas } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 import { Moon, Sun } from 'lucide-react'
 
 interface HeaderProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
+const ThemeToggleButton = () => {
+  const { canvasTheme, setCanvasTheme } = useCanvas()
+  
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={() => setCanvasTheme(canvasTheme === 'light' ? 'dark' : 'light')}
+      className={`${
+        canvasTheme === 'light'
+          ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100 hover:text-gray-900'
+          : 'bg-gray-950 text-gray-300 border-gray-800 hover:bg-gray-800 hover:text-gray-100'
+      }`}
+    >
+      {canvasTheme === 'light' ? (
+        <Moon className="h-4 w-4" />
+      ) : (
+        <Sun className="h-4 w-4" />
+      )}
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  )
+}
+
 export function Header() {
-  const { canvasTheme, setCanvasTheme } = useCanvasTheme()
-  const { status, formData, updateField, resetForm } = useCanvas();
+  const { canvasTheme, formData, updateField } = useCanvas();
 
   useEffect(() => {
     console.log('Header canvas updated:', formData);
@@ -96,17 +118,7 @@ export function Header() {
           value={formData.version}
           onChange={onInputChange}
         />
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setCanvasTheme(canvasTheme === 'light' ? 'dark' : 'light')}
-        >
-          {canvasTheme === 'light' ? (
-            <Moon className="h-4 w-4" />
-          ) : (
-            <Sun className="h-4 w-4" />
-          )}
-        </Button>
+        <ThemeToggleButton />
       </div>
     </div>
   )

@@ -16,7 +16,7 @@ import { ActionButtons } from './ActionButtons'
 import { sendChatRequest } from '@/services/aiService'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useExpanded } from '@/contexts/ExpandedContext'
-import AIQuestionItem from './AIQuestionItem'
+import Item from './AIQuestionItem'
 import {
   Tooltip,
   TooltipContent,
@@ -30,10 +30,11 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical } from 'lucide-react'
 import { Section } from '@/types/canvas'
+import AIQuestionItem from './AIQuestionItem'
 
 
 export function AIChatArea() {
-  const { updateSection, formData } = useCanvas()
+  const { updateSection, updateQuestionAnswer, formData } = useCanvas()
   const { messages, addMessage, addMessages, input, setInput, isLoading, setIsLoading, clearMessages } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
@@ -479,8 +480,8 @@ export function AIChatArea() {
                                 <AIQuestionItem
                                   key={index}
                                   question={question}
-                                  onSubmit={(id, answer) => {
-                                    console.log(`Question ${id} answered with: ${answer}`)
+                                  onSubmit={(question) => {
+                                    updateQuestionAnswer(question.section, question)
                                   }}
                                 />
                               ))}

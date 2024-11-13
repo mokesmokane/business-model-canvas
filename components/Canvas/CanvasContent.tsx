@@ -2,7 +2,6 @@ import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins 
 import { CanvasSection } from "./CanvasSection"
 import { useEffect } from "react"
 import { useCanvas } from "@/contexts/CanvasContext"
-import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 import { Section } from "@/types/canvas"
 
 interface CanvasContentProps {
@@ -10,8 +9,7 @@ interface CanvasContentProps {
 }
 
 export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
-  const { canvasTheme } = useCanvasTheme()
-  const { currentCanvas, formData, updateField, updateSection } = useCanvas();
+  const { formData, canvasTheme, updateSection } = useCanvas();
 
   useEffect(() => {
     console.log('Canvas updated:', formData);

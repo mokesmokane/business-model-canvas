@@ -7,7 +7,21 @@ export interface AISuggestion {
 export interface Section {
   name: string;
   items: string[];
-  qAndAs: { question: string, answer: string }[];
+  qAndAs: AIQuestion[];
+}
+
+export interface AIQuestion {
+  id: string;
+  question: string;
+  section: string;
+  type: 'open' | 'rating' | 'multipleChoice';
+  options?: string[];
+  scale?: {
+    min: number;
+    max: number;
+    label: string;
+  };
+  answer?: string | number;
 }
 
 export interface SerializedSections {
@@ -26,6 +40,7 @@ export interface BusinessModelCanvas {
   userId?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  theme?: 'light' | 'dark';
 }
 
 export interface SerializedBusinessModelCanvas {
@@ -70,6 +85,7 @@ const getInitialCanvasState = (): BusinessModelCanvas => ({
     ]),
     userId: '',
     createdAt: undefined,
-    updatedAt: undefined
+    updatedAt: undefined,
+    theme: 'light'
   });
   

@@ -2,7 +2,6 @@ import React from 'react'
 import { Header } from "./Header"
 import { CanvasContent } from "./CanvasContent"
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
-import { CanvasThemeProvider } from '@/contexts/CanvasThemeContext'
 
 interface CanvasProps {
   onExpandSidebar: () => void
@@ -11,9 +10,7 @@ interface CanvasProps {
 function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SubscriptionProvider>
-      <CanvasThemeProvider>
-        {children}
-      </CanvasThemeProvider>
+      {children}
     </SubscriptionProvider>
   )
 }

@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { AIItemAssistButton } from './AIItemAssistButton' 
 import { Check, X, Edit2, Trash2 } from 'lucide-react'
-import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
+import { useCanvas } from '@/contexts/CanvasContext'
 
 interface SectionItemProps {
   item: string
@@ -21,7 +21,7 @@ export function SectionItem({
   onEditEnd
 }: SectionItemProps) {
   const [isHovered, setIsHovered] = useState(false)
-  const { canvasTheme } = useCanvasTheme()
+  const { canvasTheme } = useCanvas()
 
   const showControls = isHovered || isEditing
 

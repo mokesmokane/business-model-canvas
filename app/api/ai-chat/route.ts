@@ -103,26 +103,35 @@ export async function POST(request: Request) {
     })
     //if the last message is an action, chaneg the system prompt accordingly
     const action = messages[messages.length - 1].action
+    console.log('request', currentContent)
     let canvasInfo = `The Canvas currently looks like this:
       
-    Company Name: ${currentContent.companyName}
-    Company Description: ${currentContent.companyDescription}
+Company Name: ${currentContent?.companyName ?? ''}
+Company Description: ${currentContent?.companyDescription ?? ''}
 
-    Key Partners: ${currentContent.keyPartners}
-    Key Activities: ${currentContent.keyActivities}
-    Key Resources: ${currentContent.keyResources}
-    Value Propositions: ${currentContent.valuePropositions}
-    Customer Relationships: ${currentContent.customerRelationships}
-    Channels: ${currentContent.channels}
-    Customer Segments: ${currentContent.customerSegments}
-    Cost Structure: ${currentContent.costStructure}
-    Revenue Streams: ${currentContent.revenueStreams}
-    `
+${Object.entries(currentContent?.sections || {}).map(([key, section]: [string, any]) => `
+${section.name}:
+Items: ${section.items?.join('\n') ?? ''}
+Q&A: ${section.qAndAs?.map((qa: { question: string; answer?: string | number; type: string; scale?: { max: number; label: string } }) => {
+  let formattedAnswer = 'Unanswered';
+  if (qa.answer !== undefined) {
+    if (qa.type === 'rating' && qa.scale) {
+      formattedAnswer = `${qa.answer}/${qa.scale.max} (${qa.scale.label})`;
+    } else if (qa.type === 'multipleChoice') {
+      formattedAnswer = `Selected: ${qa.answer}`;
+    } else {
+      formattedAnswer = String(qa.answer);
+    }
+  }
+  return `\nQ: ${qa.question}\nA: ${formattedAnswer}`;
+}).join('\n') ?? ''}`).join('\n\n')}
+`
 
     let systemPrompt = {
       role: "system",
       content: `You are a business model expert. 
       You can either provide structured suggestions using the business_model_suggestions function, or engage in a natural conversation about business models.
+      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
 
       ${canvasInfo}
       
@@ -132,25 +141,29 @@ export async function POST(request: Request) {
     if (action === 'question') {
       systemPrompt.content = `You are a business model expert helping a client understand their business model. 
       Based on your expertise, you come up with insightful questions that makes it easy for the client to develop their business model.
-      give your response in Markdown format.
+      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
+
       ${canvasInfo}
       `
       tool_call = 'required'
     } else if (action === 'critique') {
       systemPrompt.content = `You are a business model expert. Your task is to critique the business model and drill down on any weaknesses
         You should focus one one section, or one specific point at a time and provide a detailed critique.
-        Give your response in Markdown format.
+      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
+      Give your response in Markdown format.
 
       ${canvasInfo}
       `
     } else if (action === 'research') {
       systemPrompt.content = `You are a business model expert. 
       You suggest ways in which the client needs to research aspects of their business model. give very specific advice on how they can do this and areas of research to focus on.
+      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
       Give your response in Markdown format.
       ${canvasInfo}
       `
     } else if (action === 'suggest') {
       systemPrompt.content = `You are a business model expert. You can suggest items to add to the business model canvas.
+      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
       
       ${canvasInfo}
       `

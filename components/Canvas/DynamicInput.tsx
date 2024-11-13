@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-react'
-import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
+import { useCanvas } from '@/contexts/CanvasContext'
 
 interface DynamicInputProps {
     onSubmit: (value: string) => void
@@ -21,12 +21,12 @@ interface DynamicInputProps {
     initialValue = '', 
     isEditing = false 
   }: DynamicInputProps) {
-    const { canvasTheme } = useCanvasTheme()
     const [inputValue, setInputValue] = useState(initialValue)
     const [isExpanded, setIsExpanded] = useState(!!initialValue)
     const [isFocused, setIsFocused] = useState(false)
     const [showButton, setShowButton] = useState(false)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const { canvasTheme } = useCanvas()
   
     // Update input value when initialValue changes
     useEffect(() => {

@@ -19,23 +19,11 @@ import {
   Coins,
   LucideIcon
 } from 'lucide-react'
-
-interface AIQuestion {
-  id: string;
-  question: string;
-  section: string;
-  type: 'open' | 'rating' | 'multipleChoice';
-  options?: string[];
-  scale?: {
-    min: number;
-    max: number;
-    label: string;
-  };
-}
+import { AIQuestion } from '@/types/canvas'
 
 interface AIQuestionItemProps {
   question: AIQuestion;
-  onSubmit: (id: string, answer: string | number) => void;
+  onSubmit: (question: AIQuestion) => void;
 }
 
 const sectionIcons: Record<string, LucideIcon> = {
@@ -55,9 +43,13 @@ function AIQuestionItem({ question, onSubmit }: AIQuestionItemProps) {
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   const handleSubmit = () => {
+    console.log('answer', answer)
     if (answer) {
       setIsSubmitted(true)
-      onSubmit(question.id, answer)
+      onSubmit({
+        ...question,
+        answer: answer
+      })
     }
   }
 

@@ -5,7 +5,7 @@ import { collection, doc, getDoc, setDoc, addDoc, updateDoc, DocumentData, onSna
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 import debounce from 'lodash/debounce';
-import { BusinessModelCanvas, SerializedBusinessModelCanvas, SerializedSections } from '@/types/canvas';
+import { AIQuestion, BusinessModelCanvas, SerializedBusinessModelCanvas, SerializedSections } from '@/types/canvas';
 import { deleteDoc } from 'firebase/firestore';
 
 interface Section {
@@ -42,7 +42,8 @@ export const initialCanvasState: BusinessModelCanvas = {
   ]),
   userId: '',
   createdAt: undefined,
-  updatedAt: undefined
+  updatedAt: undefined,
+  theme: 'light'
 };
 
 interface CanvasContextType {
@@ -51,13 +52,17 @@ interface CanvasContextType {
   status: 'idle' | 'loading' | 'saving' | 'error';
   error: string | null;
   userCanvases: DocumentData[];
+  canvasTheme: 'light' | 'dark';
   updateField: (field: keyof BusinessModelCanvas, value: string) => void;
   updateSection: (sectionKey: string, items: string[]) => void;
+  updateQuestionAnswer: (sectionKey: string, question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<void>;
   createNewCanvas: (data: { name: string, description: string }) => Promise<string | undefined>;
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
   clearState: () => void;
+  updateQuestions: (sectionKey: string, questions: any[]) => void;
+  setCanvasTheme: (theme: 'light' | 'dark') => void;
 }
 
 export const CanvasContext = createContext<CanvasContextType>({
@@ -66,13 +71,17 @@ export const CanvasContext = createContext<CanvasContextType>({
   status: 'idle',
   error: null,
   userCanvases: [],
+  canvasTheme: 'light',
   updateField: () => {},
   updateSection: () => {},
+  updateQuestionAnswer: () => {},
   loadCanvas: async () => {},
-  createNewCanvas: async () => { return ''  },
+  createNewCanvas: async () => { return '' },
   resetForm: () => {},
   deleteCanvas: async () => {},
   clearState: () => {},
+  updateQuestions: () => {},
+  setCanvasTheme: () => {},
 });
 
 const AUTOSAVE_DELAY = 1000;
@@ -252,6 +261,40 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+
+  const updateQuestionAnswer = useCallback((sectionKey: string, question: AIQuestion) => {
+    setState(prev => {
+      const sections = prev.formData.sections;
+      const section = sections.get(sectionKey);
+      if (!section) return prev;
+
+      const updatedSections = new Map(sections);
+      updatedSections.set(sectionKey, {
+        ...section,
+        qAndAs: [...section.qAndAs, question]
+      });
+
+      const updatedData = {
+        ...prev.formData,
+        sections: updatedSections,
+        id: prev.currentCanvas?.id || prev.formData.id
+      };
+
+      // Before saving to Firebase, we need to serialize the Map
+      const dataForFirebase = {
+        ...updatedData,
+        sections: deserializeSections(serializeSections(updatedData.sections))
+      };
+      
+      saveToFirebase(dataForFirebase);
+
+      return {
+        ...prev,
+        formData: updatedData
+      };
+    });
+  }, [saveToFirebase]);
+
   const resetForm = useCallback(() => {
     setState(prev => ({
       ...prev,
@@ -296,6 +339,48 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('lastCanvasId');
   }, []);
 
+  const updateQuestions = useCallback((sectionKey: string, questions: any[]) => {
+    setState(prev => {
+      const updatedSections = new Map(prev.formData.sections);
+      const section = updatedSections.get(sectionKey);
+      if (section) {
+        section.qAndAs = questions;
+        updatedSections.set(sectionKey, section);
+        
+        const updatedData = {
+          ...prev.formData,
+          sections: updatedSections,
+          id: prev.currentCanvas?.id || prev.formData.id
+        };
+
+        // Save to Firebase
+        saveToFirebase(updatedData);
+
+        return {
+          ...prev,
+          formData: updatedData
+        };
+      }
+      return prev;
+    });
+  }, [saveToFirebase]);
+
+  const setCanvasTheme = useCallback((theme: 'light' | 'dark') => {
+    console.log('setCanvasTheme', theme);
+    setState(prev => {
+      const updatedData = {
+        ...prev.formData,
+        theme,
+        id: prev.currentCanvas?.id || prev.formData.id
+      };
+      saveToFirebase(updatedData);
+      return {
+        ...prev,
+        formData: updatedData
+      };
+    });
+  }, [saveToFirebase]);
+
   useEffect(() => {
     const storedCanvasId = localStorage.getItem('lastCanvasId');
     if (storedCanvasId) {
@@ -338,13 +423,17 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         status: state.status,
         error: state.error,
         userCanvases,
+        canvasTheme: state.formData.theme || 'light',
         updateField,
         updateSection,
+        updateQuestionAnswer,
         loadCanvas,
         createNewCanvas,
         resetForm,
         deleteCanvas,
         clearState,
+        updateQuestions,
+        setCanvasTheme,
       }}
     >
       {children}

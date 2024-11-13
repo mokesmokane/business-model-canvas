@@ -13,7 +13,6 @@ import { useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { sendChatRequest } from '@/services/aiService'
-import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 
 const actions = [
   { key: 'suggest', label: 'Suggest', icon: Lightbulb },
@@ -30,9 +29,8 @@ interface AISectionAssistButtonProps {
 
 export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: AISectionAssistButtonProps) {
   const { setIsLoading, addMessages, isLoading, messages } = useChat()
-  const { formData } = useCanvas()
+  const { formData, canvasTheme } = useCanvas()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const { canvasTheme } = useCanvasTheme()
 
   const handleAction = async (action: string) => {
     onExpandSidebar()

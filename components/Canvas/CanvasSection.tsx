@@ -3,14 +3,16 @@
 import React, { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { LucideIcon, Send } from 'lucide-react'
+import { LucideIcon, MoreVertical, Send } from 'lucide-react'
 import { AISectionAssistButton } from './AISectionAssistButton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DynamicInput } from './DynamicInput'
 import SectionItem from './SectionItem'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
 import { Section } from '@/types/canvas'
+import { Button } from '../ui/button'
+import { QuestionsDialog } from './QuestionsDialog'
+import { useCanvas } from '@/contexts/CanvasContext'
 
 interface AISuggestion {
   id: string;
@@ -37,9 +39,12 @@ export function CanvasSection({
   placeholder, 
   className 
 }: CanvasSectionProps) {
-  const { canvasTheme } = useCanvasTheme()
+  const { updateQuestions, canvasTheme } = useCanvas()
   const itemsArray = Array.isArray(section.items) ? section.items : section.items ? [section.items] : [];
+  const questionsArray = Array.isArray(section.qAndAs) ? section.qAndAs : section.qAndAs ? [section.qAndAs] : [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
+  const [isQuestionsDialogOpen, setIsQuestionsDialogOpen] = useState(false)
+
 
   const handleAddOrUpdateItem = (content: string) => {
     if (editingIndex !== null) {
@@ -72,6 +77,19 @@ export function CanvasSection({
     setEditingIndex(null)
   }
 
+  const handleDeleteQuestion = (index: number) => {
+    const newQuestions = [...questionsArray]
+    newQuestions.splice(index, 1)
+    updateQuestions(sectionKey, newQuestions)
+  }
+
+  const handleEditQuestion = (index: number, updatedQuestion: any) => {
+    const newQuestions = [...questionsArray]
+    newQuestions[index] = updatedQuestion
+    // You'll need to add a method to update questions in your context/state management
+    // updateQuestions(sectionKey, newQuestions)
+  }
+
   return (
     <Card 
       canvasTheme={canvasTheme}
@@ -92,6 +110,16 @@ export function CanvasSection({
                 }`} />
                 {title}
                 <div className="flex-1" />
+                {questionsArray.length > 0 && (
+                  <Button 
+                    canvasTheme={canvasTheme}
+                    variant="outline" 
+                    size="icon"
+                    onClick={() => setIsQuestionsDialogOpen(true)}
+                  >
+                    <MoreVertical />
+                  </Button>
+                )}
                 <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {}} />
               </CardTitle>
             </TooltipTrigger>
@@ -141,6 +169,14 @@ export function CanvasSection({
           />
         </div>
       </CardContent>
+      <QuestionsDialog
+        open={isQuestionsDialogOpen}
+        onOpenChange={setIsQuestionsDialogOpen}
+        questions={questionsArray}
+        onDelete={handleDeleteQuestion}
+        onEdit={handleEditQuestion}
+        sectionTitle={title}
+      />
     </Card>
   )
 }
