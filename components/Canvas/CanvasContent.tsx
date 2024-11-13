@@ -24,6 +24,7 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
         canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
       }`}>
         <CanvasSection
+          key={`keyPartners-${formData.keyPartners?.length}`}
           title="Key Partners"
           sectionKey="keyPartners"
           icon={Building2}
@@ -36,6 +37,7 @@ Which Key Activities do partners perform?`}
         />
         <div className="flex flex-col space-y-4 flex-1">
           <CanvasSection
+            key={`keyActivities-${formData.keyActivities?.length}`}
             title="Key Activities"
             sectionKey="keyActivities"
             icon={Workflow}
@@ -48,6 +50,7 @@ Revenue Streams?`}
             className="flex-1"
           />
           <CanvasSection
+            key={`keyResources-${formData.keyResources?.length}`}
             title="Key Resources"
             sectionKey="keyResources"
             icon={Receipt}
@@ -60,6 +63,7 @@ Revenue Streams?`}
           />
         </div>
         <CanvasSection
+          key={`valuePropositions-${formData.valuePropositions?.length}`}
           title="Value Propositions"
           sectionKey="valuePropositions"
           icon={Gift}
@@ -72,6 +76,7 @@ Which customer needs are we satisfying?`}
         />
         <div className="flex flex-col space-y-4 flex-1">
           <CanvasSection
+            key={`customerRelationships-${formData.customerRelationships?.length}`}
             title="Customer Relationships"
             sectionKey="customerRelationships"
             icon={Heart}
@@ -84,6 +89,7 @@ How costly are they?`}
             className="flex-1"
           />
           <CanvasSection
+            key={`channels-${formData.channels?.length}`}
             title="Channels"
             sectionKey="channels"
             icon={Truck}
@@ -99,6 +105,7 @@ How are we integrating them with customer routines?`}
           />
         </div>
         <CanvasSection
+          key={`customerSegments-${formData.customerSegments?.length}`}
           title="Customer Segments"
           sectionKey="customerSegments"
           icon={Users2}
@@ -112,6 +119,7 @@ Who are our most important customers?`}
         canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
       }`}>
         <CanvasSection
+          key={`costStructure-${formData.costStructure?.length}`}
           title="Cost Structure"
           sectionKey="costStructure"
           icon={Users}
@@ -122,6 +130,7 @@ Which Key Resources are most expensive?
 Which Key Activities are most expensive?`}
         />
         <CanvasSection
+          key={`revenueStreams-${formData.revenueStreams?.length}`}
           title="Revenue Streams"
           sectionKey="revenueStreams"
           icon={Coins}

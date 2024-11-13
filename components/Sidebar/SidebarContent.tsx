@@ -19,10 +19,7 @@ export function SidebarContent({ isExpanded }: SidebarContentProps) {
             icon={LayoutDashboard}
             title="Business Models"
             isExpanded={isExpanded}
-            items={userCanvases.map(canvas => ({
-              id: canvas.id,
-              name: canvas.companyName || 'Untitled Canvas'
-            }))}
+            
           />
         </div>
       </ScrollArea>

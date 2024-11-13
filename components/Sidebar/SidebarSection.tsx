@@ -29,7 +29,6 @@ interface SectionItem {
 interface SidebarSectionProps {
   icon: LucideIcon;
   title: string;
-  items: SectionItem[];
   isExpanded: boolean;
   onItemClick?: (id: string) => void;
   onNewItem?: () => void;
@@ -38,10 +37,9 @@ interface SidebarSectionProps {
 export function SidebarSection({ 
   icon: Icon, 
   title, 
-  items, 
   isExpanded
 }: SidebarSectionProps) {
-  const { loadCanvas, createNewCanvas, deleteCanvas, resetForm, currentCanvas } = useCanvas();
+  const { loadCanvas, createNewCanvas, deleteCanvas, resetForm, currentCanvas, userCanvases } = useCanvas();
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { setIsExpanded, setIsWide } = useExpanded()
 
@@ -58,14 +56,30 @@ export function SidebarSection({
     await deleteCanvas(canvasId);
     if (localStorage.getItem('lastCanvasId') === canvasId) {
       localStorage.removeItem('lastCanvasId');
-      if (items.length > 0) {
-        handleCanvasSelect(items[0].id);
+      if (userCanvases.length > 0) {
+        handleCanvasSelect(userCanvases[0].id);
       } else {
         resetForm();
         handleNewCanvas();
       }
     }
-  }, [deleteCanvas, createNewCanvas, handleCanvasSelect, items]);
+  }, [deleteCanvas, createNewCanvas, handleCanvasSelect, userCanvases]);
+
+  React.useEffect(() => {
+    const lastCanvasId = localStorage.getItem('lastCanvasId');
+    if (lastCanvasId && userCanvases.length > 0) {
+      const canvasExists = userCanvases.some(canvas => canvas.id === lastCanvasId);
+      if (canvasExists) {
+        handleCanvasSelect(lastCanvasId);
+      } else {
+        handleCanvasSelect(userCanvases[0].id);
+        localStorage.setItem('lastCanvasId', userCanvases[0].id);
+      }
+    } else if (userCanvases.length > 0) {
+      handleCanvasSelect(userCanvases[0].id);
+      localStorage.setItem('lastCanvasId', userCanvases[0].id);
+    }
+  }, [userCanvases, handleCanvasSelect]);
 
   return (
     <div className={isExpanded ? "space-y-2 w-full" : "flex flex-col items-center"}>
@@ -80,7 +94,7 @@ export function SidebarSection({
             </Button>
           </h3>
           <NewCanvasDialog/>
-          {items.map((item) => (
+          {userCanvases.map((item) => (
             <div key={item.id} className="flex items-center gap-1 px-4">
               <Button
                 variant="ghost"
@@ -91,7 +105,7 @@ export function SidebarSection({
                 }`}
                 onClick={() => handleCanvasSelect(item.id)}
               >
-                {item.name}
+                {item.companyName}
               </Button>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -103,7 +117,7 @@ export function SidebarSection({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Canvas</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete "{item.name}"? This action cannot be undone.
+                      Are you sure you want to delete "{item.companyName}"? This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

@@ -9,7 +9,7 @@ import { AIChatArea } from './AIChatArea'
 import { SidebarSection } from './SidebarSection'
 import { useAuth } from '@/contexts/AuthContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
-import { useCanvas } from '@/contexts/CanvasContext'
+import { CanvasProvider, useCanvas } from '@/contexts/CanvasContext'
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
 import { ChatProvider } from '@/contexts/ChatContext'
 
@@ -20,12 +20,12 @@ interface SidebarProps {
 function Providers({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
-    <SubscriptionProvider>
-      <ChatProvider>
-        {children}
-      </ChatProvider>
-    </SubscriptionProvider>
-  </TooltipProvider>
+      <SubscriptionProvider>
+          <ChatProvider>
+            {children}
+          </ChatProvider>
+      </SubscriptionProvider>
+    </TooltipProvider>
   )
 } 
 
@@ -49,10 +49,6 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
             icon={LayoutDashboard}
             title="Business Models"
             isExpanded={isExpanded}
-            items={userCanvases.map(canvas => ({
-              id: canvas.id,
-              name: canvas.companyName || 'Untitled Canvas'
-            }))}
           />
         </div>
         {isExpanded && <div className="border-t border-zinc-300/50 dark:border-zinc-700/50 my-2 w-full"></div>}

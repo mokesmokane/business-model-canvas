@@ -6,6 +6,7 @@ import { Sidebar } from "./Sidebar/Sidebar"
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from './auth/AuthDialog';
 import { useExpanded } from "@/contexts/ExpandedContext"
+import { CanvasProvider } from "@/contexts/CanvasContext";
 
 export function BusinessModelCanvasComponent() {
   const { user } = useAuth();
@@ -26,12 +27,14 @@ export function BusinessModelCanvasComponent() {
 
   return (
     <>
+        <CanvasProvider>
       <div className="flex h-[calc(100vh-64px)] bg-white">
         <Sidebar 
           setShowAuthDialog={setShowAuthDialog}
         />
-        <Canvas onExpandSidebar={handleExpandSidebar} />
+          <Canvas onExpandSidebar={handleExpandSidebar} />
       </div>
+      </CanvasProvider>
       <AuthDialog 
         isOpen={showAuthDialog}
         openSignUp={false}
