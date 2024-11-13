@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Bot, Building2, Users2, Sparkles, ArrowRight, Check } from "lucide-react"
+import { Bot, Building2, Users2, Sparkles, ArrowRight, Check, Info } from "lucide-react"
 import { useState, useEffect } from "react"
 import { AuthDialog } from "@/components/auth/AuthDialog"
 
@@ -292,6 +292,56 @@ export default function LandingPage() {
                   Contact Sales
                 </Button>
               </div>
+            </div>
+          </div>
+        </section>
+        <section id="origins" className="w-full bg-gray-50 py-12 md:py-24">
+          <div className="container px-4 md:px-6 mx-auto">
+            <div className="max-w-[900px] mx-auto text-center">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">The Origins of the Business Model Canvas</h2>
+              <div className="flex justify-center mb-6">
+                <Info className="h-12 w-12 text-primary" />
+              </div>
+              <p className="text-gray-700 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-6">
+                The Business Model Canvas, a groundbreaking strategic management tool, was developed by Alexander Osterwalder and Yves Pigneur. Introduced in their 2010 book "Business Model Generation," it has since transformed how organizations visualize, design, and innovate their business models.
+              </p>
+              <div className="grid md:grid-cols-2 gap-6 mb-8">
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-xl font-semibold mb-3">Key Benefits</h3>
+                  <ul className="text-left text-gray-600 space-y-2">
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
+                      <span>Simplifies complex business models into a single, easy-to-understand page</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
+                      <span>Facilitates team collaboration and alignment on business strategy</span>
+                    </li>
+                    <li className="flex items-start">
+                      <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
+                      <span>Enables rapid iteration and testing of business ideas</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow-md">
+                  <h3 className="text-xl font-semibold mb-3">Wide-ranging Impact</h3>
+                  <p className="text-gray-600 text-left">
+                    From startups to Fortune 500 companies, the Business Model Canvas has become an indispensable tool for entrepreneurs, executives, and consultants worldwide. Its versatility and effectiveness have made it a staple in business schools and innovation workshops globally.
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mb-4">
+                The Business Model Canvas is licensed under the Creative Commons Attribution-Share Alike 3.0 Unported License, making it freely accessible and adaptable for various uses.
+              </p>
+              <Link 
+                href="https://creativecommons.org/licenses/by-sa/3.0/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center text-primary hover:underline"
+              >
+                Learn more about the Creative Commons license
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </div>
           </div>
         </section>
