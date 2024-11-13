@@ -2,14 +2,14 @@ import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LayoutDashboard } from 'lucide-react'
 import { SidebarSection } from './SidebarSection'
-import { useAuth } from '@/contexts/AuthContext'
+import { useCanvas } from '@/contexts/CanvasContext'
 
 interface SidebarContentProps {
   isExpanded: boolean
 }
 
 export function SidebarContent({ isExpanded }: SidebarContentProps) {
-  const { userCanvases } = useAuth()
+  const { userCanvases } = useCanvas()
 
   return (
     <div className={`flex flex-col h-full ${isExpanded ? '' : 'items-center'}`}>
