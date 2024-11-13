@@ -24,12 +24,12 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 
 // Initialize Analytics only on client side
-let analytics = null;
-if (typeof window !== 'undefined') {
-  // Dynamically import analytics
-  import('firebase/analytics').then((module) => {
-    analytics = module.getAnalytics(app);
-  });
-}
+// let analytics = null;
+// if (typeof window !== 'undefined') {
+//   // Dynamically import analytics
+//   import('firebase/analytics').then((module) => {
+//     analytics = module.getAnalytics(app);
+//   });
+// }
 
-export { analytics }; 
+// export { analytics }; 

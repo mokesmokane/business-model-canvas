@@ -127,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await addDoc(collection(db, 'businessModelCanvases'), {
           userId: userCredential.user.uid,
-          businessName: 'My Awesome Business',
+          companyName: 'My Awesome Business',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           keyPartners: [],
