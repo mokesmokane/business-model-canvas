@@ -16,18 +16,30 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { Section } from '@/types/canvas'
+import { initialCanvasState } from '@/contexts/CanvasContext'
 
-const sections = [
-  { icon: Building2, name: 'Key Partners', key: 'keyPartners' },
-  { icon: Workflow, name: 'Key Activities', key: 'keyActivities' },
-  { icon: Receipt, name: 'Key Resources', key: 'keyResources' },
-  { icon: Gift, name: 'Value Propositions', key: 'valuePropositions' },
-  { icon: Heart, name: 'Customer Relationships', key: 'customerRelationships' },
-  { icon: Truck, name: 'Channels', key: 'channels' },
-  { icon: Users2, name: 'Customer Segments', key: 'customerSegments' },
-  { icon: Users, name: 'Cost Structure', key: 'costStructure' },
-  { icon: Coins, name: 'Revenue Streams', key: 'revenueStreams' },
-]
+// Define the section icons mapping
+const sectionIcons: Record<string, LucideIcon> = {
+  keyPartners: Building2,
+  keyActivities: Workflow,
+  keyResources: Receipt,
+  valuePropositions: Gift,
+  customerRelationships: Heart,
+  channels: Truck,
+  customerSegments: Users2,
+  costStructure: Users,
+  revenueStreams: Coins,
+};
+
+// Type the Map entries and conversion
+const sections = Array.from(
+  initialCanvasState.sections.entries() as IterableIterator<[string, Section]>
+).map(([key, section]) => ({
+  icon: sectionIcons[key],
+  name: section.name,
+  key: key
+}));
 
 interface SectionButtonsProps {
   activeSection: string | null;

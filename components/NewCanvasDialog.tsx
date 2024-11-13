@@ -6,9 +6,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { DialogClose } from '@radix-ui/react-dialog'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { Plus } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export function NewCanvasDialog() {
-  const { createNewCanvas } = useCanvas();
+  const { createNewCanvas, loadCanvas } = useCanvas();
   const [open, setOpen] = React.useState(false)
   const [tempName, setTempName] = React.useState('')
   const [tempDescription, setTempDescription] = React.useState('')
@@ -21,10 +22,15 @@ export function NewCanvasDialog() {
     }
 
     try {
-      await createNewCanvas({
+      const newCanvasId = await createNewCanvas({
         name: tempName.trim(),
         description: tempDescription.trim()
       })
+      
+      if (newCanvasId) {
+        await loadCanvas(newCanvasId)
+        localStorage.setItem('lastCanvasId', newCanvasId)
+      }
       
       // Reset form and close dialog
       setTempName('')

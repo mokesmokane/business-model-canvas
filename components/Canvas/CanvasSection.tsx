@@ -10,6 +10,7 @@ import { DynamicInput } from './DynamicInput'
 import SectionItem from './SectionItem'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useCanvasTheme } from '@/contexts/CanvasThemeContext'
+import { Section } from '@/types/canvas'
 
 interface AISuggestion {
   id: string;
@@ -21,7 +22,7 @@ interface CanvasSectionProps {
   title: string;
   sectionKey: string;
   icon: LucideIcon;
-  items: string[];
+  section: Section;
   onChange: (value: string[]) => void;
   placeholder: string;
   className?: string;
@@ -31,13 +32,13 @@ export function CanvasSection({
   title, 
   sectionKey, 
   icon: Icon, 
-  items, 
+  section,
   onChange, 
   placeholder, 
   className 
 }: CanvasSectionProps) {
   const { canvasTheme } = useCanvasTheme()
-  const itemsArray = Array.isArray(items) ? items : items ? [items] : [];
+  const itemsArray = Array.isArray(section.items) ? section.items : section.items ? [section.items] : [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
 
   const handleAddOrUpdateItem = (content: string) => {

@@ -4,6 +4,16 @@ export interface AISuggestion {
   rationale: string;
 }
 
+export interface Section {
+  name: string;
+  items: string[];
+  qAndAs: { question: string, answer: string }[];
+}
+
+export interface SerializedSections {
+  [key: string]: Section;
+}
+
 export interface BusinessModelCanvas {
   id?: string;
   companyName: string;
@@ -12,27 +22,24 @@ export interface BusinessModelCanvas {
   designedBy: string;
   date: string;
   version: string;
-  keyPartners: string[];
-  keyActivities: string[];
-  valuePropositions: string[];
-  customerRelationships: string[];
-  channels: string[];
-  customerSegments: string[];
-  keyResources: string[];
-  costStructure: string[];
-  revenueStreams: string[];
+  sections: Map<string, Section>;
   userId?: string;
   createdAt?: Date;
   updatedAt?: Date;
-  keyPartners_ai_suggestions?: AISuggestion[];
-  keyActivities_ai_suggestions?: AISuggestion[];
-  valuePropositions_ai_suggestions?: AISuggestion[];
-  customerRelationships_ai_suggestions?: AISuggestion[];
-  channels_ai_suggestions?: AISuggestion[];
-  customerSegments_ai_suggestions?: AISuggestion[];
-  keyResources_ai_suggestions?: AISuggestion[];
-  costStructure_ai_suggestions?: AISuggestion[];
-  revenueStreams_ai_suggestions?: AISuggestion[];
+}
+
+export interface SerializedBusinessModelCanvas {
+  id?: string;
+  companyName: string;
+  companyDescription: string;
+  designedFor: string;
+  designedBy: string;
+  date: string;
+  version: string;
+  sections: SerializedSections;
+  userId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CanvasState {
@@ -50,24 +57,17 @@ const getInitialCanvasState = (): BusinessModelCanvas => ({
     designedBy: '',
     date: '',
     version: '',
-    keyPartners: [],
-    keyPartners_ai_suggestions: [],
-    keyActivities: [],
-    keyActivities_ai_suggestions: [],
-    keyResources: [],
-    keyResources_ai_suggestions: [],
-    valuePropositions: [],
-    valuePropositions_ai_suggestions: [],
-    customerRelationships: [],
-    customerRelationships_ai_suggestions: [],
-    channels: [],
-    channels_ai_suggestions: [],
-    customerSegments: [],
-    customerSegments_ai_suggestions: [],
-    costStructure: [],
-    costStructure_ai_suggestions: [],
-    revenueStreams: [],
-    revenueStreams_ai_suggestions: [],
+    sections: new Map([
+      ['keyPartners', { name: 'Key Partners', items: [], qAndAs: [] } as Section],
+      ['keyActivities', { name: 'Key Activities', items: [], qAndAs: [] } as Section],
+      ['keyResources', { name: 'Key Resources', items: [], qAndAs: [] } as Section],
+      ['valuePropositions', { name: 'Value Propositions', items: [], qAndAs: [] } as Section],
+      ['customerRelationships', { name: 'Customer Relationships', items: [], qAndAs: [] } as Section],
+      ['channels', { name: 'Channels', items: [], qAndAs: [] } as Section],
+      ['customerSegments', { name: 'Customer Segments', items: [], qAndAs: [] } as Section],
+      ['costStructure', { name: 'Cost Structure', items: [], qAndAs: [] } as Section],
+      ['revenueStreams', { name: 'Revenue Streams', items: [], qAndAs: [] } as Section],
+    ]),
     userId: '',
     createdAt: undefined,
     updatedAt: undefined

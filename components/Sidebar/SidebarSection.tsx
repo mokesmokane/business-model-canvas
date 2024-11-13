@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { NewCanvasDialog } from '@/components/NewCanvasDialog';
 import { useExpanded } from '@/contexts/ExpandedContext';
+import { DeleteCanvasDialog } from '../DeleteCanvasDialog';
 
 interface SectionItem {
   id: string;
@@ -41,6 +42,8 @@ export function SidebarSection({
 }: SidebarSectionProps) {
   const { loadCanvas, createNewCanvas, deleteCanvas, resetForm, currentCanvas, userCanvases } = useCanvas();
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [canvasToDelete, setCanvasToDelete] = React.useState<{ id: string, name: string } | null>(null);
   const { setIsExpanded, setIsWide } = useExpanded()
 
   const handleCanvasSelect = React.useCallback(async (canvasId: string) => {
@@ -107,32 +110,27 @@ export function SidebarSection({
               >
                 {item.companyName}
               </Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Canvas</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete "{item.companyName}"? This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={() => handleDeleteCanvas(item.id)}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setCanvasToDelete({ id: item.id, name: item.companyName });
+                  setDeleteDialogOpen(true);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           ))}
+          {canvasToDelete && (
+            <DeleteCanvasDialog
+              open={deleteDialogOpen}
+              onOpenChange={setDeleteDialogOpen}
+              onConfirm={() => handleDeleteCanvas(canvasToDelete.id)}
+              canvasName={canvasToDelete.name}
+            />
+          )}
         </>
       ) : (
         <Tooltip>

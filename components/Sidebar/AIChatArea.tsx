@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical } from 'lucide-react'
+import { Section } from '@/types/canvas'
 
 
 export function AIChatArea() {
@@ -42,7 +43,8 @@ export function AIChatArea() {
   }, [messages, isLoading])
 
   const handleAddSuggestion = (index: number, section: string, suggestion: string, rationale: string, suggestionId: string) => {
-    const currentItems = (formData[section as keyof typeof formData] as string[]) || []
+    const sectionData = formData.sections.get(section) as Section
+    const currentItems = sectionData?.items || []
     const newItems = [...currentItems, `${suggestion}\n\n${rationale}`]
     console.log(`Adding suggestion to section: ${section}`)
     updateSection(section, newItems)
