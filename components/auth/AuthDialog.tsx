@@ -19,7 +19,8 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmai
   const [password, setPassword] = React.useState('');
   const [error, setError] = React.useState('');
   const [verificationSent, setVerificationSent] = React.useState(false);
-  const { signUp, signIn, sendVerificationEmail } = useAuth();
+  const [isResetting, setIsResetting] = React.useState(false);
+  const { signUp, signIn, sendVerificationEmail, resetPassword } = useAuth();
 
   React.useEffect(() => {
     setIsSignUp(openSignUp);
@@ -59,6 +60,18 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmai
       setError('Verification email resent');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to resend verification email');
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      await resetPassword(email);
+      setError('Password reset email sent. Please check your inbox.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email');
     }
   };
 
@@ -163,6 +176,14 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmai
               onClick={() => setIsSignUp(!isSignUp)}
             >
               {"Don't have an account? Sign up"}
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              onClick={handleResetPassword}
+              className="text-sm text-blue-500 hover:text-blue-600"
+            >
+              Forgot password?
             </Button>
           </div>
         </form>

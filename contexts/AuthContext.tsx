@@ -7,7 +7,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  sendEmailVerification
+  sendEmailVerification,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { db } from '@/lib/firebase';
@@ -25,6 +26,7 @@ interface AuthContextType {
   sendVerificationEmail: () => Promise<void>;
   userCanvases: DocumentData[];
   subscriptionStatus: 'free' | 'pro' | 'enterprise' | null;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -191,6 +193,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email, {
+      url: `${window.location.origin}/login`,
+    });
+  };
+
   return (
     <AuthContext.Provider value={{ 
       user, 
@@ -203,7 +211,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       resendVerificationEmail,
       sendVerificationEmail,
       userCanvases,
-      subscriptionStatus
+      subscriptionStatus,
+      resetPassword,
     }}>
       {!loading && children}
     </AuthContext.Provider>
