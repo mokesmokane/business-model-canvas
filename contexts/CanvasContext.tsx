@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useCallback, useRef, useState, useEffect } from 'react';
-import { collection, doc, getDoc, setDoc, addDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, addDoc, updateDoc, DocumentData, onSnapshot, where, query } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 import debounce from 'lodash/debounce';
@@ -36,9 +36,10 @@ const initialCanvasState: BusinessModelCanvas = {
 
 interface CanvasContextType {
   currentCanvas: BusinessModelCanvas | null;
-  formData: BusinessModelCanvas;  
+  formData: BusinessModelCanvas;
   status: 'idle' | 'loading' | 'saving' | 'error';
   error: string | null;
+  userCanvases: DocumentData[];
   updateField: (field: keyof BusinessModelCanvas, value: string) => void;
   updateSection: (sectionKey: string, value: string[]) => void;
   loadCanvas: (id: string) => Promise<void>;
@@ -53,6 +54,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   formData: initialCanvasState,
   status: 'idle',
   error: null,
+  userCanvases: [],
   updateField: () => {},
   updateSection: () => {},
   loadCanvas: async () => {},
@@ -110,6 +112,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     status: 'idle',
     error: null
   });
+  const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
   
   const { user } = useAuth();
   const stateRef = useRef(state);
@@ -274,6 +277,33 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     }
   }, [loadCanvas]);
 
+  useEffect(() => {
+    let unsubscribeCanvases: (() => void) | undefined;
+
+    if (user) {
+      const canvasesQuery = query(
+        collection(db, 'businessModelCanvases'),
+        where('userId', '==', user.uid)
+      );
+
+      unsubscribeCanvases = onSnapshot(canvasesQuery, (snapshot: DocumentData) => {
+        const canvases = snapshot.docs.map((doc: DocumentData) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setUserCanvases(canvases);
+      });
+    } else {
+      setUserCanvases([]);
+    }
+
+    return () => {
+      if (unsubscribeCanvases) {
+        unsubscribeCanvases();
+      }
+    };
+  }, [user]);
+
   return (
     <CanvasContext.Provider 
       value={{
@@ -281,6 +311,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         formData: state.formData,
         status: state.status,
         error: state.error,
+        userCanvases,
         updateField,
         updateSection,
         loadCanvas,

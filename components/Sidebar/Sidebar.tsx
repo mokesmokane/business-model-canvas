@@ -9,21 +9,35 @@ import { AIChatArea } from './AIChatArea'
 import { SidebarSection } from './SidebarSection'
 import { useAuth } from '@/contexts/AuthContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
+import { useCanvas } from '@/contexts/CanvasContext'
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
+import { ChatProvider } from '@/contexts/ChatContext'
 
 interface SidebarProps {
   setShowAuthDialog: (show: boolean) => void
 }
 
+function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <TooltipProvider>
+    <SubscriptionProvider>
+      <ChatProvider>
+        {children}
+      </ChatProvider>
+    </SubscriptionProvider>
+  </TooltipProvider>
+  )
+} 
+
 export function Sidebar({setShowAuthDialog}: SidebarProps) {
-  const { user, userCanvases } = useAuth()
+  const { user } = useAuth()
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
+  const { userCanvases } = useCanvas()
   
   if (!user) return null;
 
   const sidebarWidth = !isExpanded ? '4rem' : isWide ? '42rem' : '24rem'
-
-  return (
-    <TooltipProvider>
+  let component = (
       <div 
         className={`relative flex flex-col h-[calc(100vh-64px)] bg-background border-r border-zinc-300/50 dark:border-zinc-800/50 transition-all duration-300 ease-in-out ${
           isExpanded ? 'items-stretch' : 'items-center'
@@ -49,6 +63,10 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
           <SidebarFooter isExpanded={isExpanded} setShowAuthDialog={setShowAuthDialog} />
         </div>
       </div>
-    </TooltipProvider>
+  )
+  return (
+    <Providers>
+      {component}
+    </Providers>
   )
 }

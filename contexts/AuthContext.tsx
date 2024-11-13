@@ -24,8 +24,6 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resendVerificationEmail: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
-  userCanvases: DocumentData[];
-  subscriptionStatus: 'free' | 'pro' | 'enterprise' | null;
   resetPassword: (email: string) => Promise<void>;
 }
 
@@ -36,8 +34,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<DocumentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
-  const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
-  const [subscriptionStatus, setSubscriptionStatus] = useState<'free' | 'pro' | 'enterprise' | null>(null);
 
   useEffect(() => {
     console.log('Auth State:', {
@@ -69,37 +65,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (user) {
-        const canvasesQuery = query(
-          collection(db, 'businessModelCanvases'),
-          where('userId', '==', user.uid)
-        );
-
-        unsubscribeCanvases = onSnapshot(canvasesQuery, (snapshot) => {
-          const canvases = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          setUserCanvases(canvases);
-        });
-
+        
         const userDocRef = doc(db, 'users', user.uid);
         unsubscribeSubscription = onSnapshot(userDocRef, (snapshot) => {
           const userData = snapshot.data();
           setUserData(userData || null);
-          const status = determineSubscriptionStatus(userData);
-          setSubscriptionStatus(status);
         });
 
         unsubscribeUser = onSnapshot(userDocRef, (snapshot) => {
           const userData = snapshot.data();
           setUserData(userData || null);
-          const status = determineSubscriptionStatus(userData);
-          setSubscriptionStatus(status);
         });
       } else {
         
-        setUserCanvases([]);
-        setSubscriptionStatus(null);
       }
     });
 
@@ -197,8 +175,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     //clear out all data
     setUser(null);
     setUserData(null);
-    setUserCanvases([]);
-    setSubscriptionStatus(null);
     setIsVerified(false);
     await signOut(auth);
     window.location.href = '/';
@@ -230,8 +206,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       resendVerificationEmail,
       sendVerificationEmail,
-      userCanvases,
-      subscriptionStatus,
       resetPassword,
     }}>
       {!loading && children}
@@ -240,23 +214,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useAuth = () => useContext(AuthContext); 
-
-const determineSubscriptionStatus = (userData: any): 'free' | 'pro' | 'enterprise' | null => {
-  if (!userData) return null;
-  
-  const isActive = userData.subscriptionStatus === 'active';
-  const periodNotExpired = new Date(userData.subscriptionPeriodEnd).getTime() > new Date().getTime();
-  
-  if (!isActive || !periodNotExpired) {
-    return 'free';
-  }
-
-  switch (userData.subscriptionPlan) {
-    case 'pro':
-      return 'pro';
-    case 'enterprise':
-      return 'enterprise';
-    default:
-      return 'free';
-  }
-};

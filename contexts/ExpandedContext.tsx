@@ -11,7 +11,7 @@ interface ExpandedContextType {
 
 const ExpandedContext = createContext<ExpandedContextType | undefined>(undefined);
 
-export function ContextProvider({ children }: { children: React.ReactNode }) {
+export function ExpandedProvider({ children }: { children: React.ReactNode }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isWide, setIsWide] = useState(false);
 

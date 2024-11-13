@@ -8,10 +8,12 @@ import { AuthDialog } from "@/components/auth/AuthDialog"
 import Link from 'next/link'
 import { useExpanded } from "@/contexts/ExpandedContext"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useSubscription } from "@/contexts/SubscriptionContext"
 
 
 export function SiteHeader() {
-  const { user, logout, subscriptionStatus, userData } = useAuth()
+  const { user, logout, userData } = useAuth()
+  const { subscriptionStatus } = useSubscription()
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const { isExpanded, setIsExpanded } = useExpanded()
