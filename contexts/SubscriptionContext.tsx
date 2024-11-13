@@ -9,12 +9,14 @@ type SubscriptionStatus = 'free' | 'pro' | 'enterprise' | null;
 
 interface SubscriptionContextType {
   subscriptionStatus: SubscriptionStatus;
+  subscriptionPeriodEnd: Date | null;
   subscriptionData: DocumentData | null;
   isLoading: boolean;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType>({
   subscriptionStatus: null,
+  subscriptionPeriodEnd: null,
   subscriptionData: null,
   isLoading: true,
 });
@@ -22,6 +24,7 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>(null);
+  const [subscriptionPeriodEnd, setSubscriptionPeriodEnd] = useState<Date | null>(null);
   const [subscriptionData, setSubscriptionData] = useState<DocumentData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -39,7 +42,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         } else {
           const isActive = userData.subscriptionStatus === 'active';
           const periodNotExpired = new Date(userData.subscriptionPeriodEnd).getTime() > new Date().getTime();
-          
+          setSubscriptionPeriodEnd(new Date(userData.subscriptionPeriodEnd));
           if (!isActive || !periodNotExpired) {
             setSubscriptionStatus('free');
           } else {
@@ -73,6 +76,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   return (
     <SubscriptionContext.Provider value={{ 
       subscriptionStatus, 
+      subscriptionPeriodEnd,
       subscriptionData,
       isLoading 
     }}>

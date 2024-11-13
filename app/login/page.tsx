@@ -24,7 +24,7 @@ export default function LoginPage() {
       await signIn(email, password)
       router.push('/')
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to sign in')
+      setError(error instanceof Error ? error.message : 'FsiteheaderFailed to sign in')
     } finally {
       setIsLoading(false)
     }

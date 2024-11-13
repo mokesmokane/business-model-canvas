@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { useChat } from '@/contexts/ChatContext'
 import { useTheme } from 'next-themes'
+import { useRouter } from 'next/navigation'
 
 interface SidebarFooterProps {
   isExpanded: boolean
@@ -21,6 +22,7 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
   const { clearState } = useCanvas();
   const { clearMessages } = useChat();
   const { theme, setTheme } = useTheme()
+  const router = useRouter()
 
   const handleSignOut = async () => {
     try {
@@ -33,10 +35,10 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
   };
   
   const footerItems = [
-    { icon: Users, label: 'Profile', action: () => {} },
-    { icon: Settings, label: 'Settings', action: () => {} },
+    { icon: Users, label: 'Profile', action: () => router.push('/profile') },
+    { icon: Settings, label: 'Settings', action: () => router.push('/settings') },
     { icon: theme === "light" ? Moon : Sun, label: 'Theme', action: () => { setTheme(theme === "light" ? "dark" : "light") } },
-    { icon: HelpCircle, label: 'Help', action: () => {} },
+    { icon: HelpCircle, label: 'Help', action: () => router.push('/help') },
     { icon: LogOut, label: 'Sign Out', action: handleSignOut },
   ];
 
