@@ -5,16 +5,40 @@ import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { Mail, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { useSearchParams, useRouter } from 'next/navigation'
+import { auth } from "@/lib/firebase"
+import { applyActionCode } from 'firebase/auth'
 
 export default function VerifyEmailPage() {
   const { sendVerificationEmail, user } = useAuth()
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [error, setError] = useState('')
   const [resendDisabled, setResendDisabled] = useState(false)
   const [countdown, setCountdown] = useState(0)
+  const [verifying, setVerifying] = useState(false)
 
   useEffect(() => {
     console.log('Auth state:', { sendVerificationEmail, user })
   }, [sendVerificationEmail, user])
+
+  useEffect(() => {
+    const oobCode = searchParams.get('oobCode')
+    
+    if (oobCode) {
+      setVerifying(true)
+      applyActionCode(auth, oobCode)
+        .then(() => {
+          router.push('/verified-success')
+        })
+        .catch((error) => {
+          setError('Failed to verify email: ' + error.message)
+        })
+        .finally(() => {
+          setVerifying(false)
+        })
+    }
+  }, [searchParams, router])
 
   const handleResendVerification = async () => {
     try {
@@ -61,10 +85,19 @@ export default function VerifyEmailPage() {
             <div className="h-20 w-20 rounded-full bg-blue-500/10 flex items-center justify-center mb-6">
               <Mail className="h-10 w-10 text-blue-500" />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h1>
-            <p className="text-gray-600 mb-6">
-              We've sent you a verification link. Please check your email and click the link to verify your account.
-            </p>
+            {verifying ? (
+              <>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Verifying your email...</h1>
+                <p className="text-gray-600 mb-6">Please wait while we verify your email address.</p>
+              </>
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h1>
+                <p className="text-gray-600 mb-6">
+                  We've sent you a verification link. Please check your email and click the link to verify your account.
+                </p>
+              </>
+            )}
             <div className="space-y-4 w-full">
               <Button
                 onClick={handleResendVerification}
