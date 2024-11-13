@@ -47,19 +47,15 @@ export function AIChatArea() {
     const sectionData = formData.sections.get(section) as Section
     const currentItems = sectionData?.items || []
     const newItems = [...currentItems, `${suggestion}\n\n${rationale}`]
-    console.log(`Adding suggestion to section: ${section}`)
     updateSection(section, newItems)
     handleRemoveSuggestion(index, suggestionId)
   }
 
   const handleRemoveSuggestion = (index: number, suggestionId: string) => {
-    console.log(`Removing suggestion with id: ${suggestionId} from message index: ${index}`)
     let updatedMessage = {...messages[index],
       suggestions: messages[index]?.suggestions?.filter((s: any) => s.id !== suggestionId)
     }
-    console.log(`Updated message: ${JSON.stringify(updatedMessage, null, 2)}`)
     const updatedMessages = [...messages.slice(0, index), updatedMessage, ...messages.slice(index + 1)]
-    console.log(`Updated messages: ${JSON.stringify(updatedMessages, null, 2)}`)
     addMessages(updatedMessages)
   }
 

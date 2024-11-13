@@ -366,7 +366,6 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   }, [saveToFirebase]);
 
   const setCanvasTheme = useCallback((theme: 'light' | 'dark') => {
-    console.log('setCanvasTheme', theme);
     setState(prev => {
       const updatedData = {
         ...prev.formData,

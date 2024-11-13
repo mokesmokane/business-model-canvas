@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, DocumentData, doc, addDoc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, DocumentData, doc, addDoc, setDoc, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -36,15 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
-    console.log('Auth State:', {
-      loading,
-      user: user?.email,
-      isVerified: user?.emailVerified,
-      userData
-    });
-  }, [loading, user, userData]);
-
-  useEffect(() => {
     let unsubscribeCanvases: (() => void) | undefined;
     let unsubscribeSubscription: (() => void) | undefined;
     let unsubscribeUser: (() => void) | undefined;
@@ -65,8 +56,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (user) {
-        
         const userDocRef = doc(db, 'users', user.uid);
+        
+        // Check if user document exists
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+          // Create initial user document if it doesn't exist
+          await setDoc(userDocRef, {
+            email: user.email,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            subscriptionStatus: 'free',
+            subscriptionPlan: 'free'
+          });
+        }
+
         unsubscribeSubscription = onSnapshot(userDocRef, (snapshot) => {
           const userData = snapshot.data();
           setUserData(userData || null);
@@ -77,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserData(userData || null);
         });
       } else {
-        
+        setUserData(null);
       }
     });
 
@@ -96,11 +101,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string): Promise<User> => {
-    console.log('Starting signup process for:', email);
     
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      console.log('User created successfully:', userCredential.user.uid);
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        email: userCredential.user.email,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        subscriptionStatus: 'active',
+        subscriptionPlan: 'free'
+      });
       
       try {
         await addDoc(collection(db, 'businessModelCanvases'), {
@@ -123,17 +133,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       try {
-        console.log('Attempting to send verification email...');
         const actionCodeSettings = {
           url: `${window.location.origin}/verify-email`,
           handleCodeInApp: true,
         };
         
         await sendEmailVerification(userCredential.user, actionCodeSettings);
-        console.log('Verification email sent successfully');
-        console.log('Email verified status:', userCredential.user.emailVerified);
-        console.log('User email:', userCredential.user.email);
-        
         // await signOut(auth);
         window.location.href = '/verify-email';
         return userCredential.user;

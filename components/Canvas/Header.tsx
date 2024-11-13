@@ -38,7 +38,6 @@ export function Header() {
   const { canvasTheme, formData, updateField } = useCanvas();
 
   useEffect(() => {
-    console.log('Header canvas updated:', formData);
   }, [formData]);
 
   function onInputChange(event: ChangeEvent<HTMLInputElement>): void {

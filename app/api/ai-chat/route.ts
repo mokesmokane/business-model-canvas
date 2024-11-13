@@ -103,7 +103,6 @@ export async function POST(request: Request) {
     })
     //if the last message is an action, chaneg the system prompt accordingly
     const action = messages[messages.length - 1].action
-    console.log('request', currentContent)
     let canvasInfo = `The Canvas currently looks like this:
       
 Company Name: ${currentContent?.companyName ?? ''}
@@ -175,8 +174,6 @@ Q&A: ${section.qAndAs?.map((qa: { question: string; answer?: string | number; ty
       ...expanded_messages
     ]
 
-    //print out messages for debugging
-    console.log(messages_list)
     let questionTool = {
       type: "function" as const,
       function: {
@@ -215,7 +212,6 @@ Q&A: ${section.qAndAs?.map((qa: { question: string; answer?: string | number; ty
         suggestions: toolResponse.suggestions 
         })
       } else if (response.tool_calls[0].function.name === "questions") {
-        console.log('questions tool call', toolResponse)
 
         return NextResponse.json({ 
           message: "Here are the questions I came up with:",

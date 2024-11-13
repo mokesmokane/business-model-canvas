@@ -26,7 +26,6 @@ export default function SuccessPage() {
 
           const { customerId, subscriptionId, plan, status, currentPeriodEnd } = await response.json();
 
-          console.log('API Response:', { customerId, subscriptionId, plan, status, currentPeriodEnd });
           await setDoc(doc(db, 'users', user.uid), {
             stripeCustomerId: customerId,
             stripeSubscriptionId: subscriptionId,

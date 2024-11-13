@@ -12,7 +12,6 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
   const { formData, canvasTheme, updateSection } = useCanvas();
 
   useEffect(() => {
-    console.log('Canvas updated:', formData);
   }, [formData]);
 
   // Helper function to safely get section data

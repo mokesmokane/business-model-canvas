@@ -43,7 +43,6 @@ function AIQuestionItem({ question, onSubmit }: AIQuestionItemProps) {
   const [isSubmitted, setIsSubmitted] = useState(false)
 
   const handleSubmit = () => {
-    console.log('answer', answer)
     if (answer) {
       setIsSubmitted(true)
       onSubmit({
@@ -104,7 +103,6 @@ function AIQuestionItem({ question, onSubmit }: AIQuestionItemProps) {
 
   const Icon = question.section ? sectionIcons[question.section] : undefined
 
-  console.log('question', question)
   return (
     <Card className={`mb-2 border-2 dark:bg-gray-900 bg-white dark:border-gray-800 border-gray-200 
       ${isSubmitted ? 'scale-95 opacity-50' : ''} transition-all duration-300`}

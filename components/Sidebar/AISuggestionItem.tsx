@@ -60,7 +60,6 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
       actionExecuted.current = true;
       const timer = setTimeout(() => {
         if (isLiked) {
-          console.log(`Like suggestion with id: ${suggestion.id}`)
           onLike()
         } else {
           onDismiss()

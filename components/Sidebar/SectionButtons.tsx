@@ -63,10 +63,8 @@ export function SectionButtons({ activeSection, onSectionSelect }: SectionButton
               onClick={() => {
                 if (activeSection !== key) {
                   onSectionSelect(key)
-                  console.log(`Selected section: ${key}`)
                 } else {
                   onSectionSelect(null)
-                  console.log(`Deselected section: ${key}`)
                 }
               }}
             >

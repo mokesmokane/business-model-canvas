@@ -27,14 +27,13 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
-
     if (user) {
       const userDocRef = doc(db, 'users', user.uid);
       unsubscribe = onSnapshot(userDocRef, (snapshot) => {
         const userData = snapshot.data();
+        
         setSubscriptionData(userData || null);
         
-        // Determine subscription status
         if (!userData) {
           setSubscriptionStatus(null);
         } else {

@@ -75,7 +75,6 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
           scale: question.scale || null
         }))
       }
-      console.log('formatted response', formattedResponse)
       addMessages([...updatedMessages, formattedResponse])
     } catch (error) {
       const errorMessage = error instanceof Error 

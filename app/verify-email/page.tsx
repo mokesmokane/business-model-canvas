@@ -13,7 +13,6 @@ export default function VerifyEmailPage() {
   const [countdown, setCountdown] = useState(0)
 
   useEffect(() => {
-    console.log('Auth state:', { sendVerificationEmail, user })
   }, [sendVerificationEmail, user])
 
   const handleResendVerification = async () => {

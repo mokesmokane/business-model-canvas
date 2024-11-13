@@ -29,7 +29,6 @@ export async function sendChatRequest(messages: Message[], currentContent: any) 
 
   let data = await response.json()
 
-  console.log('chat response', data)
   return {
     role: 'assistant',
     content: data.message,
