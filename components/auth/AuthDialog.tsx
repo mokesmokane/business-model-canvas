@@ -62,26 +62,6 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmai
     }
   };
 
-  if (verificationSent) {
-    return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Verify your email</DialogTitle>
-            <DialogDescription>
-              We've sent a verification email to {email}. Please check your inbox and click the verification link.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-2">
-            <Button onClick={handleResendVerification}>Resend verification email</Button>
-            <Button variant="ghost" onClick={onClose}>Close</Button>
-          </div>
-          {error && <p className="text-sm text-red-500">{error}</p>}
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>

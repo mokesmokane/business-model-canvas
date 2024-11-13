@@ -29,6 +29,9 @@ export default function VerifyEmailPage() {
       setVerifying(true)
       applyActionCode(auth, oobCode)
         .then(() => {
+          return auth.currentUser?.reload()
+        })
+        .then(() => {
           router.push('/verified-success')
         })
         .catch((error) => {
