@@ -3,13 +3,15 @@ import { Button } from "@/components/ui/button"
 import { Bot } from "lucide-react"
 import { AIChatArea } from "@/components/chat/AIChatArea"
 import { useState } from "react"
+import { TooltipProvider } from "@radix-ui/react-tooltip"
 
 export function MobileAIChat() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
+    <TooltipProvider>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
         <Button
           variant="outline"
           size="icon"
@@ -27,5 +29,6 @@ export function MobileAIChat() {
         </div>
       </SheetContent>
     </Sheet>
+    </TooltipProvider>
   )
 } 
