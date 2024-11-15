@@ -22,9 +22,9 @@ export function MobileAIChat() {
       </SheetTrigger>
       <SheetContent 
         side="bottom" 
-        className="h-[80vh] p-0"
+        className="h-[90vh] p-0"
       >
-        <div className="h-full">
+        <div className={`h-full flex flex-col w-full`}>
           <AIChatArea />
         </div>
       </SheetContent>

@@ -1,37 +1,13 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Send, Bot, User, AlertTriangle, Shrink, Expand, HelpCircle, Zap, Search, MessageSquare } from 'lucide-react'
-import AISuggestionItem from '@/components/chat/AISuggestionItem'
-import { AIThinkingIndicator } from '@/components/ui/ai-thinking'
 import { useCanvas } from '@/contexts/CanvasContext'
-import ReactMarkdown from 'react-markdown'
 import { useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
-import { SectionButtons } from './SectionButtons'
-import { ActionButtons } from './ActionButtons'
 import { sendChatRequest } from '@/services/aiService'
-import { motion, AnimatePresence } from 'framer-motion'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { ChatHeader } from './ChatHeader'
-import Item from './AIQuestionItem'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { MoreVertical } from 'lucide-react'
 import { Section } from '@/types/canvas'
-import AIQuestionItem from './AIQuestionItem'
 import { ChatInput } from './ChatInput'
 import { ChatMessageList } from './ChatMessageList'
 
@@ -228,9 +204,7 @@ export function AIChatArea() {
   }
 
   return (
-    <div className={`h-full flex flex-col ${isExpanded ? '' : 'items-center'}`}>
-      {isExpanded ? (
-        <>
+    <>
           <div className="flex-shrink-0">
             <ChatHeader 
               isWide={isWide}
@@ -266,24 +240,5 @@ export function AIChatArea() {
             />
           </div>
         </>
-      ) : (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground"
-              onClick={()=>{setIsExpanded(true); setIsWide(true)}}
-            >
-              <Bot className="h-5 w-5 text-muted-foreground" />
-              <span className="sr-only">AI Assistant</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right" className="bg-popover text-popover-foreground border-border">
-            AI Assistant
-          </TooltipContent>
-        </Tooltip>
-      )}
-    </div>
   )
 }

@@ -4,7 +4,7 @@ import React from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { LayoutDashboard } from 'lucide-react'
 import { SidebarFooter } from './SidebarFooter'
-import { AIChatArea } from '../chat/AIChatArea'
+import { SidebarAIChatArea } from '../chat/SidebarAIChatArea'
 import { SidebarSection } from './SidebarSection'
 import { useAuth } from '@/contexts/AuthContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
@@ -50,7 +50,7 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
         </div>
         {isExpanded && <div className="border-t border-zinc-300/50 dark:border-zinc-700/50 my-2 w-full"></div>}
         <div className={`flex-grow overflow-hidden ${isExpanded ? 'w-full' : 'w-16'}`}>
-          <AIChatArea/>
+          <SidebarAIChatArea/>
         </div>
         <div className={`flex-none ${isExpanded ? 'w-full' : 'w-16'}`}>
           <SidebarFooter isExpanded={isExpanded} setShowAuthDialog={setShowAuthDialog} />
