@@ -1,6 +1,7 @@
 import { useCanvas } from "@/contexts/CanvasContext";
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { MobileCanvasSection } from "./MobileCanvasSection";
+import { MobileAIChat } from "../mobile/MobileAIChat";
 import 'swiper/css';
 import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins } from "lucide-react";
 import { useState } from "react";
@@ -60,6 +61,8 @@ export function MobileBusinessModelCanvas() {
           ))}
         </div>
       </div>
+
+      <MobileAIChat />
     </div>
   );
 }
