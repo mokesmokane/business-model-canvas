@@ -7,25 +7,9 @@ import {
 } from '@/components/ui/tooltip'
 import React from 'react';
 import { useCanvas } from '@/contexts/CanvasContext';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { NewCanvasDialog } from '@/components/NewCanvasDialog';
 import { useExpanded } from '@/contexts/ExpandedContext';
 import { DeleteCanvasDialog } from '../DeleteCanvasDialog';
-
-interface SectionItem {
-  id: string;
-  name: string;
-}
 
 interface SidebarSectionProps {
   icon: LucideIcon;

@@ -3,13 +3,11 @@
 import React from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { LayoutDashboard } from 'lucide-react'
-import { SidebarContent } from './SidebarContent'
 import { SidebarFooter } from './SidebarFooter'
-import { AIChatArea } from './AIChatArea'
+import { AIChatArea } from '../chat/AIChatArea'
 import { SidebarSection } from './SidebarSection'
 import { useAuth } from '@/contexts/AuthContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
-import { CanvasProvider, useCanvas } from '@/contexts/CanvasContext'
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
 import { ChatProvider } from '@/contexts/ChatContext'
 
@@ -31,8 +29,7 @@ function Providers({ children }: { children: React.ReactNode }) {
 
 export function Sidebar({setShowAuthDialog}: SidebarProps) {
   const { user } = useAuth()
-  const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
-  const { userCanvases } = useCanvas()
+  const { isExpanded, isWide } = useExpanded()
   
   if (!user) return null;
 

@@ -18,7 +18,7 @@ interface SidebarFooterProps {
 }
 
 export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterProps) {
-  const { user, logout } = useAuth();
+  const {  logout } = useAuth();
   const { clearState } = useCanvas();
   const { clearMessages } = useChat();
   const { theme, setTheme } = useTheme()
