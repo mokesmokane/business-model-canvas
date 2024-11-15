@@ -47,11 +47,11 @@ export function MobileBusinessModelCanvas() {
         </Swiper>
       </div>
 
-      <div className={`p-4 ${
+      <div className={`${
         canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
       }`}>
         <TooltipProvider>
-          <div className="flex justify-between px-4">
+          <div className="flex justify-between px-4 py-2">
             {sections.map((section, index) => {
               const Icon = section.icon;
               return (
@@ -66,9 +66,9 @@ export function MobileBusinessModelCanvas() {
                           : `${canvasTheme === 'light' ? 'text-gray-400' : 'text-gray-500'}`
                       }`}
                       onClick={() => {
-                        const swiper = document.querySelector('.swiper')?.swiper;
-                        if (swiper) {
-                          swiper.slideTo(index);
+                        const swiperEl = document.querySelector('.swiper') as HTMLElement & { swiper: any };
+                        if (swiperEl) {
+                          swiperEl.swiper.slideTo(index);
                         }
                       }}
                     >
@@ -90,9 +90,11 @@ export function MobileBusinessModelCanvas() {
             })}
           </div>
         </TooltipProvider>
+        
+        <div className="px-4 py-1">
+          <MobileAIChat />
+        </div>
       </div>
-
-      <MobileAIChat />
     </div>
   );
 }

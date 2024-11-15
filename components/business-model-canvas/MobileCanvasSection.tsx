@@ -36,7 +36,7 @@ export function MobileCanvasSection({
   return (
     <Card 
       canvasTheme={canvasTheme}
-      className={`mx-4 h-[calc(100vh-200px)] flex flex-col ${
+      className={`mx-4 h-[calc(100vh-160px)] flex flex-col ${
         canvasTheme === 'light' 
           ? 'bg-white border-gray-200' 
           : 'bg-gray-950 border-gray-800'
