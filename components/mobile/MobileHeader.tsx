@@ -10,6 +10,7 @@ import { SubscriptionBadge } from "../subscription/SubscriptionBadge"
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext"
 import { useState } from "react"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { CanvasProvider } from "@/contexts/CanvasContext"
 
 
 export function MobileHeader() {
@@ -40,7 +41,9 @@ export function MobileHeader() {
                 <VisuallyHidden asChild>
                   <SheetTitle>Navigation Menu</SheetTitle>
                 </VisuallyHidden>
-                <MobileDrawer onClose={() => setIsOpen(false)} />
+                <CanvasProvider>
+                  <MobileDrawer onClose={() => setIsOpen(false)} />
+                </CanvasProvider>
               </SheetContent>
             </Sheet>
           )}
