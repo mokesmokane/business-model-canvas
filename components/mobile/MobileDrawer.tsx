@@ -1,12 +1,19 @@
 import { useAuth } from "@/contexts/AuthContext"
-import { LayoutDashboard, Settings, HelpCircle, LogOut } from "lucide-react"
+import { LayoutDashboard, Settings, HelpCircle, LogOut, Trash2, ChevronLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useCanvas } from "@/contexts/CanvasContext"
+import { NewCanvasDialog } from "@/components/NewCanvasDialog"
+import { DeleteCanvasDialog } from "@/components/DeleteCanvasDialog"
+import { useState } from "react"
 
-export function MobileDrawer() {
+export function MobileDrawer({ onClose }: { onClose: () => void }) {
   const { logout } = useAuth()
   const router = useRouter()
+  const { loadCanvas, deleteCanvas, resetForm, currentCanvas, userCanvases } = useCanvas()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [canvasToDelete, setCanvasToDelete] = useState<{ id: string, name: string } | null>(null)
 
   const handleSignOut = async () => {
     try {
@@ -16,8 +23,24 @@ export function MobileDrawer() {
     }
   }
 
-  const menuItems = [
-    { icon: LayoutDashboard, label: 'Business Models', href: '/' },
+  const handleCanvasSelect = async (canvasId: string) => {
+    await loadCanvas(canvasId)
+    localStorage.setItem('lastCanvasId', canvasId)
+  }
+
+  const handleDeleteCanvas = async (canvasId: string) => {
+    await deleteCanvas(canvasId)
+    if (localStorage.getItem('lastCanvasId') === canvasId) {
+      localStorage.removeItem('lastCanvasId')
+      if (userCanvases.length > 0) {
+        handleCanvasSelect(userCanvases[0].id)
+      } else {
+        resetForm()
+      }
+    }
+  }
+
+  const staticMenuItems = [
     { icon: Settings, label: 'Settings', href: '/settings' },
     { icon: HelpCircle, label: 'Help', href: '/help' },
   ]
@@ -26,7 +49,45 @@ export function MobileDrawer() {
     <div className="flex flex-col h-full">
       <div className="flex-1 py-4">
         <div className="space-y-1">
-          {menuItems.map((item) => {
+        <h3 className="text-sm font-semibold text-muted-foreground flex items-center px-4 py-2">
+            <LayoutDashboard className="h-4 w-4 mr-2" />
+            Business Models
+            <div className="flex-grow"></div>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onClose}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </h3>
+          <div className="px-4 mb-2">
+            <NewCanvasDialog />
+          </div>
+          {userCanvases.map((item) => (
+            <div key={item.id} className="flex items-center gap-1 px-4">
+              <Button
+                variant="ghost"
+                className={`flex-1 justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
+                  currentCanvas?.id === item.id 
+                    ? 'bg-muted font-medium border-l-2 border-primary pl-3' 
+                    : 'pl-4'
+                }`}
+                onClick={() => handleCanvasSelect(item.id)}
+              >
+                <LayoutDashboard className="mr-2 h-5 w-5" />
+                {item.companyName}
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setCanvasToDelete({ id: item.id, name: item.companyName })
+                  setDeleteDialogOpen(true)
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          {staticMenuItems.map((item) => {
             const Icon = item.icon
             return (
               <Link key={item.href} href={item.href}>
@@ -52,6 +113,14 @@ export function MobileDrawer() {
           Sign Out
         </Button>
       </div>
+      {canvasToDelete && (
+        <DeleteCanvasDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          onConfirm={() => handleDeleteCanvas(canvasToDelete.id)}
+          canvasName={canvasToDelete.name}
+        />
+      )}
     </div>
   )
 } 

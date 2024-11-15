@@ -1,5 +1,5 @@
 import React from 'react'
-import { Bot, Shrink, Expand, MoreVertical } from 'lucide-react'
+import { Bot, Shrink, Expand, MoreVertical, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,9 +12,10 @@ interface ChatHeaderProps {
   isWide: boolean
   onClearChat: () => void
   onToggleWidth: () => void
+  onClose?: () => void
 }
 
-export function ChatHeader({ isWide, onClearChat, onToggleWidth }: ChatHeaderProps) {
+export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose }: ChatHeaderProps) {
   return (
     <div className="flex items-center justify-between gap-2 p-4 border-b border-zinc-300/50 dark:border-zinc-800/50">
       <div className="flex items-center gap-2">
@@ -43,9 +44,9 @@ export function ChatHeader({ isWide, onClearChat, onToggleWidth }: ChatHeaderPro
           variant="ghost"
           size="icon"
           className="text-muted-foreground hover:text-foreground"
-          onClick={onToggleWidth}
+          onClick={onClose ? onClose : onToggleWidth}
         >
-          {isWide ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+          {onClose ? <ChevronDown className="h-4 w-4" /> : isWide ? <Shrink className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
         </Button>
       </div>
     </div>

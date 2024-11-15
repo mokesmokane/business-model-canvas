@@ -5,6 +5,7 @@ import { AIChatArea } from "@/components/chat/AIChatArea"
 import { useState } from "react"
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 
 export function MobileAIChat() {
   const [isOpen, setIsOpen] = useState(false)
@@ -25,11 +26,11 @@ export function MobileAIChat() {
           side="bottom" 
           className="h-[90vh] p-0"
         >
-          <SheetHeader className="px-4 pt-4">
+          <VisuallyHidden asChild>
             <SheetTitle>AI Assistant</SheetTitle>
-          </SheetHeader>
+          </VisuallyHidden>
           <div className="h-full flex flex-col w-full">
-            <AIChatArea />
+            <AIChatArea onClose={() => setIsOpen(false)}/>
           </div>
         </SheetContent>
       </Sheet>

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { CreditCard, LogOut, Menu, Settings, User } from "lucide-react"
 import Link from 'next/link'
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
 import { MobileDrawer } from "./MobileDrawer"
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
@@ -9,10 +9,13 @@ import { DropdownMenu } from "@radix-ui/react-dropdown-menu"
 import { SubscriptionBadge } from "../subscription/SubscriptionBadge"
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext"
 import { useState } from "react"
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+
 
 export function MobileHeader() {
   const { user, logout } = useAuth()
   const [showAuthDialog, setShowAuthDialog] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleSignOut = async () => {
     try {   
@@ -27,14 +30,17 @@ export function MobileHeader() {
       <div className="flex h-16 items-center justify-between px-4">
         <div className="flex items-center gap-4">
           {user && (
-            <Sheet>
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] p-0">
-                <MobileDrawer />
+              <SheetContent side="left" className="w-[300px] p-0 [&_button[data-state=open]]:hidden">
+                <VisuallyHidden asChild>
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                </VisuallyHidden>
+                <MobileDrawer onClose={() => setIsOpen(false)} />
               </SheetContent>
             </Sheet>
           )}

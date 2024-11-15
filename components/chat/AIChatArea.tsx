@@ -12,7 +12,8 @@ import { ChatInput } from './ChatInput'
 import { ChatMessageList } from './ChatMessageList'
 
 
-export function AIChatArea() {
+export function AIChatArea({ onClose }: { onClose?: () => void }) {
+
   const { updateSection, updateQuestionAnswer, formData } = useCanvas()
   const { messages, addMessage, addMessages, input, setInput, isLoading, setIsLoading, clearMessages } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -210,6 +211,7 @@ export function AIChatArea() {
               isWide={isWide}
               onClearChat={handleClearChat}
               onToggleWidth={()=>setIsWide(!isWide)}
+              onClose={onClose}
             />
           </div>
           <div className="flex-1 overflow-hidden flex flex-col">
