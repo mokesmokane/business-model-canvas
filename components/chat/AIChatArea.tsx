@@ -51,16 +51,16 @@ export function AIChatArea() {
     const currentItems = sectionData?.items || []
     const newItems = [...currentItems, `${suggestion}\n\n${rationale}`]
     updateSection(section, newItems)
-    handleRemoveSuggestion(index, suggestionId)
+    // handleRemoveSuggestion(index, suggestionId)
   }
 
-  const handleRemoveSuggestion = (index: number, suggestionId: string) => {
-    let updatedMessage = {...messages[index],
-      suggestions: messages[index]?.suggestions?.filter((s: any) => s.id !== suggestionId)
-    }
-    const updatedMessages = [...messages.slice(0, index), updatedMessage, ...messages.slice(index + 1)]
-    addMessages(updatedMessages)
-  }
+  // const handleRemoveSuggestion = (index: number, suggestionId: string) => {
+  //   let updatedMessage = {...messages[index],
+  //     suggestions: messages[index]?.suggestions?.filter((s: any) => s.id !== suggestionId)
+  //   }
+  //   const updatedMessages = [...messages.slice(0, index), updatedMessage, ...messages.slice(index + 1)]
+  //   addMessages(updatedMessages)
+  // }
 
   const handleSend = async () => {
     if (input.trim()) {
@@ -110,7 +110,7 @@ export function AIChatArea() {
   }
 
   const handleDismiss = (index: number, suggestionId: string) => {
-    handleRemoveSuggestion(index, suggestionId)
+    // handleRemoveSuggestion(index, suggestionId)
   }
 
   const handleExpand = async (suggestion: { suggestion: string }) => {

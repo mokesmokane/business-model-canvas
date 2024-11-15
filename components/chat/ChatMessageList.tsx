@@ -54,55 +54,65 @@ export function ChatMessageList({
       return `Question me about my ${section}`
     }
   }
-  const sections = [{
-    key: 'keyPartners',
-    name: "Key Partners",
-    icon: <Building2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }, {
-    key: 'keyActivities',
-    name: "Key Activities",
-    icon: <Workflow className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }, {
-    key: 'keyResources',
-    name: "Key Resources",
-    icon: <Receipt className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }, {
-    key: 'valuePropositions',
-    name: "Value Propositions",
-    icon: <Gift className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }, {
-    key: 'customerRelationships',
-    name: "Customer Relationships",
-    icon: <Heart className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }, {
-    key: 'channels',
-    name: "Channels",
-    icon: <Truck className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }, {
-    key: 'customerSegments',
-    name: "Customer Segments",
-    icon: <Users2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }, {
-    key: 'costStructure',
-    name: "Cost Structure",
-    icon: <Receipt className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }, {
-    key: 'revenueStreams',
-    name: "Revenue Streams",
-    icon: <Coins className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-  }]  
+  const sectionsMap = {
+    keyPartners: {
+      key: 'keyPartners',
+      name: "Key Partners",
+      icon: <Building2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    },
+    keyActivities: {
+      key: 'keyActivities',
+      name: "Key Activities",
+      icon: <Workflow className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    },
+    keyResources: {
+      key: 'keyResources',
+      name: "Key Resources",
+      icon: <Receipt className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    },
+    valuePropositions: {
+      key: 'valuePropositions',
+      name: "Value Propositions",
+      icon: <Gift className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    },
+    customerRelationships: {
+      key: 'customerRelationships',
+      name: "Customer Relationships",
+      icon: <Heart className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    },
+    channels: {
+      key: 'channels',
+      name: "Channels",
+      icon: <Truck className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    },
+    customerSegments: {
+      key: 'customerSegments',
+      name: "Customer Segments",
+      icon: <Users2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    },
+    costStructure: {
+      key: 'costStructure',
+      name: "Cost Structure",
+      icon: <Receipt className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    },
+    revenueStreams: {
+      key: 'revenueStreams',
+      name: "Revenue Streams",
+      icon: <Coins className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+    }
+  }
   const suggestions = {
     suggest: [
-      ...sections.map((section) => ({section: section, action: 'suggest'})),
+      ...Object.values(sectionsMap).map((section) => ({section: section, action: 'suggest'})),
     ],
       critique: [
-        ...sections.map((section) => ({section: section, action: 'critique'})),
+        ...Object.values(sectionsMap).map((section) => ({section: section, action: 'critique'})),
     ],
     research: [
-      ...sections.map((section) => ({section: section, action: 'research'})),
+      ...Object.values(sectionsMap).map((section) => ({section: section, action: 'research'})),
     ],
     question: [
-      ...sections.map((section) => ({section: section, action: 'question'})),
+      ...Object.values(sectionsMap).map((section) => ({section: section, action: 'question'})),
     ]
   }
 
@@ -147,7 +157,7 @@ export function ChatMessageList({
                     className="flex flex-col gap-2 max-w-sm mx-auto overflow-hidden"
                     style={{ minHeight: "48px" }}
                   >
-                    {suggestions[selectedCategory as keyof typeof suggestions].map((suggestion, index) => (
+                    {suggestions[selectedCategory as keyof typeof suggestions].map((suggestion: any, index: number) => (
                       <motion.div
                         key={suggestion.section.key + suggestion.action}
                         initial={{ opacity: 0, x: -20 }}
@@ -356,7 +366,7 @@ export function ChatMessageList({
         onActionSelect={(action) => {
           if(activeSection) {
             onActionSelect({
-              message: getMessage(action, activeSection),
+              message: getMessage(action, sectionsMap[activeSection as keyof typeof sectionsMap].name),
               section: activeSection,
               action: action
             })
