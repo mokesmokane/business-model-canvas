@@ -9,8 +9,8 @@ import { useCanvas } from '@/contexts/CanvasContext'
 
 export function CompanyEditDialog() {
   const { formData, updateField } = useCanvas();
-  const [tempName, setTempName] = React.useState(formData.companyName || '')
-  const [tempDescription, setTempDescription] = React.useState(formData.companyDescription || '')
+  const [tempName, setTempName] = React.useState(formData.name || '')
+  const [tempDescription, setTempDescription] = React.useState(formData.description || '')
   const [isValid, setIsValid] = React.useState(true)
 
   const handleSave = () => {
@@ -18,14 +18,14 @@ export function CompanyEditDialog() {
       setIsValid(false)
       return
     }
-    updateField('companyName', tempName)
-    updateField('companyDescription', tempDescription)
+    updateField('name', tempName)
+    updateField('description', tempDescription)
   }
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
-      setTempName(formData.companyName || '')
-      setTempDescription(formData.companyDescription || '')
+      setTempName(formData.name || '')
+      setTempDescription(formData.description || '')
       setIsValid(true)
     }
   }

@@ -1,4 +1,4 @@
-import { ChevronLeft, LucideIcon, Trash2 } from 'lucide-react'
+import { ChevronLeft, LucideIcon, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -24,7 +24,7 @@ export function SidebarSection({
   title, 
   isExpanded
 }: SidebarSectionProps) {
-  const { loadCanvas, createNewCanvas, deleteCanvas, resetForm, currentCanvas, userCanvases } = useCanvas();
+  const { loadCanvas, createNewCanvas, deleteCanvas, resetForm, currentCanvas, userCanvases, clearState } = useCanvas();
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [canvasToDelete, setCanvasToDelete] = React.useState<{ id: string, name: string } | null>(null);
@@ -80,9 +80,20 @@ export function SidebarSection({
               <ChevronLeft className="h-4 w-4" />
             </Button>
           </h3>
-          <NewCanvasDialog/>
+          <div className="flex items-center gap-1 px-4">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            onClick={() => {
+              clearState();
+            }}
+          >
+            <Plus className="h-4 w-4" />
+            New Canvas
+          </Button>
+        </div>
           {userCanvases.map((item) => (
-            <div key={item.id} className="flex items-center gap-1 px-4">
+            <div key={item.id} className="flex items-center gap-1 px-8">
               <Button
                 variant="ghost"
                 className={`flex-1 justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
@@ -92,14 +103,14 @@ export function SidebarSection({
                 }`}
                 onClick={() => handleCanvasSelect(item.id)}
               >
-                {item.companyName}
+                {item.name}
               </Button>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={() => {
-                  setCanvasToDelete({ id: item.id, name: item.companyName });
+                  setCanvasToDelete({ id: item.id, name: item.name });
                   setDeleteDialogOpen(true);
                 }}
               >

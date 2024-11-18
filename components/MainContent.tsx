@@ -7,7 +7,8 @@ import LandingPage from "./landing/LandingPage"
 import { ThemeProvider } from "next-themes"
 import { useEffect, useState } from "react"
 import { MobileHeader } from "./mobile/MobileHeader"
-import { MobileBusinessModelCanvas } from "./business-model-canvas/MobileBusinessModelCanvas"
+import { MobileBusinessModelCanvas } from "./mobile/MobileBusinessModelCanvas"
+import { CanvasProvider } from "@/contexts/CanvasContext"
 
 export function MainContent() {
   const { user, isVerified } = useAuth()
@@ -32,19 +33,21 @@ export function MainContent() {
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex-1">
-            {isMobile ? (
-              <>
-                <MobileHeader />
-                <MobileBusinessModelCanvas />
-              </>
-            ) : (
-              <>
-                <MobileHeader />
-                <BusinessModelCanvasComponent />
-              </>
-            )}
-          </div>
+          <CanvasProvider>
+            <div className="flex-1">
+              {isMobile ? (
+                <>
+                  <MobileHeader />
+                  <MobileBusinessModelCanvas />
+                </>
+              ) : (
+                <>
+                  <MobileHeader />
+                  <BusinessModelCanvasComponent />
+                </>
+              )}
+              </div>
+          </CanvasProvider>
         </ThemeProvider>
       ) : (
         <LandingPage />

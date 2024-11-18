@@ -18,8 +18,8 @@ export async function POST(request: Request) {
 
     const prompt = `As a business model expert, analyze the following business model canvas content and suggest exactly 3 improvements for the specified section. The current content is:
 
-Company Name: ${currentContent.companyName}
-Company Description: ${currentContent.companyDescription}
+Company Name: ${currentContent.name}
+Company Description: ${currentContent.description}
 
 You are providing suggestions for the ${section} section of the Business Model Canvas.
 Provide exactly 3 clear, actionable suggestions.`

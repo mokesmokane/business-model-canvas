@@ -1,12 +1,13 @@
 import { useCanvas } from "@/contexts/CanvasContext";
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { MobileCanvasSection } from "./MobileCanvasSection";
-import { MobileAIChat } from "../mobile/MobileAIChat";
+// import { MobileCanvasSection } from "../mobile/MobileCanvasSection";
+import { MobileAIChat } from "./MobileAIChat";
 import 'swiper/css';
 import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { CanvasSection } from "../Canvas/CanvasSection";
 
 const sections = [
   { key: 'keyPartners', title: 'Key Partners', icon: Building2 },
@@ -36,7 +37,9 @@ export function MobileBusinessModelCanvas() {
         >
           {sections.map((section) => (
             <SwiperSlide key={section.key}>
-              <MobileCanvasSection
+              <CanvasSection
+                onChange={() => {}}
+                placeholder={section.title}
                 title={section.title}
                 icon={section.icon}
                 sectionKey={section.key}
@@ -60,7 +63,7 @@ export function MobileBusinessModelCanvas() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className={`h-8 w-8 ${
+                      className={`mt-2 h-8 w-8 ${
                         index === activeIndex
                           ? `${canvasTheme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-gray-800 text-gray-100'}`
                           : `${canvasTheme === 'light' ? 'text-gray-400' : 'text-gray-500'}`
@@ -88,11 +91,12 @@ export function MobileBusinessModelCanvas() {
                 </Tooltip>
               );
             })}
+            <MobileAIChat />
           </div>
+
         </TooltipProvider>
         
         <div className="px-4 py-1">
-          <MobileAIChat />
         </div>
       </div>
     </div>

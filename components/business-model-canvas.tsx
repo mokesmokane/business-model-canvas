@@ -6,13 +6,16 @@ import { Sidebar } from "./Sidebar/Sidebar"
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from './auth/AuthDialog';
 import { useExpanded } from "@/contexts/ExpandedContext"
-import { CanvasProvider } from "@/contexts/CanvasContext";
+import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
+import { CanvasTypeSelector } from "./CanvasTypeSelector";
 
 export function BusinessModelCanvasComponent() {
   const { user } = useAuth();
+  const { currentCanvas, userCanvases } = useCanvas();
   
   const { setIsExpanded } = useExpanded()
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
+
 
   const handleExpandSidebar = React.useCallback(() => {
     setIsExpanded(true)
@@ -27,14 +30,14 @@ export function BusinessModelCanvasComponent() {
 
   return (
     <>
-        <CanvasProvider>
-      <div className="flex h-[calc(100vh-64px)] bg-white">
-        <Sidebar 
-          setShowAuthDialog={setShowAuthDialog}
-        />
-          <Canvas onExpandSidebar={handleExpandSidebar} />
-      </div>
-      </CanvasProvider>
+        <div className="flex h-[calc(100vh-64px)] bg-white">
+          <Sidebar setShowAuthDialog={setShowAuthDialog} />
+          {userCanvases && userCanvases.length > 0 && currentCanvas ? (
+            <Canvas onExpandSidebar={handleExpandSidebar} />
+          ) : (
+            <CanvasTypeSelector />
+          )}
+        </div>
       <AuthDialog 
         isOpen={showAuthDialog}
         openSignUp={false}

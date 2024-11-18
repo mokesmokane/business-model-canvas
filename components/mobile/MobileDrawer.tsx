@@ -14,7 +14,8 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
   const { loadCanvas, deleteCanvas, resetForm, currentCanvas, userCanvases } = useCanvas()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [canvasToDelete, setCanvasToDelete] = useState<{ id: string, name: string } | null>(null)
-
+  const [dialogOpen, setDialogOpen] = useState(false)
+  
   const handleSignOut = async () => {
     try {
       await logout()
@@ -58,7 +59,10 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
             </Button>
           </h3>
           <div className="px-4 mb-2">
-            <NewCanvasDialog />
+            <NewCanvasDialog
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+            />
           </div>
           {userCanvases.map((item) => (
             <div key={item.id} className="flex items-center gap-1 px-4">
@@ -72,14 +76,14 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
                 onClick={() => handleCanvasSelect(item.id)}
               >
                 <LayoutDashboard className="mr-2 h-5 w-5" />
-                {item.companyName}
+                {item.name}
               </Button>
               <Button 
                 variant="ghost" 
                 size="icon" 
                 className="h-8 w-8 text-muted-foreground hover:text-foreground"
                 onClick={() => {
-                  setCanvasToDelete({ id: item.id, name: item.companyName })
+                  setCanvasToDelete({ id: item.id, name: item.name })
                   setDeleteDialogOpen(true)
                 }}
               >

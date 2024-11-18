@@ -1,45 +1,12 @@
 import { Button } from '@/components/ui/button'
-import { 
-  Building2, 
-  Users, 
-  Workflow, 
-  Gift, 
-  Heart, 
-  Users2, 
-  Truck, 
-  Receipt, 
-  Coins,
-  LucideIcon
-} from 'lucide-react'
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Section } from '@/types/canvas'
-import { initialCanvasState } from '@/contexts/CanvasContext'
+import { useCanvas } from '@/contexts/CanvasContext';
+import { CANVAS_TYPES } from '@/types/canvas-sections'
 
-// Define the section icons mapping
-const sectionIcons: Record<string, LucideIcon> = {
-  keyPartners: Building2,
-  keyActivities: Workflow,
-  keyResources: Receipt,
-  valuePropositions: Gift,
-  customerRelationships: Heart,
-  channels: Truck,
-  customerSegments: Users2,
-  costStructure: Users,
-  revenueStreams: Coins,
-};
-
-// Type the Map entries and conversion
-const sections = Array.from(
-  initialCanvasState.sections.entries() as IterableIterator<[string, Section]>
-).map(([key, section]) => ({
-  icon: sectionIcons[key],
-  name: section.name,
-  key: key
-}));
 
 interface SectionButtonsProps {
   activeSection: string | null;
@@ -47,6 +14,15 @@ interface SectionButtonsProps {
 }
 
 export function SectionButtons({ activeSection, onSectionSelect }: SectionButtonsProps) {
+  let {formData} = useCanvas();
+// Type the Map entries and conversion
+  const sections = Array.from(
+    CANVAS_TYPES.businessModel.sections.entries()
+  ).map(([i,section]) => ({
+    icon: section.icon,
+    name: section.name,
+    key: section.key
+  }));
   return (
     <div className="flex justify-between px-4 py-2">
       {sections.map(({ icon: Icon, name, key }) => (

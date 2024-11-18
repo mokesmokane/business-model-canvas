@@ -105,8 +105,8 @@ export async function POST(request: Request) {
     const action = messages[messages.length - 1].action
     let canvasInfo = `The Canvas currently looks like this:
       
-Company Name: ${currentContent?.companyName ?? ''}
-Company Description: ${currentContent?.companyDescription ?? ''}
+Company Name: ${currentContent?.name ?? ''}
+Company Description: ${currentContent?.description ?? ''}
 
 ${Object.entries(currentContent?.sections || {}).map(([key, section]: [string, any]) => `
 ${section.name}:

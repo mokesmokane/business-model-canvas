@@ -138,25 +138,24 @@ export function CanvasSection({
           ? 'bg-white'
           : 'bg-gray-950'
       }`}>
-        <ScrollArea className="flex-1 mb-4 h-full">
-          {itemsArray.length === 0 ? (
-            <p className={`text-sm whitespace-pre-line ${
+        <ScrollArea className="flex-1 mb-4 h-full relative">
+          {itemsArray.length === 0 && (
+            <div className={`absolute top-0 left-0 pointer-events-none text-sm whitespace-pre-line ${
               canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
             }`}>
               {placeholder}
-            </p>
-          ) : (
-            itemsArray.map((item, index) => (
-              <SectionItem
-                key={index}
-                item={item}
-                onDelete={() => handleDeleteItem(index)}
-                isEditing={editingIndex === index}
-                onEditStart={() => handleEditStart(index)}
-                onEditEnd={() => handleEditCancel()}
-              />
-            ))
+            </div>
           )}
+          {itemsArray.map((item, index) => (
+            <SectionItem
+              key={index}
+              item={item}
+              onDelete={() => handleDeleteItem(index)}
+              isEditing={editingIndex === index}
+              onEditStart={() => handleEditStart(index)}
+              onEditEnd={() => handleEditCancel()}
+            />
+          ))}
         </ScrollArea>
         
         <div className="mt-auto">

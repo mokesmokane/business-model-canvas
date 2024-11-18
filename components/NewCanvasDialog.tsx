@@ -8,9 +8,15 @@ import { useCanvas } from '@/contexts/CanvasContext'
 import { Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
-export function NewCanvasDialog() {
+interface NewCanvasDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  canvasType?: string;
+  layout?: string;
+}
+
+export function NewCanvasDialog({ open, onOpenChange, canvasType, layout }: NewCanvasDialogProps) {
   const { createNewCanvas, loadCanvas } = useCanvas();
-  const [open, setOpen] = React.useState(false)
   const [tempName, setTempName] = React.useState('')
   const [tempDescription, setTempDescription] = React.useState('')
   const [isValid, setIsValid] = React.useState(true)
@@ -22,9 +28,18 @@ export function NewCanvasDialog() {
     }
 
     try {
+      console.log('Creating new canvas with:', {
+        name: tempName.trim(),
+        description: tempDescription.trim(),
+        canvasType: canvasType || '',
+        layout: layout || ''
+      });
+
       const newCanvasId = await createNewCanvas({
         name: tempName.trim(),
-        description: tempDescription.trim()
+        description: tempDescription.trim(),
+        canvasType: canvasType || '',
+        layout: layout || ''
       })
       
       if (newCanvasId) {
@@ -35,7 +50,7 @@ export function NewCanvasDialog() {
       // Reset form and close dialog
       setTempName('')
       setTempDescription('')
-      setOpen(false)
+      onOpenChange(false)
     } catch (error) {
       console.error('Failed to create canvas:', error)
       // Optionally add error handling UI here
@@ -43,7 +58,7 @@ export function NewCanvasDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
       <div className="flex items-center gap-1 px-4">
           <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800">

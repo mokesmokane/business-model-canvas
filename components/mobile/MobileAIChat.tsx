@@ -6,16 +6,17 @@ import { useState } from "react"
 import { TooltipProvider } from "@radix-ui/react-tooltip"
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { useCanvas } from "@/contexts/CanvasContext"
 
 export function MobileAIChat() {
   const [isOpen, setIsOpen] = useState(false)
-
+  const { canvasTheme } = useCanvas()
   return (
     <TooltipProvider>
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetTrigger asChild>
           <Button
-            variant="outline"
+            canvasTheme={canvasTheme}
             size="icon"
             className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg"
           >

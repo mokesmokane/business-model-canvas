@@ -5,8 +5,9 @@ import { collection, doc, getDoc, setDoc, addDoc, updateDoc, DocumentData, onSna
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 import debounce from 'lodash/debounce';
-import { AIQuestion, BusinessModelCanvas, SerializedBusinessModelCanvas, SerializedSections } from '@/types/canvas';
+import { AIQuestion, Canvas, SerializedCanvas, SerializedSections } from '@/types/canvas';
 import { deleteDoc } from 'firebase/firestore';
+import { CANVAS_LAYOUTS, CANVAS_TYPES, CanvasLayoutDetails, CanvasType, getInitialCanvasState } from '@/types/canvas-sections';
 
 interface Section {
   name: string;
@@ -15,49 +16,27 @@ interface Section {
 }
 
 interface CanvasState {
-  currentCanvas: BusinessModelCanvas | null;
-  formData: BusinessModelCanvas;
+  currentCanvas: Canvas | null;
+  formData: Canvas;
   status: 'idle' | 'loading' | 'saving' | 'error';
   error: string | null;
 }
 
 
-export const initialCanvasState: BusinessModelCanvas = {
-  companyName: '',
-  companyDescription: '',
-  designedFor: '',
-  designedBy: '',
-  date: new Date().toISOString().split('T')[0],
-  version: '1.0',
-  sections: new Map([
-    ['keyPartners', { name: 'Key Partners', items: [], qAndAs: [] }],
-    ['keyActivities', { name: 'Key Activities', items: [], qAndAs: [] }],
-    ['keyResources', { name: 'Key Resources', items: [], qAndAs: [] }],
-    ['valuePropositions', { name: 'Value Propositions', items: [], qAndAs: [] }],
-    ['customerRelationships', { name: 'Customer Relationships', items: [], qAndAs: [] }],
-    ['channels', { name: 'Channels', items: [], qAndAs: [] }],
-    ['customerSegments', { name: 'Customer Segments', items: [], qAndAs: [] }],
-    ['costStructure', { name: 'Cost Structure', items: [], qAndAs: [] }],
-    ['revenueStreams', { name: 'Revenue Streams', items: [], qAndAs: [] }]
-  ]),
-  userId: '',
-  createdAt: undefined,
-  updatedAt: undefined,
-  theme: 'light'
-};
-
 interface CanvasContextType {
-  currentCanvas: BusinessModelCanvas | null;
-  formData: BusinessModelCanvas;
+  currentCanvas: Canvas | null;
+  formData: Canvas;
   status: 'idle' | 'loading' | 'saving' | 'error';
   error: string | null;
   userCanvases: DocumentData[];
   canvasTheme: 'light' | 'dark';
-  updateField: (field: keyof BusinessModelCanvas, value: string) => void;
+  canvasType: CanvasType;
+  canvasLayout: CanvasLayoutDetails;
+  updateField: (field: keyof Canvas, value: string) => void;
   updateSection: (sectionKey: string, items: string[]) => void;
   updateQuestionAnswer: (sectionKey: string, question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<void>;
-  createNewCanvas: (data: { name: string, description: string }) => Promise<string | undefined>;
+  createNewCanvas: (data: { name: string, description: string, canvasType?: string, layout?: string  }) => Promise<string | undefined>;
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
   clearState: () => void;
@@ -67,11 +46,13 @@ interface CanvasContextType {
 
 export const CanvasContext = createContext<CanvasContextType>({
   currentCanvas: null,
-  formData: initialCanvasState,
+  formData: getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL),
   status: 'idle',
   error: null,
   userCanvases: [],
   canvasTheme: 'light',
+  canvasType: CANVAS_TYPES.businessModel,
+  canvasLayout: CANVAS_LAYOUTS.BUSINESS_MODEL,
   updateField: () => {},
   updateSection: () => {},
   updateQuestionAnswer: () => {},
@@ -87,7 +68,7 @@ export const CanvasContext = createContext<CanvasContextType>({
 const AUTOSAVE_DELAY = 1000;
 
 // Add this helper function at the top of the file
-const serializeCanvas = (canvas: BusinessModelCanvas): SerializedBusinessModelCanvas => {
+const serializeCanvas = (canvas: Canvas): SerializedCanvas => {
   return {
     ...canvas,
     sections: serializeSections(canvas.sections),
@@ -97,10 +78,11 @@ const serializeCanvas = (canvas: BusinessModelCanvas): SerializedBusinessModelCa
 };
 
 // Add this helper function to deserialize data from Firestore
-const deserializeCanvas = (data: SerializedBusinessModelCanvas): BusinessModelCanvas => {
+const deserializeCanvas = (data: SerializedCanvas): Canvas => {
   return {
     ...data,
     sections: deserializeSections(data.sections),
+    
     createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
     updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
   };
@@ -118,7 +100,7 @@ const deserializeSections = (sections: SerializedSections): Map<string, Section>
 export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = React.useState<CanvasState>({
     currentCanvas: null,
-    formData: initialCanvasState,
+    formData: getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL),
     status: 'idle',
     error: null
   });
@@ -132,12 +114,12 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     setState(prev => ({ ...prev, status, error }));
   }, []);
 
-  const saveToFirebase = useCallback(async (data: BusinessModelCanvas) => {
+  const saveToFirebase = useCallback(async (data: Canvas) => {
     if (!user || !data.id) return;
     try {
       setStatus('saving');
       const serializedData = serializeCanvas(data);
-      await updateDoc(doc(db, 'businessModelCanvases', data.id), serializedData as any);
+      await updateDoc(doc(db, 'userCanvases', user.uid, 'canvases', data.id), serializedData as any);
       setStatus('idle');
     } catch (error) {
       console.error('Error saving to Firebase:', error);
@@ -145,7 +127,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, setStatus]);
 
-  const updateField = useCallback((field: keyof BusinessModelCanvas, value: string) => {
+  const updateField = useCallback((field: keyof Canvas, value: string) => {
     setState(prev => {
       const updatedData = {
         ...prev.formData,
@@ -196,15 +178,19 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   }, [saveToFirebase]);
 
   const loadCanvas = useCallback(async (id: string) => {
+    console.log('loadCanvas', id);
+    if (!user?.uid || !id) return;
+    
     try {
       setStatus('loading');
-      const canvasDoc = await getDoc(doc(db, 'businessModelCanvases', id));
+      const canvasRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), id);
+      const canvasDoc = await getDoc(canvasRef);
       
       if (!canvasDoc.exists()) {
         throw new Error('Canvas not found');
       }
 
-      const canvasData = deserializeCanvas({ ...canvasDoc.data(), id: canvasDoc.id } as SerializedBusinessModelCanvas);
+      const canvasData = deserializeCanvas({ ...canvasDoc.data(), id: canvasDoc.id } as SerializedCanvas);
       
       setState(prev => ({
         ...prev,
@@ -219,9 +205,9 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
       console.error('Error loading canvas:', err);
       setStatus('error', err instanceof Error ? err.message : 'Failed to load canvas');
     }
-  }, [setStatus]);
+  }, [setStatus, user?.uid]);
 
-  const createNewCanvas = async (data: { name: string, description: string }) => {
+  const createNewCanvas = async (data: { name: string, description: string, canvasType?: string, layout?: string }) => {
     if (!user) return;
 
     try {
@@ -229,15 +215,15 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
       
       const now = new Date();
       const newCanvas = serializeCanvas({
-        ...initialCanvasState,
+        ...getInitialCanvasState(CANVAS_TYPES[data.canvasType || 'businessModel'], CANVAS_LAYOUTS[data.layout || 'BUSINESS_MODEL']),
         userId: user.uid,
-        companyName: data.name,
-        companyDescription: data.description,
+        name: data.name,
+        description: data.description,
         createdAt: now,
         updatedAt: now
       });
       
-      const docRef = await addDoc(collection(db, 'businessModelCanvases'), newCanvas);
+      const docRef = await addDoc(collection(db, 'userCanvases', user.uid, 'canvases'), newCanvas);
       
       // Deserialize the canvas before setting state
       const canvasWithId = deserializeCanvas({
@@ -298,7 +284,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const resetForm = useCallback(() => {
     setState(prev => ({
       ...prev,
-      formData: prev.currentCanvas || initialCanvasState,
+      formData: prev.currentCanvas || getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL),
       status: 'idle',
       error: null
     }));
@@ -309,14 +295,14 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setStatus('loading');
-      await deleteDoc(doc(db, 'businessModelCanvases', id));
+      await deleteDoc(doc(db, 'userCanvases', user.uid, 'canvases', id));
       
       // If we're deleting the current canvas, reset the state
       if (state.currentCanvas?.id === id) {
         setState(prev => ({
           ...prev,
           currentCanvas: null,
-          formData: initialCanvasState,
+          formData: getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL),
           status: 'idle',
           error: null
         }));
@@ -332,7 +318,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const clearState = useCallback(() => {
     setState({
       currentCanvas: null,
-      formData: initialCanvasState,
+      formData: getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL),
       status: 'idle',
       error: null
     });
@@ -392,15 +378,18 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
     if (user) {
       const canvasesQuery = query(
-        collection(db, 'businessModelCanvases'),
+        collection(db, 'userCanvases', user.uid, 'canvases'),
         where('userId', '==', user.uid)
       );
 
       unsubscribeCanvases = onSnapshot(canvasesQuery, (snapshot: DocumentData) => {
-        const canvases = snapshot.docs.map((doc: DocumentData) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const canvases = snapshot.docs.map((doc: DocumentData) => {
+          const data = deserializeCanvas({ ...doc.data(), id: doc.id } as SerializedCanvas);
+          return {
+            id: doc.id,
+            ...data
+          };
+        });
         setUserCanvases(canvases);
       });
     } else {
@@ -414,6 +403,9 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     };
   }, [user]);
 
+  const canvasType = CANVAS_TYPES[state.formData.canvasTypeKey || 'businessModel'];
+  const canvasLayout = CANVAS_LAYOUTS[state.formData.canvasLayoutKey || 'businessModel'];
+
   return (
     <CanvasContext.Provider 
       value={{
@@ -423,6 +415,8 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         error: state.error,
         userCanvases,
         canvasTheme: state.formData.theme || 'light',
+        canvasType,
+        canvasLayout,
         updateField,
         updateSection,
         updateQuestionAnswer,

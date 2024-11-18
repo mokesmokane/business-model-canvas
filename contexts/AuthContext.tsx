@@ -112,25 +112,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         subscriptionPlan: 'free'
       });
       
-      try {
-        await addDoc(collection(db, 'businessModelCanvases'), {
-          userId: userCredential.user.uid,
-          companyName: 'My Awesome Business',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          keyPartners: [],
-          keyActivities: [],
-          keyResources: [],
-          valuePropositions: [],
-          customerRelationships: [],
-          channels: [],
-          customerSegments: [],
-          costStructure: [],
-          revenueStreams: []
-        });
-      } catch (canvasError) {
-        console.error('Error creating default canvas:', canvasError);
-      }
+      // try {
+      //   await addDoc(collection(db, `businessModelCanvases/${userCredential.user.uid}/canvases`), {
+      //     companyName: 'My Awesome Business',
+      //     createdAt: new Date().toISOString(),
+      //     updatedAt: new Date().toISOString(),
+      //     keyPartners: [],
+      //     keyActivities: [],
+      //     keyResources: [],
+      //     valuePropositions: [],
+      //     customerRelationships: [],
+      //     channels: [],
+      //     customerSegments: [],
+      //     costStructure: [],
+      //     revenueStreams: []
+      //   });
+      // } catch (canvasError) {
+      //   console.error('Error creating default canvas:', canvasError);
+      // }
       
       try {
         const actionCodeSettings = {

@@ -2,7 +2,7 @@ import React, { ChangeEvent, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
-import { BusinessModelCanvas } from '@/types/canvas'
+import { Canvas } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { Moon, Sun } from 'lucide-react'
 
@@ -41,7 +41,7 @@ export function Header() {
   }, [formData]);
 
   function onInputChange(event: ChangeEvent<HTMLInputElement>): void {
-    updateField(event.target.id as keyof BusinessModelCanvas, event.target.value)
+    updateField(event.target.id as keyof Canvas, event.target.value)
   }
 
   return (
@@ -59,13 +59,13 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Input 
             canvasTheme={canvasTheme}
-            value={formData.companyName}
+            value={formData.name}
             className={`max-w-[200px] ${
               canvasTheme === 'light' ? 'text-black' : 'text-white'
             }`}
             readOnly
           />
-          <div className={`${!formData.companyName || !formData.companyDescription ? 
+          <div className={`${!formData.name || !formData.description ? 
             'animate-pulse ring-2 ring-blue-500 rounded-md ring-opacity-75 shadow-lg shadow-blue-500/50' : ''}`}>
             <CompanyEditDialog/>
           </div>
