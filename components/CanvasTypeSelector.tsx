@@ -89,16 +89,17 @@ export function CanvasTypeSelector() {
               }}
               exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }}
               transition={{ duration: 0.2 }}
-              className={`${
-                selectedType && selectedType !== key ? 'hidden' : ''
-              }`}
-              style={{ minWidth: '300px', maxWidth: '300px', height: 'auto' }}
+              style={{
+                minWidth: '300px',
+                maxWidth: '300px',
+                height: 'auto',
+                display: selectedType && selectedType !== key ? 'none' : 'block',
+              }}
               onMouseEnter={() => handleMouseEnter(key)}
               onMouseLeave={handleMouseLeave}
             >
-              <Button
-                variant="outline"
-                className="h-full p-8 flex flex-col items-center gap-4 w-full bg-background hover:bg-muted"
+              <div
+                className="h-full p-8 flex flex-col items-center gap-4 w-full bg-background hover:bg-muted cursor-pointer border rounded-md"
                 onClick={() => handleCanvasTypeSelect(key)}
               >
                 <CanvasTypeIcon icon={type.icon} theme={theme} />
@@ -117,7 +118,7 @@ export function CanvasTypeSelector() {
                     <XIcon className="w-4 h-4 text-muted-foreground" />
                   </Button>
                 )}
-              </Button>
+              </div>
             </motion.div>
           ))}
         </AnimatePresence>
