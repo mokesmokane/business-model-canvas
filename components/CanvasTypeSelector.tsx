@@ -85,7 +85,7 @@ export function CanvasTypeSelector() {
           >
             <LayoutSelector
               layouts={compatibleLayouts}
-              selectedLayout={selectedLayout}
+            //   selectedLayout={selectedLayout}
               onSelect={handleLayoutSelect}
             />
           </motion.div>
