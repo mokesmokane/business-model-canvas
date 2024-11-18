@@ -87,7 +87,7 @@ export function CanvasTypeSelector() {
                 opacity: selectedType && selectedType !== key ? 0 : 1,
                 position: selectedType && selectedType !== key ? 'absolute' : 'relative',
               }}
-              exit={{ opacity: 0, scale: 0.8 }}
+              exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.3 } }}
               transition={{ duration: 0.2 }}
               className={`${
                 selectedType && selectedType !== key ? 'hidden' : ''
