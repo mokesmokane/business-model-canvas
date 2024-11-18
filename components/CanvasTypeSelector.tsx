@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { CANVAS_TYPES, CANVAS_LAYOUTS } from "@/types/canvas-sections"
@@ -9,30 +9,60 @@ import { NewCanvasDialog } from "./NewCanvasDialog"
 import { LayoutSelector } from "./LayoutSelector"
 import { LucideIcon } from 'lucide-react'
 import { useTheme } from "next-themes"
+import { XIcon } from 'lucide-react'
 
 export function CanvasTypeSelector() {
   const [selectedType, setSelectedType] = useState<string | null>(null)
+  const [hoveredType, setHoveredType] = useState<string | null>(null)
   const [selectedLayout, setSelectedLayout] = useState<string | null>(null)
   const [showDialog, setShowDialog] = useState(false)
   const { theme } = useTheme()
   const { userCanvases } = useCanvas();
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleCanvasTypeSelect = (typeKey: string) => {
-    setSelectedType(typeKey)
-    setSelectedLayout(CANVAS_TYPES[typeKey].layout.key)
-    setShowDialog(true)
+    if(selectedType === typeKey) {
+        setSelectedType(null)
+    } else {
+      setSelectedType(typeKey)
+      setSelectedLayout(CANVAS_TYPES[typeKey].layout.key)
+    }
+    // setShowDialog(true)
   }
 
   const handleLayoutSelect = (layout: string) => {
     setSelectedLayout(layout)
-    setShowDialog(true)
   }
 
-  const compatibleLayouts = selectedType
+  const handleMouseEnter = (key: string) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+    setHoveredType(key);
+  }
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredType(null);
+    }, 200); // Adjust the delay as needed
+  }
+
+  const compatibleLayouts = (hoveredType || selectedType)
     ? Object.values(CANVAS_LAYOUTS).filter(
-        (layout) => layout.sectionCount === CANVAS_TYPES[selectedType].layout.sectionCount
+        (layout) => {
+          const typeKey = hoveredType || selectedType;
+          return typeKey && layout.sectionCount === CANVAS_TYPES[typeKey].layout.sectionCount;
+        }
       )
     : []
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center gap-8 p-8 bg-background w-full">
@@ -47,28 +77,46 @@ export function CanvasTypeSelector() {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+      <div className="flex flex-wrap gap-6 w-full justify-center">
         <AnimatePresence>
           {Object.entries(CANVAS_TYPES).map(([key, type]) => (
             <motion.div
               key={key}
               initial={{ opacity: 1 }}
-              animate={{ opacity: selectedType && selectedType !== key ? 0 : 1 }}
+              animate={{
+                opacity: selectedType && selectedType !== key ? 0 : 1,
+                position: selectedType && selectedType !== key ? 'absolute' : 'relative',
+              }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.2 }}
+              className={`${
+                selectedType && selectedType !== key ? 'hidden' : ''
+              }`}
+              style={{ minWidth: '300px', maxWidth: '300px', height: 'auto' }}
+              onMouseEnter={() => handleMouseEnter(key)}
+              onMouseLeave={handleMouseLeave}
             >
               <Button
                 variant="outline"
-                className="h-auto p-6 flex flex-col items-center gap-4 w-full bg-background hover:bg-muted"
+                className="h-full p-8 flex flex-col items-center gap-4 w-full bg-background hover:bg-muted"
                 onClick={() => handleCanvasTypeSelect(key)}
               >
                 <CanvasTypeIcon icon={type.icon} theme={theme} />
                 <div className="space-y-2 text-center">
                   <h3 className="font-semibold text-foreground">{type.name}</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-normal">
                     {type.description}
                   </p>
                 </div>
+                {selectedType === key && (
+                  <Button
+                    variant="icon"
+                    className="absolute top-2 right-2"
+                    onClick={() => setSelectedType(null)}
+                  >
+                    <XIcon className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                )}
               </Button>
             </motion.div>
           ))}
@@ -76,21 +124,32 @@ export function CanvasTypeSelector() {
       </div>
 
       <AnimatePresence>
-        {selectedType && (
+        {(hoveredType || selectedType) && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mt-8"
+            initial={{ opacity: 0, y: 20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -20, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mt-8 overflow-hidden"
           >
             <LayoutSelector
               layouts={compatibleLayouts}
-            //   selectedLayout={selectedLayout}
+              selectedLayout={selectedLayout}
               onSelect={handleLayoutSelect}
             />
           </motion.div>
         )}
       </AnimatePresence>
+
+      {selectedType && selectedLayout && (
+        <Button
+          variant="primary"
+          className="mt-4"
+          onClick={() => setShowDialog(true)}
+        >
+          Create
+        </Button>
+      )}
 
       {showDialog && (
         <NewCanvasDialog
