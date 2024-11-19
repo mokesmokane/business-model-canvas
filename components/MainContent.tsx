@@ -9,7 +9,7 @@ import { useEffect, useState } from "react"
 import { MobileHeader } from "./mobile/MobileHeader"
 import { MobileBusinessModelCanvas } from "./mobile/MobileBusinessModelCanvas"
 import { CanvasProvider } from "@/contexts/CanvasContext"
-
+import { NewCanvasProvider } from "@/contexts/NewCanvasContext"
 export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
@@ -33,7 +33,9 @@ export function MainContent() {
           enableSystem
           disableTransitionOnChange
         >
+          <NewCanvasProvider>
           <CanvasProvider>
+
             <div className="flex-1">
               {isMobile ? (
                 <>
@@ -42,12 +44,13 @@ export function MainContent() {
                 </>
               ) : (
                 <>
-                  <MobileHeader />
+                  <SiteHeader />
                   <BusinessModelCanvasComponent />
                 </>
               )}
               </div>
           </CanvasProvider>
+          </NewCanvasProvider>  
         </ThemeProvider>
       ) : (
         <LandingPage />

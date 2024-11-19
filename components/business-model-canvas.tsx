@@ -8,10 +8,13 @@ import { AuthDialog } from './auth/AuthDialog';
 import { useExpanded } from "@/contexts/ExpandedContext"
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { CanvasTypeSelector } from "./CanvasTypeSelector";
+import { NewCanvasProvider, useNewCanvas } from "@/contexts/NewCanvasContext";
+import { UserCanvasSelector } from "./UserCanvasSelector";
 
 export function BusinessModelCanvasComponent() {
   const { user } = useAuth();
   const { currentCanvas, userCanvases } = useCanvas();
+  const { newCanvas } = useNewCanvas();
   
   const { setIsExpanded } = useExpanded()
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
@@ -27,23 +30,31 @@ export function BusinessModelCanvasComponent() {
       return;
     }
   }, [user]);
-
+  console.log('newCanvas', newCanvas);
   return (
     <>
-        <div className="flex h-[calc(100vh-64px)] bg-white">
-          <Sidebar setShowAuthDialog={setShowAuthDialog} />
-          {userCanvases && userCanvases.length > 0 && currentCanvas ? (
-            <Canvas onExpandSidebar={handleExpandSidebar} />
+          {currentCanvas ? (
+            <div className="flex h-[calc(100vh-64px)] bg-white">
+              <Sidebar setShowAuthDialog={setShowAuthDialog} />
+              <Canvas onExpandSidebar={handleExpandSidebar} />  
+          </div>
+          ) : newCanvas || !userCanvases || userCanvases.length === 0 ? (
+            <div className="flex h-[calc(100vh-64px)] bg-white overflow-hidden">
+              <Sidebar setShowAuthDialog={setShowAuthDialog} />
+              <CanvasTypeSelector />
+            </div>
           ) : (
-            <CanvasTypeSelector />
+            <div className="flex h-[calc(100vh-64px)] bg-white overflow-hidden">
+              <Sidebar setShowAuthDialog={setShowAuthDialog} />
+              <UserCanvasSelector />
+            </div>
           )}
-        </div>
       <AuthDialog 
         isOpen={showAuthDialog}
         openSignUp={false}
         onClose={() => setShowAuthDialog(false)}
         onSuccess={handleSave}
-      />
+        />
     </>
   );
 }

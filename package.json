@@ -32,6 +32,7 @@
     "@types/lodash.debounce": "^4.0.9",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "firebase": "^11.0.1",
     "framer-motion": "^11.11.11",
     "lodash": "^4.17.21",
@@ -47,6 +48,7 @@
     "stripe": "^17.3.1",
     "swiper": "^11.1.14",
     "tailwind-merge": "^2.5.4",
+    "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.0.2"
   },

@@ -10,6 +10,7 @@ import { ChatHeader } from './ChatHeader'
 import { Section } from '@/types/canvas'
 import { ChatInput } from './ChatInput'
 import { ChatMessageList } from './ChatMessageList'
+import { useAuth } from '@/contexts/AuthContext'
 
 
 export function AIChatArea({ onClose }: { onClose?: () => void }) {
@@ -19,6 +20,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
+  const { isInTrialPeriod, userData } = useAuth()
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
@@ -40,6 +42,10 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   // }
 
   const handleSend = async () => {
+    if (!isInTrialPeriod && (!userData?.subscriptionStatus || userData?.subscriptionPlan === 'free')) {
+      addMessages([{ role: 'assistant', content: 'Your trial period has ended. Please upgrade to continue using AI features.' }])
+      return
+    }
     if (input.trim()) {
       const userMessage = { role: 'user', content: input } as Message
       const updatedMessages = [...messages, userMessage]

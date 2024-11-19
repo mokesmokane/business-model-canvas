@@ -352,15 +352,15 @@ export function ChatMessageList({
       <div ref={messagesEndRef} />
     </div>
   </ScrollArea>
-  <div className="flex-shrink-0">
+  <div className="flex-shrink-0 flex flex-col">
     <SectionButtons 
       activeSection={activeSection}
       onSectionSelect={onSectionSelect}
     />
-    <div className={`transition-all duration-200 ease-in-out ${
+    <div className={`transition-all duration-200 ease-in-out overflow-hidden ${
       activeSection 
-        ? 'opacity-100 max-h-20 translate-y-0' 
-        : 'opacity-0 max-h-0 -translate-y-2 pointer-events-none'
+        ? 'opacity-100 h-12 translate-y-0' 
+        : 'opacity-0 h-0 translate-y-2 pointer-events-none'
     }`}>
       <ActionButtons
         onActionSelect={(action) => {

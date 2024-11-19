@@ -10,6 +10,7 @@ import { useCanvas } from '@/contexts/CanvasContext';
 import { NewCanvasDialog } from '@/components/NewCanvasDialog';
 import { useExpanded } from '@/contexts/ExpandedContext';
 import { DeleteCanvasDialog } from '../DeleteCanvasDialog';
+import { useNewCanvas } from '@/contexts/NewCanvasContext';
 
 interface SidebarSectionProps {
   icon: LucideIcon;
@@ -29,7 +30,7 @@ export function SidebarSection({
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [canvasToDelete, setCanvasToDelete] = React.useState<{ id: string, name: string } | null>(null);
   const { setIsExpanded, setIsWide } = useExpanded()
-
+  const { setNewCanvas } = useNewCanvas();
   const handleCanvasSelect = React.useCallback(async (canvasId: string) => {
     await loadCanvas(canvasId);
     localStorage.setItem('lastCanvasId', canvasId);
@@ -62,9 +63,6 @@ export function SidebarSection({
         handleCanvasSelect(userCanvases[0].id);
         localStorage.setItem('lastCanvasId', userCanvases[0].id);
       }
-    } else if (userCanvases.length > 0) {
-      handleCanvasSelect(userCanvases[0].id);
-      localStorage.setItem('lastCanvasId', userCanvases[0].id);
     }
   }, [userCanvases, handleCanvasSelect]);
 
@@ -73,8 +71,14 @@ export function SidebarSection({
       {isExpanded ? (
         <>
           <h3 className="text-sm font-semibold text-muted-foreground flex items-center px-4 py-2">
-            <Icon className="h-4 w-4 mr-2" />
-            {title}
+            <Button 
+              variant="ghost" 
+              className="h-8 w-full justify-start text-muted-foreground hover:text-foreground" 
+              onClick={()=>{clearState(); setNewCanvas(false)}}
+            >
+              <Icon className="h-4 w-4 mr-2" />
+              {title}
+            </Button>
             <div className="flex-grow"></div>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={()=>setIsExpanded(false)}>
               <ChevronLeft className="h-4 w-4" />
@@ -86,6 +90,7 @@ export function SidebarSection({
             className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
             onClick={() => {
               clearState();
+              setNewCanvas(true);
             }}
           >
             <Plus className="h-4 w-4" />

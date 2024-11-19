@@ -19,6 +19,8 @@ interface AuthContextType {
   userData: DocumentData | null;
   loading: boolean;
   isVerified: boolean;
+  isInTrialPeriod: boolean;
+  trialDaysRemaining: number | null;
   signUp: (email: string, password: string) => Promise<User>;
   signIn: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
@@ -34,6 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<DocumentData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
+  const [isInTrialPeriod, setIsInTrialPeriod] = useState(false);
+  const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
 
   useEffect(() => {
     let unsubscribeCanvases: (() => void) | undefined;
@@ -75,14 +79,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         unsubscribeSubscription = onSnapshot(userDocRef, (snapshot) => {
           const userData = snapshot.data();
           setUserData(userData || null);
+          
+          // Calculate trial period
+          if (userData?.createdAt) {
+            const createdAt = new Date(userData.createdAt);
+            const trialEndDate = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+            const now = new Date();
+            
+            setIsInTrialPeriod(now < trialEndDate);
+            
+            const remainingTime = trialEndDate.getTime() - now.getTime();
+            const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
+            setTrialDaysRemaining(remainingDays);
+          }
         });
 
         unsubscribeUser = onSnapshot(userDocRef, (snapshot) => {
           const userData = snapshot.data();
           setUserData(userData || null);
+          
+          // Calculate trial period
+          if (userData?.createdAt) {
+            const createdAt = new Date(userData.createdAt);
+            const trialEndDate = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+            const now = new Date();
+            
+            setIsInTrialPeriod(now < trialEndDate);
+            
+            const remainingTime = trialEndDate.getTime() - now.getTime();
+            const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
+            setTrialDaysRemaining(remainingDays);
+          }
         });
       } else {
         setUserData(null);
+        setIsInTrialPeriod(false);
+        setTrialDaysRemaining(null);
       }
     });
 
@@ -111,25 +143,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         subscriptionStatus: 'active',
         subscriptionPlan: 'free'
       });
-      
-      // try {
-      //   await addDoc(collection(db, `businessModelCanvases/${userCredential.user.uid}/canvases`), {
-      //     companyName: 'My Awesome Business',
-      //     createdAt: new Date().toISOString(),
-      //     updatedAt: new Date().toISOString(),
-      //     keyPartners: [],
-      //     keyActivities: [],
-      //     keyResources: [],
-      //     valuePropositions: [],
-      //     customerRelationships: [],
-      //     channels: [],
-      //     customerSegments: [],
-      //     costStructure: [],
-      //     revenueStreams: []
-      //   });
-      // } catch (canvasError) {
-      //   console.error('Error creating default canvas:', canvasError);
-      // }
       
       try {
         const actionCodeSettings = {
@@ -205,6 +218,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       userData, 
       loading, 
       isVerified, 
+      isInTrialPeriod,
+      trialDaysRemaining,
       signUp, 
       signIn, 
       logout,
