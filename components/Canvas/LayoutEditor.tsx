@@ -13,6 +13,8 @@ interface LayoutItem {
   content: string;
   icon: any;
   gridArea: string;
+  sectionKey: string;
+  gridIndex: number;
 }
 
 interface GridItemProps {
@@ -68,22 +70,36 @@ interface LayoutEditorProps {
 }
 
 export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) {
-  const { formData, canvasTheme, updateLayout, updateLayoutType } = useCanvas();
+  const { formData, canvasTheme, updateLayout } = useCanvas();
   const currentLayout = CANVAS_LAYOUTS[formData.canvasLayoutKey || 'BUSINESS_MODEL'];
   const canvasType = CANVAS_TYPES[formData.canvasTypeKey || 'businessModel'];
   
+  // Initialize layout with sections sorted by gridIndex
   const [layout, setLayout] = useState<LayoutItem[]>(() => {
-    return (currentLayout.areas || []).map((area: string, index: number) => ({
-      id: `section-${index}`,
-      content: canvasType.sections[index].name,
-      icon: canvasType.sections[index].icon,
-      gridArea: area,
-    }));
+    const sortedSections = Array.from(formData.sections.entries())
+      .map(([key, section], index) => ({
+        key,
+        section,
+        gridIndex: section.gridIndex ?? index
+      }))
+      .sort((a, b) => a.gridIndex - b.gridIndex);
+    console.log('sortedSections', sortedSections);
+    return sortedSections.map((item, index) => {
+      const sectionConfig = canvasType.sections.find(s => s.key === item.key);
+      return {
+        id: `section-${index}`,
+        content: sectionConfig?.name || '',
+        icon: sectionConfig?.icon,
+        gridArea: currentLayout.areas?.[index] || 'auto',
+        sectionKey: item.key,
+        gridIndex: item.gridIndex
+      };
+    });
   });
 
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState<string | null>(null);
-  const [selectedLayout, setSelectedLayout] = useState<string | null>(null);
+  const [selectedLayout, setSelectedLayout] = useState<string>(formData.canvasLayoutKey || 'BUSINESS_MODEL');
   const [gridStyle, setGridStyle] = useState({});
 
   useEffect(() => {
@@ -113,13 +129,16 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
         const draggedGridArea = items[draggedIndex].gridArea;
         const targetGridArea = items[targetIndex].gridArea;
         
+        // Swap grid areas and indices
         newItems[draggedIndex] = {
           ...items[draggedIndex],
-          gridArea: targetGridArea
+          gridArea: targetGridArea,
+          gridIndex: targetIndex
         };
         newItems[targetIndex] = {
           ...items[targetIndex],
-          gridArea: draggedGridArea
+          gridArea: draggedGridArea,
+          gridIndex: draggedIndex
         };
         
         return newItems;
@@ -133,12 +152,13 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
   const handleLayoutSelect = (layoutKey: string) => {
     setSelectedLayout(layoutKey);
     const newLayout = CANVAS_LAYOUTS[layoutKey];
-    setLayout(newLayout.areas?.map((area: string, index: number) => ({
-      id: `section-${index}`,
-      content: canvasType.sections[index].name,
-      icon: canvasType.sections[index].icon,
-      gridArea: area,
-    })) || []);
+    
+    // Maintain existing section order when changing layouts
+    setLayout(layout.map((item, index) => ({
+      ...item,
+      gridArea: newLayout.areas?.[index] || 'auto'
+    })));
+
     setGridStyle({
       gridTemplateColumns: newLayout.gridTemplate.columns,
       gridTemplateRows: newLayout.gridTemplate.rows,
@@ -146,27 +166,28 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
   };
 
   const handleSave = () => {
-    const orderedSectionKeys = layout.map((item, index) => {
-      const sectionIndex = canvasType.sections.findIndex(
-        section => section.name === item.content
-      );
-      return canvasType.sections[sectionIndex].key;
-    });
-    
-    updateLayout(orderedSectionKeys);
-    if (selectedLayout) {
-      updateLayoutType(selectedLayout);
-    }
+    // Create ordered array of section keys based on gridIndex
+    const orderedSectionKeys = layout
+      .sort((a, b) => a.gridIndex - b.gridIndex)
+      .map(item => item.sectionKey);
+
+    // Update layout with new section order
+    updateLayout(orderedSectionKeys, selectedLayout);
+
     onOpenChange(false);
   };
 
   const handleReset = () => {
-    setLayout((currentLayout.areas || []).map((area: string, index: number) => ({
+    // Reset to original order based on canvasType sections
+    setLayout(canvasType.sections.map((section, index) => ({
       id: `section-${index}`,
-      content: canvasType.sections[index].name,
-      icon: canvasType.sections[index].icon,
-      gridArea: area,
+      content: section.name,
+      icon: section.icon,
+      gridArea: currentLayout.areas?.[index] || 'auto',
+      sectionKey: section.key,
+      gridIndex: index
     })));
+
     setGridStyle({
       gridTemplateColumns: currentLayout.gridTemplate.columns,
       gridTemplateRows: currentLayout.gridTemplate.rows,

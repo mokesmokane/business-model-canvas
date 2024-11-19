@@ -33,8 +33,7 @@ interface CanvasContextType {
   canvasType: CanvasType;
   canvasLayout: CanvasLayoutDetails;
   updateField: (field: keyof Canvas, value: string) => void;
-  updateLayout: (layout: string[]) => void;
-  updateLayoutType: (canvasTypeKey: string) => void;
+  updateLayout: (layout: string[], layoutTypeKey: string) => void;
   updateSection: (sectionKey: string, items: string[]) => void;
   updateQuestionAnswer: (sectionKey: string, question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<void>;
@@ -56,7 +55,6 @@ export const CanvasContext = createContext<CanvasContextType>({
   canvasType: CANVAS_TYPES.businessModel,
   canvasLayout: CANVAS_LAYOUTS.BUSINESS_MODEL,
   updateLayout: () => {}, 
-  updateLayoutType: () => {},
   updateField: () => {},
   updateSection: () => {},
   updateQuestionAnswer: () => {},
@@ -407,12 +405,27 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     };
   }, [user]);
   
-  const updateLayout = useCallback((layout: string[]) => {
+  const updateLayout = useCallback((layout: string[], layoutTypeKey: string) => {
     setState(prev => {
+      //layout is the new order of the sections
+      
+      const sections = new Map(prev.formData.sections);
+      
+      // Update gridIndex for each section
+      sections.forEach((section, key) => {
+        const index = layout.indexOf(key);
+        sections.set(key, {
+          ...section,
+          gridIndex: index
+        });
+      });
+
       const updatedData = {
         ...prev.formData,
-        canvasLayout: layout,
+        sections: sections,
+        canvasLayoutKey: layoutTypeKey
       };
+
       // Save to Firebase
       saveToFirebase(updatedData);
       
@@ -422,14 +435,6 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
       };
     });
   }, [saveToFirebase]);
-
-  const updateLayoutType = useCallback((layoutTypeKey: string) => {
-    console.log('updateLayoutType',layoutTypeKey);
-    setState(prev => ({
-      ...prev,
-      formData: { ...prev.formData, canvasLayoutKey: layoutTypeKey }
-    }));
-  }, []);
 
   const canvasType = CANVAS_TYPES[state.formData.canvasTypeKey || 'businessModel'];
   const canvasLayout = CANVAS_LAYOUTS[state.formData.canvasLayoutKey || 'businessModel'];
@@ -447,7 +452,6 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         canvasLayout,
         updateField,
         updateLayout,
-        updateLayoutType,
         updateSection,
         updateQuestionAnswer,
         loadCanvas,

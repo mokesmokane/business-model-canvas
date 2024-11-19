@@ -10,6 +10,7 @@ export interface AISuggestion {
 
 export interface Section {
   name: string;
+  gridIndex?: number;
   items: string[];
   qAndAs: AIQuestion[];
 }
