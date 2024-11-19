@@ -61,10 +61,12 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout }: NewC
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
       <div className="flex items-center gap-1 px-4">
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800">
-            <Plus className="h-4 w-4" />
-            New Canvas
-          </Button>
+      <Button
+          variant="default"
+          className="mt-4"
+        >
+          Create Canvas
+        </Button>
         </div>
       </DialogTrigger>
       <DialogContent>

@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/tooltip'
 import React from 'react';
 import { useCanvas } from '@/contexts/CanvasContext';
-import { NewCanvasDialog } from '@/components/NewCanvasDialog';
 import { useExpanded } from '@/contexts/ExpandedContext';
 import { DeleteCanvasDialog } from '../DeleteCanvasDialog';
 import { useNewCanvas } from '@/contexts/NewCanvasContext';

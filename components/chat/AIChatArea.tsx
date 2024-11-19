@@ -42,6 +42,8 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   // }
 
   const handleSend = async () => {
+    console.log('isInTrialPeriod', isInTrialPeriod)
+    console.log('userData', userData)
     if (!isInTrialPeriod && (!userData?.subscriptionStatus || userData?.subscriptionPlan === 'free')) {
       addMessages([{ role: 'assistant', content: 'Your trial period has ended. Please upgrade to continue using AI features.' }])
       return
