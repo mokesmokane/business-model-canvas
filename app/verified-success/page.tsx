@@ -12,7 +12,7 @@ export default function VerifiedSuccessPage() {
   useEffect(() => {
     // Automatically redirect after 5 seconds
     const timer = setTimeout(() => {
-      router.push('/')
+      router.push('/login')
     }, 5000)
 
     return () => clearTimeout(timer)
@@ -28,12 +28,12 @@ export default function VerifiedSuccessPage() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Email Verified Successfully!</h1>
             <p className="text-gray-600 mb-6">
-              Thank you for verifying your email. You can now access all features of the application.
+              Thank you for verifying your email. You can now sign in to access all features of the application.
             </p>
             <div className="space-y-4 w-full">
-              <Link href="/">
+              <Link href="/login">
                 <Button className="w-full">
-                  Go to Dashboard
+                  Go to Sign In
                 </Button>
               </Link>
             </div>

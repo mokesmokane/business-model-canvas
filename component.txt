@@ -35,6 +35,7 @@ import { useCanvas } from '@/contexts/CanvasContext';
 import { NewCanvasDialog } from '@/components/NewCanvasDialog';
 import { useExpanded } from '@/contexts/ExpandedContext';
 import { DeleteCanvasDialog } from '../DeleteCanvasDialog';
+import { useNewCanvas } from '@/contexts/NewCanvasContext';
 
 interface SidebarSectionProps {
   icon: LucideIcon;
@@ -54,7 +55,7 @@ export function SidebarSection({
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [canvasToDelete, setCanvasToDelete] = React.useState<{ id: string, name: string } | null>(null);
   const { setIsExpanded, setIsWide } = useExpanded()
-
+  const { setNewCanvas } = useNewCanvas();
   const handleCanvasSelect = React.useCallback(async (canvasId: string) => {
     await loadCanvas(canvasId);
     localStorage.setItem('lastCanvasId', canvasId);
@@ -87,9 +88,6 @@ export function SidebarSection({
         handleCanvasSelect(userCanvases[0].id);
         localStorage.setItem('lastCanvasId', userCanvases[0].id);
       }
-    } else if (userCanvases.length > 0) {
-      handleCanvasSelect(userCanvases[0].id);
-      localStorage.setItem('lastCanvasId', userCanvases[0].id);
     }
   }, [userCanvases, handleCanvasSelect]);
 
@@ -98,8 +96,14 @@ export function SidebarSection({
       {isExpanded ? (
         <>
           <h3 className="text-sm font-semibold text-muted-foreground flex items-center px-4 py-2">
-            <Icon className="h-4 w-4 mr-2" />
-            {title}
+            <Button 
+              variant="ghost" 
+              className="h-8 w-full justify-start text-muted-foreground hover:text-foreground" 
+              onClick={()=>{clearState(); setNewCanvas(false)}}
+            >
+              <Icon className="h-4 w-4 mr-2" />
+              {title}
+            </Button>
             <div className="flex-grow"></div>
             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={()=>setIsExpanded(false)}>
               <ChevronLeft className="h-4 w-4" />
@@ -111,6 +115,7 @@ export function SidebarSection({
             className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
             onClick={() => {
               clearState();
+              setNewCanvas(true);
             }}
           >
             <Plus className="h-4 w-4" />
@@ -1373,7 +1378,7 @@ const getButtonClasses = (canvasTheme?: string) => {
   const variantClasses = {
     default: "bg-gray-900 text-gray-50 hover:bg-gray-900/90 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90",
     destructive: "bg-red-500 text-gray-50 hover:bg-red-500/90 dark:bg-red-900 dark:text-gray-50 dark:hover:bg-red-900/90",
-    outline: "border border-gray-200 bg-white hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-gray-950 dark:hover:bg-gray-800 dark:hover:text-gray-50",
+    outline: "border border-gray-200 bg-transparent hover:bg-gray-100 hover:text-gray-900 dark:border-gray-800 dark:bg-transparent dark:hover:bg-gray-800 dark:hover:text-gray-50",
     secondary: "bg-gray-100 text-gray-900 hover:bg-gray-100/80 dark:bg-gray-800 dark:text-gray-50 dark:hover:bg-gray-800/80",
     ghost: "hover:bg-gray-800 hover:text-gray-100 text-gray-400",
     link: "text-gray-900 underline-offset-4 hover:underline dark:text-gray-50",
@@ -2510,6 +2515,7 @@ import { ChatHeader } from './ChatHeader'
 import { Section } from '@/types/canvas'
 import { ChatInput } from './ChatInput'
 import { ChatMessageList } from './ChatMessageList'
+import { useAuth } from '@/contexts/AuthContext'
 
 
 export function AIChatArea({ onClose }: { onClose?: () => void }) {
@@ -2519,6 +2525,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
+  const { isInTrialPeriod, userData } = useAuth()
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
@@ -2540,6 +2547,10 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   // }
 
   const handleSend = async () => {
+    if (!isInTrialPeriod && (!userData?.subscriptionStatus || userData?.subscriptionPlan === 'free')) {
+      addMessages([{ role: 'assistant', content: 'Your trial period has ended. Please upgrade to continue using AI features.' }])
+      return
+    }
     if (input.trim()) {
       const userMessage = { role: 'user', content: input } as Message
       const updatedMessages = [...messages, userMessage]
@@ -3209,15 +3220,15 @@ export function ChatMessageList({
       <div ref={messagesEndRef} />
     </div>
   </ScrollArea>
-  <div className="flex-shrink-0">
+  <div className="flex-shrink-0 flex flex-col">
     <SectionButtons 
       activeSection={activeSection}
       onSectionSelect={onSectionSelect}
     />
-    <div className={`transition-all duration-200 ease-in-out ${
+    <div className={`transition-all duration-200 ease-in-out overflow-hidden ${
       activeSection 
-        ? 'opacity-100 max-h-20 translate-y-0' 
-        : 'opacity-0 max-h-0 -translate-y-2 pointer-events-none'
+        ? 'opacity-100 h-12 translate-y-0' 
+        : 'opacity-0 h-0 translate-y-2 pointer-events-none'
     }`}>
       <ActionButtons
         onActionSelect={(action) => {
@@ -3345,10 +3356,13 @@ import { AuthDialog } from './auth/AuthDialog';
 import { useExpanded } from "@/contexts/ExpandedContext"
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
 import { CanvasTypeSelector } from "./CanvasTypeSelector";
+import { NewCanvasProvider, useNewCanvas } from "@/contexts/NewCanvasContext";
+import { UserCanvasSelector } from "./UserCanvasSelector";
 
 export function BusinessModelCanvasComponent() {
   const { user } = useAuth();
   const { currentCanvas, userCanvases } = useCanvas();
+  const { newCanvas } = useNewCanvas();
   
   const { setIsExpanded } = useExpanded()
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
@@ -3364,23 +3378,31 @@ export function BusinessModelCanvasComponent() {
       return;
     }
   }, [user]);
-
+  console.log('newCanvas', newCanvas);
   return (
     <>
-        <div className="flex h-[calc(100vh-64px)] bg-white">
-          <Sidebar setShowAuthDialog={setShowAuthDialog} />
-          {userCanvases && userCanvases.length > 0 && currentCanvas ? (
-            <Canvas onExpandSidebar={handleExpandSidebar} />
+          {currentCanvas ? (
+            <div className="flex h-[calc(100vh-64px)] bg-white">
+              <Sidebar setShowAuthDialog={setShowAuthDialog} />
+              <Canvas onExpandSidebar={handleExpandSidebar} />  
+          </div>
+          ) : newCanvas || !userCanvases || userCanvases.length === 0 ? (
+            <div className="flex h-[calc(100vh-64px)] bg-white overflow-hidden">
+              <Sidebar setShowAuthDialog={setShowAuthDialog} />
+              <CanvasTypeSelector />
+            </div>
           ) : (
-            <CanvasTypeSelector />
+            <div className="flex h-[calc(100vh-64px)] bg-white overflow-hidden">
+              <Sidebar setShowAuthDialog={setShowAuthDialog} />
+              <UserCanvasSelector />
+            </div>
           )}
-        </div>
       <AuthDialog 
         isOpen={showAuthDialog}
         openSignUp={false}
         onClose={() => setShowAuthDialog(false)}
         onSuccess={handleSave}
-      />
+        />
     </>
   );
 }import React from 'react';
@@ -4262,6 +4284,323 @@ export function CompanyEditDialog() {
   )
 } 'use client'
 
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Undo2, Save, Grid2x2 } from 'lucide-react';
+import { useCanvas } from '@/contexts/CanvasContext';
+import { CANVAS_TYPES, CANVAS_LAYOUTS, CanvasLayoutDetails } from '@/types/canvas-sections';
+import { motion } from 'framer-motion';
+
+interface LayoutItem {
+  id: string;
+  content: string;
+  icon: any;
+  gridArea: string;
+  sectionKey: string;
+  gridIndex: number;
+}
+
+interface GridItemProps {
+  item: LayoutItem;
+  canvasTheme?: string;
+  isHighlighted: boolean;
+  onDragStart: (id: string) => void;
+  onDragEnter: (id: string) => void;
+  onDragEnd: () => void;
+}
+
+function GridItem({ 
+  item, 
+  canvasTheme,
+  isHighlighted,
+  onDragStart,
+  onDragEnter,
+  onDragEnd,
+}: GridItemProps) {
+  const Icon = item.icon;
+
+  return (
+    <div
+      draggable
+      onDragStart={() => onDragStart(item.id)}
+      onDragEnter={() => onDragEnter(item.id)}
+      onDragEnd={onDragEnd}
+      onDragOver={(e) => e.preventDefault()}
+      style={{ gridArea: item.gridArea }}
+      className={`
+        p-4 rounded-lg border flex flex-col justify-between gap-2
+        transition-colors duration-200 cursor-grab active:cursor-grabbing
+        ${isHighlighted ? 'ring-2 ring-primary bg-primary/10' : ''}
+        ${canvasTheme === 'dark' 
+          ? 'bg-gray-900 border-gray-800 hover:bg-gray-800' 
+          : 'bg-white border-gray-200 hover:bg-gray-50'}
+      `}
+    >
+      <div className="flex items-center gap-2">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+        <span className="font-medium">{item.content}</span>
+      </div>
+      <div className="flex-grow flex items-center justify-center">
+        {/* Content can be added here if needed */}
+      </div>
+    </div>
+  );
+}
+
+interface LayoutEditorProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) {
+  const { formData, canvasTheme, updateLayout } = useCanvas();
+  const currentLayout = CANVAS_LAYOUTS[formData.canvasLayoutKey || 'BUSINESS_MODEL'];
+  const canvasType = CANVAS_TYPES[formData.canvasTypeKey || 'businessModel'];
+  
+  // Initialize layout with sections sorted by gridIndex
+  const [layout, setLayout] = useState<LayoutItem[]>(() => {
+    const sortedSections = Array.from(formData.sections.entries())
+      .map(([key, section], index) => ({
+        key,
+        section,
+        gridIndex: section.gridIndex ?? index
+      }))
+      .sort((a, b) => a.gridIndex - b.gridIndex);
+    console.log('sortedSections', sortedSections);
+    return sortedSections.map((item, index) => {
+      const sectionConfig = canvasType.sections.find(s => s.key === item.key);
+      return {
+        id: `section-${index}`,
+        content: sectionConfig?.name || '',
+        icon: sectionConfig?.icon,
+        gridArea: currentLayout.areas?.[index] || 'auto',
+        sectionKey: item.key,
+        gridIndex: item.gridIndex
+      };
+    });
+  });
+
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [targetId, setTargetId] = useState<string | null>(null);
+  const [selectedLayout, setSelectedLayout] = useState<string>(formData.canvasLayoutKey || 'BUSINESS_MODEL');
+  const [gridStyle, setGridStyle] = useState({});
+
+  useEffect(() => {
+    setGridStyle({
+      gridTemplateColumns: currentLayout.gridTemplate.columns,
+      gridTemplateRows: currentLayout.gridTemplate.rows,
+    });
+  }, [currentLayout]);
+
+  const handleDragStart = (id: string) => {
+    setDraggedId(id);
+  };
+
+  const handleDragEnter = (id: string) => {
+    if (id !== draggedId) {
+      setTargetId(id);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (draggedId && targetId) {
+      setLayout((items) => {
+        const draggedIndex = items.findIndex(item => item.id === draggedId);
+        const targetIndex = items.findIndex(item => item.id === targetId);
+        
+        const newItems = [...items];
+        const draggedGridArea = items[draggedIndex].gridArea;
+        const targetGridArea = items[targetIndex].gridArea;
+        
+        // Swap grid areas and indices
+        newItems[draggedIndex] = {
+          ...items[draggedIndex],
+          gridArea: targetGridArea,
+          gridIndex: targetIndex
+        };
+        newItems[targetIndex] = {
+          ...items[targetIndex],
+          gridArea: draggedGridArea,
+          gridIndex: draggedIndex
+        };
+        
+        return newItems;
+      });
+    }
+    
+    setDraggedId(null);
+    setTargetId(null);
+  };
+
+  const handleLayoutSelect = (layoutKey: string) => {
+    setSelectedLayout(layoutKey);
+    const newLayout = CANVAS_LAYOUTS[layoutKey];
+    
+    // Maintain existing section order when changing layouts
+    setLayout(layout.map((item, index) => ({
+      ...item,
+      gridArea: newLayout.areas?.[index] || 'auto'
+    })));
+
+    setGridStyle({
+      gridTemplateColumns: newLayout.gridTemplate.columns,
+      gridTemplateRows: newLayout.gridTemplate.rows,
+    });
+  };
+
+  const handleSave = () => {
+    // Create ordered array of section keys based on gridIndex
+    const orderedSectionKeys = layout
+      .sort((a, b) => a.gridIndex - b.gridIndex)
+      .map(item => item.sectionKey);
+
+    // Update layout with new section order
+    updateLayout(orderedSectionKeys, selectedLayout);
+
+    onOpenChange(false);
+  };
+
+  const handleReset = () => {
+    // Reset to original order based on canvasType sections
+    setLayout(canvasType.sections.map((section, index) => ({
+      id: `section-${index}`,
+      content: section.name,
+      icon: section.icon,
+      gridArea: currentLayout.areas?.[index] || 'auto',
+      sectionKey: section.key,
+      gridIndex: index
+    })));
+
+    setGridStyle({
+      gridTemplateColumns: currentLayout.gridTemplate.columns,
+      gridTemplateRows: currentLayout.gridTemplate.rows,
+    });
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={`sm:max-w-[1200px] w-full h-[90vh] flex flex-col ${
+          canvasTheme === 'dark' ? 'bg-gray-950 text-gray-50' : 'bg-white text-gray-900'
+        }`}
+      >
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Grid2x2 className="h-6 w-6" />
+            Edit Canvas Layout
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-4 flex-grow overflow-hidden">
+          {/* Grid Container */}
+          <div
+            className={`p-4 rounded-lg border flex-grow overflow-auto ${
+              canvasTheme === 'dark' ? 'border-gray-800' : 'border-gray-200'
+            }`}
+          >
+            <div 
+              className="grid gap-2 h-full w-full"
+              style={{
+                ...gridStyle,
+                minHeight: '100%',
+                minWidth: '100%'
+              }}
+            >
+              {layout.map((item) => (
+                <GridItem 
+                  key={item.id} 
+                  item={item}
+                  canvasTheme={canvasTheme}
+                  isHighlighted={item.id === targetId}
+                  onDragStart={handleDragStart}
+                  onDragEnter={handleDragEnter}
+                  onDragEnd={handleDragEnd}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex flex-col gap-4 mt-auto">
+            {/* Scrolling Buttons Container */}
+            <div className="overflow-x-auto">
+              <div className="flex space-x-2 pb-2">
+                {Object.entries(CANVAS_LAYOUTS)
+                .filter(([key, layout]) => layout.sectionCount === canvasType.layout.sectionCount)
+                .map(([key, layout]) => (
+                  <motion.div
+                    key={key}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-2 transition-all duration-300 flex-shrink-0"
+                  >
+                    <Button
+                      variant="outline"
+                      className={`w-24 h-24 p-2 ${
+                        key === selectedLayout 
+                          ? 'bg-primary text-primary-foreground' 
+                          : canvasTheme === 'dark'
+                            ? 'bg-gray-800 text-gray-200'
+                            : 'bg-gray-100 text-gray-800'
+                      } hover:bg-primary/90 hover:text-primary-foreground transition-colors duration-200`}
+                      onClick={() => handleLayoutSelect(layout.key)}
+                    >
+                      <div
+                        className="w-full h-full grid gap-1"
+                        style={{
+                          gridTemplateColumns: layout.gridTemplate.columns,
+                          gridTemplateRows: layout.gridTemplate.rows,
+                        }}
+                      >
+                        {Array.from({ length: layout.sectionCount }).map((_, index) => (
+                          <div
+                            key={index}
+                            className={`rounded-sm transition-colors duration-200 ${
+                              key === selectedLayout 
+                                ? 'bg-primary-foreground' 
+                                : canvasTheme === 'dark'
+                                  ? 'bg-gray-700'
+                                  : 'bg-gray-300'
+                            }`}
+                            style={{
+                              gridArea: layout.areas?.[index] || 'auto',
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+              <div className="flex items-center justify-end gap-2 pb-1">
+              <Button
+                variant="outline"
+                onClick={handleReset}
+                className="flex items-center gap-2"
+                canvasTheme={canvasTheme}
+              >
+                <Undo2 className="h-4 w-4" />
+                Reset
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="flex items-center gap-2"
+                canvasTheme={canvasTheme}
+              >
+                <Save className="h-4 w-4" />
+                Save Layout
+              </Button>
+            </div>
+            </div>
+            
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}'use client'
+
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -4422,13 +4761,14 @@ function AIQuestionItem({ question, onEdit, onDelete, canvasTheme }: AIQuestionI
   )
 }
 
-export default AIQuestionItem import React, { ChangeEvent, useEffect } from 'react'
+export default AIQuestionItem import React, { ChangeEvent, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { Canvas } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { Moon, Sun } from 'lucide-react'
+import { Grid2x2, Moon, Sun } from 'lucide-react'
+import LayoutEditor from './LayoutEditor'
 
 interface HeaderProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -4436,7 +4776,6 @@ interface HeaderProps {
 
 const ThemeToggleButton = () => {
   const { canvasTheme, setCanvasTheme } = useCanvas()
-  
   return (
     <Button
       variant="outline"
@@ -4460,6 +4799,8 @@ const ThemeToggleButton = () => {
 
 export function Header() {
   const { canvasTheme, formData, updateField } = useCanvas();
+  const [showLayoutEditor, setShowLayoutEditor] = useState(false);
+
 
   useEffect(() => {
   }, [formData]);
@@ -4541,9 +4882,23 @@ export function Header() {
           value={formData.version}
           onChange={onInputChange}
         />
+        <Button
+          canvasTheme={canvasTheme}
+          variant="outline"
+          size="icon"
+          onClick={() => setShowLayoutEditor(true)}
+          className="ml-2"
+        >
+          <Grid2x2 className="h-4 w-4" />
+        </Button>
         <ThemeToggleButton />
       </div>
+      <LayoutEditor 
+        open={showLayoutEditor} 
+        onOpenChange={setShowLayoutEditor}
+      />
     </div>
+    
   )
 } 'use client'
 
@@ -4709,64 +5064,70 @@ export function Canvas({ onExpandSidebar }: CanvasProps) {
       {component}
     </Providers>
   )
-}import React, { useEffect, useState } from 'react'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { AIItemAssistButton } from './AIItemAssistButton' 
-import { Check, X, Edit2, Trash2 } from 'lucide-react'
-import { useCanvas } from '@/contexts/CanvasContext'
+}import React from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { AIItemAssistButton } from './AIItemAssistButton';
+import { Edit2, Trash2 } from 'lucide-react';
+import { useCanvas } from '@/contexts/CanvasContext';
 
 interface SectionItemProps {
-  item: string
-  onDelete: () => void
-  isEditing: boolean
-  onEditStart: () => void
-  onEditEnd: () => void
+  item: string;
+  onDelete: () => void;
+  isEditing: boolean;
+  isActive: boolean;
+  isExpanded: boolean;
+  onClick: () => void;
+  onEditStart: () => void;
+  onEditEnd: () => void;
+  className: string;
 }
 
-export function SectionItem({ 
-  item, 
-  onDelete, 
+export function SectionItem({
+  item,
+  onDelete,
   isEditing,
+  isActive,
+  isExpanded,
+  onClick,
   onEditStart,
-  onEditEnd
+  onEditEnd,
+  className,
 }: SectionItemProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  const { canvasTheme } = useCanvas()
-
-  const showControls = isHovered || isEditing
+  const { canvasTheme } = useCanvas();
+  const showControls = isExpanded || isEditing;
 
   return (
-    <Card 
+    <Card
       canvasTheme={canvasTheme}
-      className={`mb-2 p-3 transition-all duration-300 !bg-transparent ${
-        isEditing 
-          ? 'border-primary/50 bg-primary/5 shadow-md' 
-          : ''
-      }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      className={`mb-2 p-3 transition-all duration-300 !bg-transparent relative ${
+        isEditing ? 'border-primary/50 bg-primary/5 shadow-md' : ''
+      } ${className}`}
+      onClick={onClick}
     >
       <p className={`text-sm whitespace-pre-wrap mb-2 ${
         canvasTheme === 'light' ? 'text-gray-700' : 'text-gray-100'
       }`}>
         {item}
       </p>
-      <div 
-        className={`transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-          showControls ? 'opacity-100 max-h-24 translate-y-0' : 'opacity-0 max-h-0 translate-y-2'
-        } overflow-hidden`}
+
+      <div
+        className={`
+         transition-all duration-500 ease-in-out 
+          overflow-hidden
+          ${showControls ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'} 
+        `}
       >
         <div className="flex items-center space-x-2 mt-2 justify-end">
-          <AIItemAssistButton 
-            section={item} 
-            sectionKey={item} 
-            onExpandSidebar={() => {}} 
-            onDropdownStateChange={() => {}} 
+          <AIItemAssistButton
+            section={item}
+            sectionKey={item}
+            onExpandSidebar={() => {}}
+            onDropdownStateChange={() => {}}
           />
-          <Button 
+          <Button
             onClick={isEditing ? onEditEnd : onEditStart}
-            size="sm" 
+            size="sm"
             variant={isEditing ? "default" : "outline"}
             canvasTheme={canvasTheme}
             className={`flex items-center ${
@@ -4777,9 +5138,9 @@ export function SectionItem({
           >
             <Edit2 className="h-4 w-4" />
           </Button>
-          <Button 
-            onClick={onDelete} 
-            size="sm" 
+          <Button
+            onClick={onDelete}
+            size="sm"
             variant="outline"
             canvasTheme={canvasTheme}
             className={`flex items-center ${
@@ -4793,12 +5154,12 @@ export function SectionItem({
         </div>
       </div>
     </Card>
-  )
+  );
 }
 
-export default SectionItem'use client'
+export default SectionItem;'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { LucideIcon, MoreVertical, Send } from 'lucide-react'
@@ -4811,6 +5172,7 @@ import { Section } from '@/types/canvas'
 import { Button } from '../ui/button'
 import { QuestionsDialog } from './QuestionsDialog'
 import { useCanvas } from '@/contexts/CanvasContext'
+import { debounce } from 'lodash'
 
 interface AISuggestion {
   id: string;
@@ -4842,7 +5204,13 @@ export function CanvasSection({
   const questionsArray = Array.isArray(section.qAndAs) ? section.qAndAs : section.qAndAs ? [section.qAndAs] : [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isQuestionsDialogOpen, setIsQuestionsDialogOpen] = useState(false)
+  const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
 
+  const [expandedItemIndex, setExpandedItemIndex] = useState<number | null>(null);
+
+  const handleItemClick = (index: number) => {
+    setExpandedItemIndex(expandedItemIndex === index ? null : index);
+  };
 
   const handleAddOrUpdateItem = (content: string) => {
     if (editingIndex !== null) {
@@ -4887,16 +5255,13 @@ export function CanvasSection({
     // You'll need to add a method to update questions in your context/state management
     // updateQuestions(sectionKey, newQuestions)
   }
-
+  
+  
   return (
     <Card 
       canvasTheme={canvasTheme}
-    className={`flex flex-col p-1 transition-all duration-300 !bg-transparent ${className}`}>
-      <CardHeader className={`${
-        canvasTheme === 'light' 
-          ? 'bg-white border-gray-200'
-          : 'bg-gray-950 border-gray-800'
-      }`}>
+    className={`flex flex-col h-full max-h-full overflow-hidden`}>
+      <CardHeader className={`flex-shrink-0`}>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -4931,32 +5296,32 @@ export function CanvasSection({
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      <CardContent className={`flex-1 flex flex-col ${
-        canvasTheme === 'light' 
-          ? 'bg-white'
-          : 'bg-gray-950'
-      }`}>
-        <ScrollArea className="flex-1 mb-4 h-full relative">
-          {itemsArray.length === 0 && (
-            <div className={`absolute top-0 left-0 pointer-events-none text-sm whitespace-pre-line ${
-              canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
-            }`}>
-              {placeholder}
-            </div>
-          )}
-          {itemsArray.map((item, index) => (
-            <SectionItem
-              key={index}
-              item={item}
-              onDelete={() => handleDeleteItem(index)}
-              isEditing={editingIndex === index}
-              onEditStart={() => handleEditStart(index)}
-              onEditEnd={() => handleEditCancel()}
-            />
-          ))}
+      <CardContent className={`flex-1 flex flex-col overflow-hidden`}>
+      <ScrollArea 
+          className="flex-1 relative"
+          style={{ height: 'calc(100% - 60px)' }}
+        >
+          <div className="space-y-2">
+            {itemsArray.map((item, index) => (
+              <SectionItem
+                key={index}
+                item={item}
+                isActive={activeItemIndex === index}
+                isExpanded={expandedItemIndex === index}
+                onClick={() => handleItemClick(index)}
+                onDelete={() => handleDeleteItem(index)}
+                isEditing={editingIndex === index}
+                onEditStart={() => handleEditStart(index)}
+                onEditEnd={() => handleEditCancel()}
+                className={`cursor-pointer ${
+                  expandedItemIndex === index ? 'bg-gray-200' : ''
+                } hover:bg-gray-100`}
+              />
+            ))}
+          </div>
         </ScrollArea>
         
-        <div className="mt-auto">
+        <div className="flex-shrink-0 mt-auto pt-2">
           <DynamicInput 
             placeholder={title}
             onSubmit={handleAddOrUpdateItem}
@@ -4989,59 +5354,55 @@ interface CanvasContentProps {
 
 export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
   const { formData, canvasTheme, updateSection } = useCanvas();
+  let canvasType = CANVAS_TYPES[formData.canvasTypeKey ?? 'businessModel'];
+  let layout = CANVAS_LAYOUTS[formData.canvasLayoutKey ?? 'businessModel'] || CANVAS_LAYOUTS.BUSINESS_MODEL;
 
-  useEffect(() => {
-  }, [formData]);
-  
-  // Helper function to safely get section data
-  const getSection = (key: string): Section => {
-    if (!formData?.sections) return { name: '', items: [], qAndAs: [] };
-    return formData.sections.get(key) || { name: '', items: [], qAndAs: [] };
-  };
+  // Convert sections Map to array and sort by gridIndex
+  const sortedSections = Array.from(formData.sections.entries())
+    .map(([key, section]) => ({
+      key,
+      section,
+      config: canvasType.sections.find(s => s.key === key)
+    }))
+    .sort((a, b) => (a.section.gridIndex || 0) - (b.section.gridIndex || 0));
 
-  function section(sectionConfig:any, className?:string) {
-
-    return <CanvasSection
-            key={`${sectionConfig.key}-${formData.sections?.get(sectionConfig.key)?.items?.length}`}
-            title={sectionConfig.name}
-            sectionKey={sectionConfig.key}
-            icon={sectionConfig.icon}
-            section={getSection(sectionConfig.key)}
-            onChange={(value: string[]) => updateSection(sectionConfig.key, value)}
-            placeholder={sectionConfig.placeholder}
-            className={className}
-          />
-  }
-  let canvasType = CANVAS_TYPES[formData.canvasTypeKey??'businessModel'];
-  let layout = CANVAS_LAYOUTS[formData.canvasLayoutKey??'businessModel'] || CANVAS_LAYOUTS.BUSINESS_MODEL;
-
-  
   return (
-    <div className={`flex flex-col flex-1 p-4 space-y-4 ${
+    <div className={`flex flex-col flex-1 p-4 space-y-4 overflow-auto ${
       canvasTheme === 'light' ? 'bg-white text-black' : 'bg-gray-950 text-white'
     }`}>
       <div style={{
         display: 'grid',
         gridTemplateColumns: layout.gridTemplate.columns,
-        gridTemplateRows: 'auto auto auto',
+        gridTemplateRows: layout.gridTemplate.rows || 'auto auto auto',
         gap: '1rem',
-        minHeight: 'calc(100vh - 64px)',
-        overflowY: 'auto',
+        minHeight: '100%',
       }}>
-        {canvasType.sections.map((sectionConfig, index) => (
-          <div key={sectionConfig.key} style={{ 
-            gridArea: layout.areas?.[index] || 'auto',
-            minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}>
-              {section(sectionConfig, 'flex-grow overflow-hidden')}
+        {sortedSections.map((item, index) => (
+          <div 
+            key={item.key} 
+            style={{ 
+              gridArea: layout.areas?.[index] || 'auto',
+              minHeight: 0,
+              height: 'auto',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            <CanvasSection
+              key={`${item.key}-${item.section.items?.length}`}
+              title={item.config?.name || ''}
+              sectionKey={item.key}
+              icon={item.config!.icon}
+              section={item.section}
+              onChange={(value: string[]) => updateSection(item.key, value)}
+              placeholder={item.config?.placeholder || ''}
+              className="h-full overflow-hidden"
+            />
           </div>
         ))}
       </div>
     </div>
-  )
+  );
 } import Link from 'next/link'
 import { useSubscription } from "@/contexts/SubscriptionContext"
 
@@ -5614,7 +5975,7 @@ import { useEffect, useState } from "react"
 import { MobileHeader } from "./mobile/MobileHeader"
 import { MobileBusinessModelCanvas } from "./mobile/MobileBusinessModelCanvas"
 import { CanvasProvider } from "@/contexts/CanvasContext"
-
+import { NewCanvasProvider } from "@/contexts/NewCanvasContext"
 export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
@@ -5638,7 +5999,9 @@ export function MainContent() {
           enableSystem
           disableTransitionOnChange
         >
+          <NewCanvasProvider>
           <CanvasProvider>
+
             <div className="flex-1">
               {isMobile ? (
                 <>
@@ -5647,12 +6010,13 @@ export function MainContent() {
                 </>
               ) : (
                 <>
-                  <MobileHeader />
+                  <SiteHeader />
                   <BusinessModelCanvasComponent />
                 </>
               )}
               </div>
           </CanvasProvider>
+          </NewCanvasProvider>  
         </ThemeProvider>
       ) : (
         <LandingPage />
@@ -5804,7 +6168,186 @@ export function SiteHeader() {
       />
     </header>
   )
-} import React from 'react'
+} 'use client'
+
+import { useCanvas } from "@/contexts/CanvasContext"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
+import { formatDistanceToNow } from "date-fns"
+import { Grid2x2 } from 'lucide-react'
+import { motion } from "framer-motion"
+import { CANVAS_TYPES, CANVAS_LAYOUTS } from "@/types/canvas-sections"
+import { useRef, useEffect } from "react"
+import { useExpanded } from "@/contexts/ExpandedContext"
+
+export function UserCanvasSelector() {
+  const { userCanvases, loadCanvas } = useCanvas()
+  const existingConstraintsRef = useRef<HTMLDivElement>(null)
+  const newCanvasConstraintsRef = useRef<HTMLDivElement>(null)
+
+  const handleDrag = (info: any, ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      ref.current.scrollLeft -= info.delta.x
+    }
+  }
+
+  const handleCanvasSelect = async (canvasId: string) => {
+    await loadCanvas(canvasId)
+    localStorage.setItem('lastCanvasId', canvasId)
+  }
+
+  useEffect(() => {
+    const preventScroll = (e: WheelEvent) => {
+      e.preventDefault()
+    }
+
+    existingConstraintsRef.current?.addEventListener('wheel', preventScroll, { passive: false })
+    newCanvasConstraintsRef.current?.addEventListener('wheel', preventScroll, { passive: false })
+
+    return () => {
+      existingConstraintsRef.current?.removeEventListener('wheel', preventScroll)
+      newCanvasConstraintsRef.current?.removeEventListener('wheel', preventScroll)
+    }
+  }, [])
+
+  return (
+    <div className={`p-8 w-full bg-background space-y-12 `}>
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight mb-4">Your Canvases</h2>
+        <div 
+          className="overflow-x-auto scrollbar-hide p-1" 
+          ref={existingConstraintsRef}
+        >
+          <motion.div 
+            className="flex gap-6 pb-4"
+            drag="x"
+            dragDirectionLock
+            dragMomentum={false}
+            dragElastic={0}
+            onDrag={(_, info) => handleDrag(info, existingConstraintsRef)}
+            dragConstraints={existingConstraintsRef}
+          >
+            {userCanvases.map((canvas) => (
+              <motion.div
+                key={canvas.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+                className="w-[450px] flex-shrink-0"
+              >
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => canvas.id && handleCanvasSelect(canvas.id)}
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl">{canvas.name}</CardTitle>
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Grid2x2 className="h-4 w-4" />
+                        <span className="text-sm">
+                          {CANVAS_TYPES[canvas.canvasTypeKey || 'businessModel'].name}
+                        </span>
+                      </div>
+                    </div>
+                    <CardDescription>
+                      <div className="flex items-start gap-4">
+                        <p className="line-clamp-6 flex-1">{canvas.description}</p>
+                        <div className="flex-shrink-0 w-24 h-24">
+                          <div
+                            className="w-full h-full grid gap-1"
+                            style={{
+                              gridTemplateColumns: CANVAS_LAYOUTS[canvas.canvasLayoutKey || 'BUSINESS_MODEL'].gridTemplate.columns,
+                              gridTemplateRows: CANVAS_LAYOUTS[canvas.canvasLayoutKey || 'BUSINESS_MODEL'].gridTemplate.rows,
+                            }}
+                          >
+                            {Array.from({ length: CANVAS_LAYOUTS[canvas.canvasLayoutKey || 'BUSINESS_MODEL'].sectionCount }).map((_, index) => (
+                              <div
+                                key={index}
+                                className="rounded-sm bg-muted"
+                                style={{
+                                  gridArea: CANVAS_LAYOUTS[canvas.canvasLayoutKey || 'BUSINESS_MODEL'].areas?.[index] || 'auto',
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-sm text-muted-foreground">
+                      Last edited {canvas.updatedAt && formatDistanceToNow(canvas.updatedAt, { addSuffix: true })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight mb-4">Create New Canvas</h2>
+        <div 
+          className="overflow-x-auto scrollbar-hide pt-1 pl-1" 
+          ref={newCanvasConstraintsRef}
+        >
+          <motion.div 
+            className="flex gap-6 pb-4"
+            drag="x"
+            dragDirectionLock
+            dragMomentum={false}
+            dragElastic={0}
+            onDrag={(_, info) => handleDrag(info, newCanvasConstraintsRef)}
+            dragConstraints={newCanvasConstraintsRef}
+          >
+            {Object.entries(CANVAS_TYPES).map(([key, type]) => (
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+                className="w-[300px] flex-shrink-0"
+              >
+                <Card className="cursor-pointer hover:shadow-lg transition-shadow h-[280px] flex flex-col">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-xl">{type.name}</CardTitle>
+                      <Grid2x2 className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <CardDescription className="line-clamp-3">{type.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 flex items-center">
+                    <div className="w-full h-24">
+                      <div
+                        className="w-full h-full grid gap-1"
+                        style={{
+                          gridTemplateColumns: type.layout.gridTemplate.columns,
+                          gridTemplateRows: type.layout.gridTemplate.rows,
+                        }}
+                      >
+                        {Array.from({ length: type.layout.sectionCount }).map((_, index) => (
+                          <div
+                            key={index}
+                            className="rounded-sm bg-muted"
+                            style={{
+                              gridArea: type.layout.areas?.[index] || 'auto',
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  )
+}import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog'
