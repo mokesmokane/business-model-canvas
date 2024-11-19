@@ -1,0 +1,1 @@
+find components -type f \( -name "*.ts" -o -name "*.tsx" \) -exec cat {} \; > component.txt

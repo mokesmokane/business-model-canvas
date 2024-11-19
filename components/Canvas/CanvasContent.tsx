@@ -39,17 +39,18 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
 
   
   return (
-    <div className={`flex flex-col flex-1 p-4 space-y-4 ${
+    <div className={`flex flex-col flex-1 overflow-hidden ${
       canvasTheme === 'light' ? 'bg-white text-black' : 'bg-gray-950 text-white'
     }`}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: layout.gridTemplate.columns,
-        gridTemplateRows: 'auto auto auto',
-        gap: '1rem',
-        minHeight: 'calc(100vh - 64px)',
-        overflowY: 'auto',
-      }}>
+      <div className="flex-1 overflow-auto p-4"> {/* Main scrollable container */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: layout.gridTemplate.columns,
+          gridTemplateRows: `repeat(${Math.ceil(canvasType.sections.length / 3)}, minmax(0, 1fr))`,
+          gap: '1rem',
+          height: 'fit-content',
+          minHeight: '100%',
+        }}>
         {canvasType.sections.map((sectionConfig, index) => (
           <div key={sectionConfig.key} style={{ 
             gridArea: layout.areas?.[index] || 'auto',
@@ -61,6 +62,7 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
               {section(sectionConfig, 'flex-grow overflow-hidden')}
           </div>
         ))}
+      </div>
       </div>
     </div>
   )
