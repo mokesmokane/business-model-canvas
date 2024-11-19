@@ -128,17 +128,19 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
         const newItems = [...items];
         const draggedGridArea = items[draggedIndex].gridArea;
         const targetGridArea = items[targetIndex].gridArea;
+        const draggedGridIndex = items[draggedIndex].gridIndex;
+        const targetGridIndex = items[targetIndex].gridIndex;
         
-        // Swap grid areas and indices
+        // Swap grid areas and keep original gridIndex values
         newItems[draggedIndex] = {
           ...items[draggedIndex],
           gridArea: targetGridArea,
-          gridIndex: targetIndex
+          gridIndex: targetGridIndex
         };
         newItems[targetIndex] = {
           ...items[targetIndex],
           gridArea: draggedGridArea,
-          gridIndex: draggedIndex
+          gridIndex: draggedGridIndex
         };
         
         return newItems;

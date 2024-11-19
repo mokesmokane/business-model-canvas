@@ -1,4 +1,4 @@
-import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins, LucideIcon } from "lucide-react"
+import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins, LucideIcon, Factory, BellElectric, Bolt, Zap, Blend, Handshake, HandCoins,  } from "lucide-react"
 import { Canvas, Section } from "./canvas"
 
 export interface CanvasSection {
@@ -6,6 +6,7 @@ export interface CanvasSection {
   name: string
   icon: LucideIcon
   placeholder: string
+  gridIndex: number
 }
 
 export interface CanvasLayoutDetails {
@@ -408,7 +409,8 @@ export const CANVAS_TYPES: Record<string, CanvasType> = {
       {
         key: 'keyPartners',
         name: 'Key Partners',
-        icon: Building2,
+        gridIndex: 0,
+        icon: Blend,
         placeholder: `Who are our Key Partners?
 Who are our key suppliers?
 Which Key Resources are we acquiring from partners?
@@ -417,7 +419,8 @@ Which Key Activities do partners perform?`
       {
         key: 'keyActivities',
         name: 'Key Activities',
-        icon: Workflow,
+        gridIndex: 1,
+        icon: Zap,
         placeholder: `What Key Activities do our Value Propositions require?
 Our Distribution Channels?
 Customer Relationships?
@@ -426,7 +429,8 @@ Revenue Streams?`
       {
         key: 'keyResources',
         name: 'Key Resources',
-        icon: Receipt,
+        gridIndex: 5,
+        icon: Factory,
         placeholder: `What Key Resources do our Value Propositions require?
 Our Distribution Channels? Customer Relationships?
 Revenue Streams?`
@@ -434,6 +438,7 @@ Revenue Streams?`
       {
         key: 'valuePropositions',
         name: 'Value Propositions',
+        gridIndex: 2,
         icon: Gift,
         placeholder: `What value do we deliver to the customer?
 Which one of our customer's problems are we helping to solve?
@@ -443,6 +448,7 @@ Which customer needs are we satisfying?`
       {
         key: 'customerRelationships',
         name: 'Customer Relationships',
+        gridIndex: 3,
         icon: Heart,
         placeholder: `What type of relationship does each of our Customer Segments expect us to establish and maintain with them?
 Which ones have we established?
@@ -452,6 +458,7 @@ How costly are they?`
       {
         key: 'channels',
         name: 'Channels',
+        gridIndex: 6,
         icon: Truck,
         placeholder: `Through which Channels do our Customer Segments want to be reached?
 How are we reaching them now?
@@ -463,6 +470,7 @@ How are we integrating them with customer routines?`
       {
         key: 'customerSegments',
         name: 'Customer Segments',
+        gridIndex: 4,
         icon: Users2,
         placeholder: `For whom are we creating value?
 Who are our most important customers?`
@@ -470,7 +478,8 @@ Who are our most important customers?`
       {
         key: 'costStructure',
         name: 'Cost Structure',
-        icon: Users,
+        gridIndex: 7,
+        icon: Receipt,
         placeholder: `What are the most important costs inherent in our business model?
 Which Key Resources are most expensive?
 Which Key Activities are most expensive?`
@@ -478,7 +487,8 @@ Which Key Activities are most expensive?`
       {
         key: 'revenueStreams',
         name: 'Revenue Streams',
-        icon: Coins,
+        gridIndex: 8,
+        icon: HandCoins,
         placeholder: `For what value are our customers really willing to pay?
 For what do they currently pay?
 How are they currently paying?
@@ -497,54 +507,63 @@ How much does each Revenue Stream contribute to overall revenues?`
       {
         key: 'problem',
         name: 'Problem',
+        gridIndex: 1,
         icon: Users,
         placeholder: 'List your top 3 problems'
       },
       {
         key: 'solution',
         name: 'Solution',
+        gridIndex: 2,
         icon: Workflow,
         placeholder: 'Outline a possible solution for each problem'
       },
       {
         key: 'uniqueValueProposition',
         name: 'Unique Value Proposition',
+        gridIndex: 3,
         icon: Gift,
         placeholder: 'Single, clear, compelling message that states why you are different and worth paying attention to'
       },
       {
         key: 'unfairAdvantage',
         name: 'Unfair Advantage',
+        gridIndex: 4,
         icon: Building2,
         placeholder: 'Something that cannot be easily copied or bought'
       },
       {
         key: 'customerSegments',
         name: 'Customer Segments',
+        gridIndex: 5,
         icon: Users2,
         placeholder: 'Target customers and users'
       },
       {
         key: 'keyMetrics',
         name: 'Key Metrics',
+        gridIndex: 6,
         icon: Receipt,
         placeholder: 'Key numbers that tell you how your business is doing'
       },
       {
         key: 'channels',
         name: 'Channels',
+        gridIndex: 7,
         icon: Truck,
         placeholder: 'Path to customers'
       },
       {
         key: 'costStructure',
         name: 'Cost Structure',
+        gridIndex: 8,
         icon: Coins,
         placeholder: 'Fixed and variable costs'
       },
       {
         key: 'revenueStreams',
         name: 'Revenue Streams',
+        gridIndex: 9,
         icon: Coins,
         placeholder: 'Revenue model, lifetime value, revenue, gross margin'
       }
@@ -560,18 +579,21 @@ How much does each Revenue Stream contribute to overall revenues?`
       {
         key: 'sectionOne',
         name: 'Section One',
+        gridIndex: 1,
         icon: Users,
         placeholder: 'Description or questions for Section One'
       },
       {
         key: 'sectionTwo',
         name: 'Section Two',
+        gridIndex: 2,
         icon: Workflow,
         placeholder: 'Description or questions for Section Two'
       },
       {
         key: 'sectionThree',
         name: 'Section Three',
+        gridIndex: 3,
         icon: Gift,
         placeholder: 'Description or questions for Section Three'
       }
@@ -587,24 +609,28 @@ How much does each Revenue Stream contribute to overall revenues?`
       {
         key: 'sectionOne',
         name: 'Section One',
+        gridIndex: 1,
         icon: Users,
         placeholder: 'Description or questions for Section One'
       },
       {
         key: 'sectionTwo',
         name: 'Section Two',
+        gridIndex: 2,
         icon: Workflow,
         placeholder: 'Description or questions for Section Two'
       },
       {
         key: 'sectionThree',
         name: 'Section Three',
+        gridIndex: 3,
         icon: Gift,
         placeholder: 'Description or questions for Section Three'
       },
       {
         key: 'sectionFour',
         name: 'Section Four',
+        gridIndex: 4,
         icon: Heart,
         placeholder: 'Description or questions for Section Four'
       }
@@ -620,30 +646,35 @@ How much does each Revenue Stream contribute to overall revenues?`
       {
         key: 'sectionOne',
         name: 'Section One',
+        gridIndex: 1,
         icon: Users,
         placeholder: 'Description or questions for Section One'
       },
       {
         key: 'sectionTwo',
         name: 'Section Two',
+        gridIndex: 2,
         icon: Workflow,
         placeholder: 'Description or questions for Section Two'
       },
       {
         key: 'sectionThree',
         name: 'Section Three',
+        gridIndex: 3,
         icon: Gift,
         placeholder: 'Description or questions for Section Three'
       },
       {
         key: 'sectionFour',
         name: 'Section Four',
+        gridIndex: 4,
         icon: Heart,
         placeholder: 'Description or questions for Section Four'
       },
       {
         key: 'sectionFive',
         name: 'Section Five',
+        gridIndex: 5,
         icon: Truck,
         placeholder: 'Description or questions for Section Five'
       }
@@ -659,36 +690,42 @@ How much does each Revenue Stream contribute to overall revenues?`
       {
         key: 'sectionOne',
         name: 'Section One',
+        gridIndex: 1,
         icon: Users,
         placeholder: 'Description or questions for Section One'
       },
       {
         key: 'sectionTwo',
         name: 'Section Two',
+        gridIndex: 2,
         icon: Workflow,
         placeholder: 'Description or questions for Section Two'
       },
       {
         key: 'sectionThree',
         name: 'Section Three',
+        gridIndex: 3,
         icon: Gift,
         placeholder: 'Description or questions for Section Three'
       },
       {
         key: 'sectionFour',
         name: 'Section Four',
+        gridIndex: 4,
         icon: Heart,
         placeholder: 'Description or questions for Section Four'
       },
       {
         key: 'sectionFive',
         name: 'Section Five',
+        gridIndex: 5,
         icon: Truck,
         placeholder: 'Description or questions for Section Five'
       },
       {
         key: 'sectionSix',
         name: 'Section Six',
+        gridIndex: 6,
         icon: Receipt,
         placeholder: 'Description or questions for Section Six'
       }
@@ -704,42 +741,49 @@ How much does each Revenue Stream contribute to overall revenues?`
       {
         key: 'sectionOne',
         name: 'Section One',
+        gridIndex: 1,
         icon: Users,
         placeholder: 'Description or questions for Section One'
       },
       {
         key: 'sectionTwo',
         name: 'Section Two',
+        gridIndex: 2,
         icon: Workflow,
         placeholder: 'Description or questions for Section Two'
       },
       {
         key: 'sectionThree',
         name: 'Section Three',
+        gridIndex: 3,
         icon: Gift,
         placeholder: 'Description or questions for Section Three'
       },
       {
         key: 'sectionFour',
         name: 'Section Four',
+        gridIndex: 4,
         icon: Heart,
         placeholder: 'Description or questions for Section Four'
       },
       {
         key: 'sectionFive',
         name: 'Section Five',
+        gridIndex: 5,
         icon: Truck,
         placeholder: 'Description or questions for Section Five'
       },
       {
         key: 'sectionSix',
         name: 'Section Six',
+        gridIndex: 6,
         icon: Receipt,
         placeholder: 'Description or questions for Section Six'
       },
       {
         key: 'sectionSeven',
         name: 'Section Seven',
+        gridIndex: 7,
         icon: Coins,
         placeholder: 'Description or questions for Section Seven'
       }
@@ -755,48 +799,56 @@ How much does each Revenue Stream contribute to overall revenues?`
       {
         key: 'sectionOne',
         name: 'Section One',
+        gridIndex: 1,
         icon: Users,
         placeholder: 'Description or questions for Section One'
       },
       {
         key: 'sectionTwo',
         name: 'Section Two',
+        gridIndex: 2,
         icon: Workflow,
         placeholder: 'Description or questions for Section Two'
       },
       {
         key: 'sectionThree',
         name: 'Section Three',
+        gridIndex: 3,
         icon: Gift,
         placeholder: 'Description or questions for Section Three'
       },
       {
         key: 'sectionFour',
         name: 'Section Four',
+        gridIndex: 4,
         icon: Heart,
         placeholder: 'Description or questions for Section Four'
       },
       {
         key: 'sectionFive',
         name: 'Section Five',
+        gridIndex: 5,
         icon: Truck,
         placeholder: 'Description or questions for Section Five'
       },
       {
         key: 'sectionSix',
         name: 'Section Six',
+        gridIndex: 6,
         icon: Receipt,
         placeholder: 'Description or questions for Section Six'
       },
       {
         key: 'sectionSeven',
         name: 'Section Seven',
+        gridIndex: 7,
         icon: Coins,
         placeholder: 'Description or questions for Section Seven'
       },
       {
         key: 'sectionEight',
         name: 'Section Eight',
+        gridIndex: 8,
         icon: Users2,
         placeholder: 'Description or questions for Section Eight'
       }
@@ -815,7 +867,7 @@ export const getInitialCanvasState = (canvasType: CanvasType, canvasLayout: Canv
     sections: new Map(
       canvasType.sections.map(section => [
         section.key,
-        { name: section.name, items: [], qAndAs: [] } as Section
+        { name: section.name, items: [], qAndAs: [], gridIndex: section.gridIndex } as Section
       ])
     ),
     userId: '',
@@ -836,7 +888,8 @@ export const getInitialSections = (canvasType: string): Map<string, Section> => 
     sectionsMap.set(section.key, {
       name: section.name,
       items: [],
-      qAndAs: []
+      qAndAs: [],
+      gridIndex: section.gridIndex
     })
   })
   return sectionsMap
