@@ -41,6 +41,7 @@ export interface Canvas {
   date: string;
   version: string;
   sections: Map<string, Section>;
+  canvasLayout?: string[];
   userId?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -58,6 +59,7 @@ export interface SerializedCanvas {
   date: string;
   version: string;
   sections: SerializedSections;
+  canvasLayout?: string[];
   userId?: string;
   createdAt?: string;
   updatedAt?: string;

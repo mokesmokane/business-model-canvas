@@ -1,10 +1,11 @@
-import React, { ChangeEvent, useEffect } from 'react'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { Canvas } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { Moon, Sun } from 'lucide-react'
+import { Grid2x2, Moon, Sun } from 'lucide-react'
+import LayoutEditor from './LayoutEditor'
 
 interface HeaderProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -12,7 +13,6 @@ interface HeaderProps {
 
 const ThemeToggleButton = () => {
   const { canvasTheme, setCanvasTheme } = useCanvas()
-  
   return (
     <Button
       variant="outline"
@@ -36,6 +36,8 @@ const ThemeToggleButton = () => {
 
 export function Header() {
   const { canvasTheme, formData, updateField } = useCanvas();
+  const [showLayoutEditor, setShowLayoutEditor] = useState(false);
+
 
   useEffect(() => {
   }, [formData]);
@@ -117,8 +119,22 @@ export function Header() {
           value={formData.version}
           onChange={onInputChange}
         />
+        <Button
+          canvasTheme={canvasTheme}
+          variant="outline"
+          size="icon"
+          onClick={() => setShowLayoutEditor(true)}
+          className="ml-2"
+        >
+          <Grid2x2 className="h-4 w-4" />
+        </Button>
         <ThemeToggleButton />
       </div>
+      <LayoutEditor 
+        open={showLayoutEditor} 
+        onOpenChange={setShowLayoutEditor}
+      />
     </div>
+    
   )
 } 
