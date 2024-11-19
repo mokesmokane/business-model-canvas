@@ -39,30 +39,28 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
 
   
   return (
-    <div className={`flex flex-col flex-1 overflow-hidden ${
+    <div className={`flex flex-col flex-1 p-4 space-y-4 overflow-auto ${  // Added overflow-auto here
       canvasTheme === 'light' ? 'bg-white text-black' : 'bg-gray-950 text-white'
     }`}>
-      <div className="flex-1 overflow-auto p-4"> {/* Main scrollable container */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: layout.gridTemplate.columns,
-          gridTemplateRows: `repeat(${Math.ceil(canvasType.sections.length / 3)}, minmax(0, 1fr))`,
-          gap: '1rem',
-          height: 'fit-content',
-          minHeight: '100%',
-        }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: layout.gridTemplate.columns,
+        gridTemplateRows: layout.gridTemplate.rows || 'auto auto auto',
+        gap: '1rem',
+        minHeight: '100%', // Changed back to minHeight to allow growth
+        // Remove overflow: hidden to allow scrolling
+      }}>
         {canvasType.sections.map((sectionConfig, index) => (
           <div key={sectionConfig.key} style={{ 
             gridArea: layout.areas?.[index] || 'auto',
             minHeight: 0,
+            height: 'auto', // Changed to auto to allow natural height
             display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
+            flexDirection: 'column'
           }}>
-              {section(sectionConfig, 'flex-grow overflow-hidden')}
+            {section(sectionConfig, 'h-full overflow-hidden')}
           </div>
         ))}
-      </div>
       </div>
     </div>
   )

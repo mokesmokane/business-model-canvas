@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { LucideIcon, MoreVertical, Send } from 'lucide-react'
@@ -13,6 +13,7 @@ import { Section } from '@/types/canvas'
 import { Button } from '../ui/button'
 import { QuestionsDialog } from './QuestionsDialog'
 import { useCanvas } from '@/contexts/CanvasContext'
+import { debounce } from 'lodash'
 
 interface AISuggestion {
   id: string;
@@ -44,7 +45,13 @@ export function CanvasSection({
   const questionsArray = Array.isArray(section.qAndAs) ? section.qAndAs : section.qAndAs ? [section.qAndAs] : [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isQuestionsDialogOpen, setIsQuestionsDialogOpen] = useState(false)
+  const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
 
+  const [expandedItemIndex, setExpandedItemIndex] = useState<number | null>(null);
+
+  const handleItemClick = (index: number) => {
+    setExpandedItemIndex(expandedItemIndex === index ? null : index);
+  };
 
   const handleAddOrUpdateItem = (content: string) => {
     if (editingIndex !== null) {
@@ -89,16 +96,13 @@ export function CanvasSection({
     // You'll need to add a method to update questions in your context/state management
     // updateQuestions(sectionKey, newQuestions)
   }
-
+  
+  
   return (
     <Card 
       canvasTheme={canvasTheme}
-    className={`flex flex-col p-1 transition-all duration-300 !bg-transparent ${className}`}>
-      <CardHeader className={`${
-        canvasTheme === 'light' 
-          ? 'bg-white border-gray-200'
-          : 'bg-gray-950 border-gray-800'
-      }`}>
+    className={`flex flex-col h-full max-h-full overflow-hidden`}>
+      <CardHeader className={`flex-shrink-0`}>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -133,32 +137,32 @@ export function CanvasSection({
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      <CardContent className={`flex-1 flex flex-col ${
-        canvasTheme === 'light' 
-          ? 'bg-white'
-          : 'bg-gray-950'
-      }`}>
-        <ScrollArea className="flex-1 mb-4 h-full relative">
-          {itemsArray.length === 0 && (
-            <div className={`absolute top-0 left-0 pointer-events-none text-sm whitespace-pre-line ${
-              canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
-            }`}>
-              {placeholder}
-            </div>
-          )}
-          {itemsArray.map((item, index) => (
-            <SectionItem
-              key={index}
-              item={item}
-              onDelete={() => handleDeleteItem(index)}
-              isEditing={editingIndex === index}
-              onEditStart={() => handleEditStart(index)}
-              onEditEnd={() => handleEditCancel()}
-            />
-          ))}
+      <CardContent className={`flex-1 flex flex-col overflow-hidden`}>
+      <ScrollArea 
+          className="flex-1 relative"
+          style={{ height: 'calc(100% - 60px)' }}
+        >
+          <div className="space-y-2">
+            {itemsArray.map((item, index) => (
+              <SectionItem
+                key={index}
+                item={item}
+                isActive={activeItemIndex === index}
+                isExpanded={expandedItemIndex === index}
+                onClick={() => handleItemClick(index)}
+                onDelete={() => handleDeleteItem(index)}
+                isEditing={editingIndex === index}
+                onEditStart={() => handleEditStart(index)}
+                onEditEnd={() => handleEditCancel()}
+                className={`cursor-pointer ${
+                  expandedItemIndex === index ? 'bg-gray-200' : ''
+                } hover:bg-gray-100`}
+              />
+            ))}
+          </div>
         </ScrollArea>
         
-        <div className="mt-auto">
+        <div className="flex-shrink-0 mt-auto pt-2">
           <DynamicInput 
             placeholder={title}
             onSubmit={handleAddOrUpdateItem}
