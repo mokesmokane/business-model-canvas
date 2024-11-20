@@ -137,4 +137,18 @@ export class CanvasTypeService {
             throw error;
         }
     }
+
+    async updateCanvasLayout(id: string, layout: CanvasLayoutDetails): Promise<void> {
+        const response = await fetch(`/api/layouts/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(layout),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update layout');
+        }
+    }
 }

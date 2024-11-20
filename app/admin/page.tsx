@@ -157,13 +157,22 @@ export default function AdminPage() {
                   <TableCell>{layout.name}</TableCell>
                   <TableCell>{layout.sectionCount}</TableCell>
                   <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      onClick={() => handleDeleteLayout(id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => router.push(`/admin/layouts/${id}`)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => handleDeleteLayout(id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
