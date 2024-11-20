@@ -14,7 +14,7 @@ import { Button } from '../ui/button'
 import { QuestionsDialog } from './QuestionsDialog'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { debounce } from 'lodash'
-
+import DynamicIcon from '../Util/DynamicIcon'
 interface AISuggestion {
   id: string;
   suggestion: string;
@@ -24,7 +24,7 @@ interface AISuggestion {
 interface CanvasSectionProps {
   title: string;
   sectionKey: string;
-  icon: LucideIcon;
+  icon: string;
   section: Section;
   onChange: (value: string[]) => void;
   placeholder: string;
@@ -109,7 +109,7 @@ export function CanvasSection({
               <CardTitle className={`flex items-center gap-2 ${
                 canvasTheme === 'light' ? 'text-gray-900' : 'text-gray-100'
               }`}>
-                <Icon className={`h-5 w-5 ${
+                <DynamicIcon name={Icon} className={`h-5 w-5 ${
                   canvasTheme === 'light' ? 'text-gray-700' : 'text-gray-300'
                 }`} />
                 {title}

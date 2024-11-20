@@ -1,4 +1,4 @@
-import { CanvasLayoutDetails } from "./canvas-sections";
+import { CanvasLayout, CanvasLayoutDetails } from "./canvas-sections";
 
 import { CanvasType } from "./canvas-sections";
 
@@ -42,13 +42,12 @@ export interface Canvas {
   date: string;
   version: string;
   sections: Map<string, Section>;
-  canvasLayout?: string[];
   userId?: string;
   createdAt?: Date;
   updatedAt?: Date;
   theme?: 'light' | 'dark';
-  canvasTypeKey?: string;
-  canvasLayoutKey?: string;
+  canvasType: CanvasType;
+  canvasLayout: CanvasLayout;
 }
 
 export interface SerializedCanvas {
@@ -60,12 +59,11 @@ export interface SerializedCanvas {
   date: string;
   version: string;
   sections: SerializedSections;
-  canvasLayout?: string[];
+  canvasLayout: CanvasLayout;
   userId?: string;
   createdAt?: string;
   updatedAt?: string;
-  canvasTypeKey?: string;
-  canvasLayoutKey?: string;
+  canvasType: CanvasType;
 }
 
 export interface CanvasState {

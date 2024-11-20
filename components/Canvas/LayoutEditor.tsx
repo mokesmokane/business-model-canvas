@@ -5,13 +5,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Undo2, Save, Grid2x2 } from 'lucide-react';
 import { useCanvas } from '@/contexts/CanvasContext';
-import { CANVAS_TYPES, CANVAS_LAYOUTS, CanvasLayoutDetails } from '@/types/canvas-sections';
+import { CanvasLayout, compareLayouts } from '@/types/canvas-sections';
 import { motion } from 'framer-motion';
+import { CanvasTypeService } from '@/services/canvasTypeService';
+import { CanvasLayoutDetails } from '@/types/canvas-sections';
+import { useLayouts } from '@/contexts/LayoutContext';
+import DynamicIcon from '../Util/DynamicIcon';
 
 interface LayoutItem {
   id: string;
   content: string;
-  icon: any;
+  icon: string;
   gridArea: string;
   sectionKey: string;
   gridIndex: number;
@@ -54,7 +58,7 @@ function GridItem({
       `}
     >
       <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <DynamicIcon name={item.icon} className="h-4 w-4 text-muted-foreground" />
         <span className="font-medium">{item.content}</span>
       </div>
       <div className="flex-grow flex items-center justify-center">
@@ -71,11 +75,10 @@ interface LayoutEditorProps {
 
 export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) {
   const { formData, canvasTheme, updateLayout } = useCanvas();
-  const currentLayout = CANVAS_LAYOUTS[formData.canvasLayoutKey || 'BUSINESS_MODEL'];
-  const canvasType = CANVAS_TYPES[formData.canvasTypeKey || 'businessModel'];
+  const currentLayout = formData.canvasLayout;
+  const canvasType = formData.canvasType;
   
-  // Initialize layout with sections sorted by gridIndex
-  const [layout, setLayout] = useState<LayoutItem[]>(() => {
+  const [layoutItems, setLayoutItems] = useState<LayoutItem[]>(() => {
     const sortedSections = Array.from(formData.sections.entries())
       .map(([key, section], index) => ({
         key,
@@ -85,11 +88,11 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
       .sort((a, b) => a.gridIndex - b.gridIndex);
     console.log('sortedSections', sortedSections);
     return sortedSections.map((item, index) => {
-      const sectionConfig = canvasType.sections.find(s => s.key === item.key);
+      const sectionConfig = canvasType.sections.find(s => s.name === item.section.name);
       return {
         id: `section-${index}`,
         content: sectionConfig?.name || '',
-        icon: sectionConfig?.icon,
+        icon: sectionConfig?.icon || 'QuestionMark',
         gridArea: currentLayout.areas?.[index] || 'auto',
         sectionKey: item.key,
         gridIndex: item.gridIndex
@@ -99,7 +102,19 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
 
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [targetId, setTargetId] = useState<string | null>(null);
-  const [selectedLayout, setSelectedLayout] = useState<string>(formData.canvasLayoutKey || 'BUSINESS_MODEL');
+  const [selectedLayout, setSelectedLayout] = useState<CanvasLayout>(formData.canvasLayout);
+  const [availableLayouts, setAvailableLayouts] = useState<CanvasLayoutDetails[]>([]);
+  const { getLayoutsForSectionCount, isLoading } = useLayouts();
+
+  useEffect(() => {
+    const loadLayouts = async () => {
+      const layouts = await getLayoutsForSectionCount(canvasType.sections.length);
+      setAvailableLayouts(layouts);
+    };
+
+    loadLayouts();
+  }, [canvasType.sections.length, getLayoutsForSectionCount]);
+
   const [gridStyle, setGridStyle] = useState({});
 
   useEffect(() => {
@@ -121,7 +136,7 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
 
   const handleDragEnd = () => {
     if (draggedId && targetId) {
-      setLayout((items) => {
+      setLayoutItems((items) => {
         const draggedIndex = items.findIndex(item => item.id === draggedId);
         const targetIndex = items.findIndex(item => item.id === targetId);
         
@@ -151,12 +166,12 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
     setTargetId(null);
   };
 
-  const handleLayoutSelect = (layoutKey: string) => {
-    setSelectedLayout(layoutKey);
-    const newLayout = CANVAS_LAYOUTS[layoutKey];
+  const handleLayoutSelect = (layout: CanvasLayout) => {
+    setSelectedLayout(layout);
+    const newLayout = layout;
     
     // Maintain existing section order when changing layouts
-    setLayout(layout.map((item, index) => ({
+    setLayoutItems(layoutItems.map((item, index) => ({
       ...item,
       gridArea: newLayout.areas?.[index] || 'auto'
     })));
@@ -169,7 +184,7 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
 
   const handleSave = () => {
     // Create ordered array of section keys based on gridIndex
-    const orderedSectionKeys = layout
+    const orderedSectionKeys = layoutItems
       .sort((a, b) => a.gridIndex - b.gridIndex)
       .map(item => item.sectionKey);
 
@@ -181,12 +196,12 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
 
   const handleReset = () => {
     // Reset to original order based on canvasType sections
-    setLayout(canvasType.sections.map((section, index) => ({
+    setLayoutItems(canvasType.sections.map((section, index) => ({
       id: `section-${index}`,
       content: section.name,
       icon: section.icon,
       gridArea: currentLayout.areas?.[index] || 'auto',
-      sectionKey: section.key,
+      sectionKey: section.name,
       gridIndex: index
     })));
 
@@ -225,7 +240,7 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
                 minWidth: '100%'
               }}
             >
-              {layout.map((item) => (
+              {layoutItems.map((item) => (
                 <GridItem 
                   key={item.id} 
                   item={item}
@@ -244,52 +259,56 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
             {/* Scrolling Buttons Container */}
             <div className="overflow-x-auto">
               <div className="flex space-x-2 pb-2">
-                {Object.entries(CANVAS_LAYOUTS)
-                .filter(([key, layout]) => layout.sectionCount === canvasType.layout.sectionCount)
-                .map(([key, layout]) => (
-                  <motion.div
-                    key={key}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="p-2 transition-all duration-300 flex-shrink-0"
-                  >
-                    <Button
-                      variant="outline"
-                      className={`w-24 h-24 p-2 ${
-                        key === selectedLayout 
-                          ? 'bg-primary text-primary-foreground' 
-                          : canvasTheme === 'dark'
-                            ? 'bg-gray-800 text-gray-200'
-                            : 'bg-gray-100 text-gray-800'
-                      } hover:bg-primary/90 hover:text-primary-foreground transition-colors duration-200`}
-                      onClick={() => handleLayoutSelect(layout.key)}
+                {isLoading ? (
+                  <div className="flex items-center justify-center w-full p-4">
+                    <span className="text-muted-foreground">Loading layouts...</span>
+                  </div>
+                ) : (
+                  availableLayouts.map((layoutDetails) => (
+                    <motion.div
+                      key={layoutDetails.name}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="p-2 transition-all duration-300 flex-shrink-0"
                     >
-                      <div
-                        className="w-full h-full grid gap-1"
-                        style={{
-                          gridTemplateColumns: layout.gridTemplate.columns,
-                          gridTemplateRows: layout.gridTemplate.rows,
-                        }}
+                      <Button
+                        variant="outline"
+                        className={`w-24 h-24 p-2 ${
+                          compareLayouts(layoutDetails.layout, selectedLayout) 
+                            ? 'bg-primary text-primary-foreground' 
+                            : canvasTheme === 'dark'
+                              ? 'bg-gray-800 text-gray-200'
+                              : 'bg-gray-100 text-gray-800'
+                        } hover:bg-primary/90 hover:text-primary-foreground transition-colors duration-200`}
+                        onClick={() => handleLayoutSelect(layoutDetails.layout)}
                       >
-                        {Array.from({ length: layout.sectionCount }).map((_, index) => (
-                          <div
-                            key={index}
-                            className={`rounded-sm transition-colors duration-200 ${
-                              key === selectedLayout 
-                                ? 'bg-primary-foreground' 
-                                : canvasTheme === 'dark'
-                                  ? 'bg-gray-700'
-                                  : 'bg-gray-300'
-                            }`}
-                            style={{
-                              gridArea: layout.areas?.[index] || 'auto',
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </Button>
-                  </motion.div>
-                ))}
+                        <div
+                          className="w-full h-full grid gap-1"
+                          style={{
+                            gridTemplateColumns: layoutDetails.layout.gridTemplate.columns,
+                            gridTemplateRows: layoutDetails.layout.gridTemplate.rows,
+                          }}
+                        >
+                          {Array.from({ length: layoutDetails.sectionCount }).map((_, index) => (
+                            <div
+                              key={index}
+                              className={`rounded-sm transition-colors duration-200 ${
+                                compareLayouts(layoutDetails.layout, selectedLayout) 
+                                  ? 'bg-primary-foreground' 
+                                  : canvasTheme === 'dark'
+                                    ? 'bg-gray-700'
+                                    : 'bg-gray-300'
+                              }`}
+                              style={{
+                                gridArea: layoutDetails.layout.areas?.[index] || 'auto',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </Button>
+                    </motion.div>
+                  ))
+                )}
               </div>
               <div className="flex items-center justify-end gap-2 pb-1">
               <Button

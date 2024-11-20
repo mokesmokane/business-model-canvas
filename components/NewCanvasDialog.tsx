@@ -7,12 +7,14 @@ import { DialogClose } from '@radix-ui/react-dialog'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { CanvasLayout, CanvasLayoutDetails } from '@/types/canvas-sections'
+import { CanvasType } from '@/types/canvas-sections'
 
 interface NewCanvasDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  canvasType?: string;
-  layout?: string;
+  canvasType: CanvasType;
+  layout?: CanvasLayout;
 }
 
 export function NewCanvasDialog({ open, onOpenChange, canvasType, layout }: NewCanvasDialogProps) {
@@ -38,8 +40,8 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout }: NewC
       const newCanvasId = await createNewCanvas({
         name: tempName.trim(),
         description: tempDescription.trim(),
-        canvasType: canvasType || '',
-        layout: layout || ''
+        canvasType: canvasType,
+        layout: layout
       })
       
       if (newCanvasId) {

@@ -3,41 +3,56 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { CANVAS_TYPES, CANVAS_LAYOUTS } from "@/types/canvas-sections"
+import { CanvasType, CanvasLayout, CanvasLayoutDetails } from "@/types/canvas-sections"
 import { useCanvas } from "@/contexts/CanvasContext"
 import { NewCanvasDialog } from "./NewCanvasDialog"
 import { LayoutSelector } from "./LayoutSelector"
 import { TypeIcon as type, LucideIcon, XIcon, AlertCircle } from 'lucide-react'
 import { useTheme } from "next-themes"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import DynamicIcon from "./Util/DynamicIcon"
+import { useLayouts } from "@/contexts/LayoutContext"
+import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
 
 export function CanvasTypeSelector() {
-  const [selectedType, setSelectedType] = useState<string | null>(null)
-  const [selectedLayout, setSelectedLayout] = useState<string | null>(null)
+  const [selectedType, setSelectedType] = useState<CanvasType | null>(null)
+  const [selectedLayout, setSelectedLayout] = useState<CanvasLayoutDetails | null>(null)
   const [showDialog, setShowDialog] = useState(false)
   const { theme } = useTheme()
   const { userCanvases } = useCanvas()
   const containerRef = useRef<HTMLDivElement>(null)
+  const { getLayoutsForSectionCount } = useLayouts()
+  const { getCanvasTypes } = useCanvasTypes()
+  const [compatibleLayouts, setCompatibleLayouts] = useState<CanvasLayoutDetails[]>([])
+  const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({})
+  
+  useEffect(() => {
+    getCanvasTypes().then(setCanvasTypes)
+  }, [getCanvasTypes])
 
-  const handleCanvasTypeSelect = (typeKey: string) => {
-    if (selectedType === typeKey) {
+  const handleCanvasTypeSelect = (canvasType: CanvasType) => {
+    if (selectedType === canvasType) {
       setSelectedType(null)
       setSelectedLayout(null)
     } else {
-      setSelectedType(typeKey)
-      setSelectedLayout(CANVAS_TYPES[typeKey].layout.key)
+      setSelectedType(canvasType)
+      setSelectedLayout(canvasType.defaultLayout)
     }
   }
 
-  const handleLayoutSelect = (layout: string) => {
+  const handleLayoutSelect = (layout: CanvasLayoutDetails) => {
     setSelectedLayout(layout)
-  }
+}
 
-  const compatibleLayouts = selectedType
-    ? Object.values(CANVAS_LAYOUTS).filter(
-        (layout) => layout.sectionCount === CANVAS_TYPES[selectedType].layout.sectionCount
-      )
-    : []
+  useEffect(() => {
+    if (selectedType) {
+      const fetchLayouts = async () => {
+        const layouts = await getLayoutsForSectionCount(selectedType.defaultLayout.sectionCount)
+        setCompatibleLayouts(layouts)
+      }
+      fetchLayouts()
+    }
+  }, [selectedType, getLayoutsForSectionCount])
 
   useEffect(() => {
     if (selectedType && containerRef.current) {
@@ -60,15 +75,15 @@ export function CanvasTypeSelector() {
 
       <div ref={containerRef} className="relative flex flex-wrap gap-6 w-full justify-center min-h-[400px]">
         <AnimatePresence>
-          {Object.entries(CANVAS_TYPES).map(([key, type]) => (
+          {Object.entries(canvasTypes).map(([key, type]) => (
             <motion.div
               key={key}
               layout
               initial={{ opacity: 1, scale: 1 }}
               animate={{
-                opacity: selectedType ? (selectedType === key ? 1 : 0.5) : 1,
-                scale: selectedType === key ? 1.05 : 1,
-                zIndex: selectedType === key ? 10 : 1,
+                opacity: selectedType ? (selectedType === type ? 1 : 0.5) : 1,
+                scale: selectedType === type ? 1.05 : 1,
+                zIndex: selectedType === type ? 10 : 1,
               }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -79,9 +94,9 @@ export function CanvasTypeSelector() {
             >
               <div
                 className={`h-full p-8 flex flex-col items-center gap-4 w-full bg-background hover:bg-muted cursor-pointer border rounded-md relative ${
-                  selectedType === key ? 'shadow-lg' : ''
+                  selectedType === type ? 'shadow-lg' : ''
                 }`}
-                onClick={() => handleCanvasTypeSelect(key)}
+                onClick={() => handleCanvasTypeSelect(type)}
               >
                 <CanvasTypeIcon icon={type.icon} theme={theme} />
                 <div className="space-y-2 text-center">
@@ -90,7 +105,7 @@ export function CanvasTypeSelector() {
                     {type.description}
                   </p>
                 </div>
-                {selectedType === key && (
+                {selectedType === type && (
                   <Button
                     variant="outline"
                     size="icon"
@@ -135,17 +150,17 @@ export function CanvasTypeSelector() {
         open={showDialog}
         onOpenChange={setShowDialog}
         canvasType={selectedType || "businessModel"}
-        layout={selectedLayout || CANVAS_LAYOUTS.BUSINESS_MODEL.key}
+        layout={selectedLayout.layout}
         />
       )}
     </div>
   )
 }
 
-function CanvasTypeIcon({ icon: Icon, theme }: { icon: LucideIcon; theme?: string }) {
+function CanvasTypeIcon({ icon, theme }: { icon: string; theme?: string }) {
   return (
     <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-      <Icon className="w-6 h-6 text-foreground" />
+      <DynamicIcon name={icon} className="w-6 h-6 text-foreground" />
     </div>
   )
 }

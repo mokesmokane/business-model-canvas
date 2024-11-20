@@ -1,9 +1,7 @@
 import { CanvasSection } from "./CanvasSection"
-import { CANVAS_LAYOUTS, CanvasType } from "@/types/canvas-sections"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useCanvas } from "@/contexts/CanvasContext"
-import { Section } from "@/types/canvas"
-import { CANVAS_TYPES } from "@/types/canvas-sections"
+import { CanvasTypeService } from "@/services/canvasTypeService"
 
 interface CanvasContentProps {
   onExpandSidebar: () => void
@@ -11,15 +9,22 @@ interface CanvasContentProps {
 
 export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
   const { formData, canvasTheme, updateSection } = useCanvas();
-  let canvasType = CANVAS_TYPES[formData.canvasTypeKey ?? 'businessModel'];
-  let layout = CANVAS_LAYOUTS[formData.canvasLayoutKey ?? 'businessModel'] || CANVAS_LAYOUTS.BUSINESS_MODEL;
+  const [layout, setLayout] = useState(formData.canvasLayout);
+  let canvasType = formData.canvasType;
+
+  useEffect(() => {
+    if (!formData.canvasLayout) {
+      new CanvasTypeService().getCanvasLayouts()
+        .then(layouts => setLayout(layouts[canvasType.name].layout));
+    }
+  }, [canvasType.name, formData.canvasLayout]);
 
   // Convert sections Map to array and sort by gridIndex
   const sortedSections = Array.from(formData.sections.entries())
     .map(([key, section]) => ({
       key,
       section,
-      config: canvasType.sections.find(s => s.key === key)
+      config: canvasType.sections.find(s => s.name === key)
     }))
     .sort((a, b) => (a.section.gridIndex || 0) - (b.section.gridIndex || 0));
 

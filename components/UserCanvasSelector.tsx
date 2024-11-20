@@ -5,14 +5,29 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { formatDistanceToNow } from "date-fns"
 import { Grid2x2 } from 'lucide-react'
 import { motion } from "framer-motion"
-import { CANVAS_TYPES, CANVAS_LAYOUTS } from "@/types/canvas-sections"
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 import { useExpanded } from "@/contexts/ExpandedContext"
+import { useLayouts } from "@/contexts/LayoutContext"
+import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
+import { CanvasLayoutDetails, CanvasType } from "@/types/canvas-sections"
 
 export function UserCanvasSelector() {
   const { userCanvases, loadCanvas } = useCanvas()
   const existingConstraintsRef = useRef<HTMLDivElement>(null)
   const newCanvasConstraintsRef = useRef<HTMLDivElement>(null)
+  const { getLayoutsForSectionCount, getLayouts } = useLayouts()
+  const { getCanvasTypes } = useCanvasTypes()
+  const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({})
+  const [canvasLayouts, setCanvasLayouts] = useState<Record<string, CanvasLayoutDetails>>({})
+
+  useEffect(() => {
+    getCanvasTypes().then(setCanvasTypes)
+  }, [getCanvasTypes])
+
+  useEffect(() => {
+    getLayouts().then(setCanvasLayouts)
+  }, [getLayouts])
+
 
   const handleDrag = (info: any, ref: React.RefObject<HTMLDivElement>) => {
     if (ref.current) {
@@ -75,7 +90,7 @@ export function UserCanvasSelector() {
                       <div className="flex items-center gap-2 text-muted-foreground">
                         <Grid2x2 className="h-4 w-4" />
                         <span className="text-sm">
-                          {CANVAS_TYPES[canvas.canvasTypeKey || 'businessModel'].name}
+                          {canvas.canvasType.name}
                         </span>
                       </div>
                     </div>
@@ -86,16 +101,16 @@ export function UserCanvasSelector() {
                           <div
                             className="w-full h-full grid gap-1"
                             style={{
-                              gridTemplateColumns: CANVAS_LAYOUTS[canvas.canvasLayoutKey || 'BUSINESS_MODEL'].gridTemplate.columns,
-                              gridTemplateRows: CANVAS_LAYOUTS[canvas.canvasLayoutKey || 'BUSINESS_MODEL'].gridTemplate.rows,
+                              gridTemplateColumns: canvas.canvasLayout.gridTemplate.columns,
+                              gridTemplateRows: canvas.canvasLayout.gridTemplate.rows,
                             }}
                           >
-                            {Array.from({ length: CANVAS_LAYOUTS[canvas.canvasLayoutKey || 'BUSINESS_MODEL'].sectionCount }).map((_, index) => (
+                            {Array.from({ length: canvas.canvasLayout.sectionCount }).map((_, index) => (
                               <div
                                 key={index}
                                 className="rounded-sm bg-muted"
                                 style={{
-                                  gridArea: CANVAS_LAYOUTS[canvas.canvasLayoutKey || 'BUSINESS_MODEL'].areas?.[index] || 'auto',
+                                  gridArea: canvas.canvasLayout.areas?.[index] || 'auto',
                                 }}
                               />
                             ))}
@@ -131,7 +146,7 @@ export function UserCanvasSelector() {
             onDrag={(_, info) => handleDrag(info, newCanvasConstraintsRef)}
             dragConstraints={newCanvasConstraintsRef}
           >
-            {Object.entries(CANVAS_TYPES).map(([key, type]) => (
+            {Object.entries(canvasTypes).map(([key, type]) => (
               <motion.div
                 key={key}
                 initial={{ opacity: 0, x: 20 }}
@@ -153,16 +168,16 @@ export function UserCanvasSelector() {
                       <div
                         className="w-full h-full grid gap-1"
                         style={{
-                          gridTemplateColumns: type.layout.gridTemplate.columns,
-                          gridTemplateRows: type.layout.gridTemplate.rows,
+                          gridTemplateColumns: type.defaultLayout.layout.gridTemplate.columns,
+                          gridTemplateRows: type.defaultLayout.layout.gridTemplate.rows,
                         }}
                       >
-                        {Array.from({ length: type.layout.sectionCount }).map((_, index) => (
+                        {Array.from({ length: type.defaultLayout.sectionCount }).map((_, index) => (
                           <div
                             key={index}
                             className="rounded-sm bg-muted"
                             style={{
-                              gridArea: type.layout.areas?.[index] || 'auto',
+                              gridArea: type.defaultLayout.layout.areas?.[index] || 'auto',
                             }}
                           />
                         ))}

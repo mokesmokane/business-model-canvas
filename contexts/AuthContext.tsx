@@ -20,6 +20,7 @@ interface AuthContextType {
   loading: boolean;
   isVerified: boolean;
   isInTrialPeriod: boolean;
+  isAdminUser: boolean;
   trialDaysRemaining: number | null;
   signUp: (email: string, password: string) => Promise<User>;
   signIn: (email: string, password: string) => Promise<User>;
@@ -38,10 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isVerified, setIsVerified] = useState(false);
   const [isInTrialPeriod, setIsInTrialPeriod] = useState(false);
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
     let unsubscribeCanvases: (() => void) | undefined;
-    let unsubscribeSubscription: (() => void) | undefined;
     let unsubscribeUser: (() => void) | undefined;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
@@ -51,9 +52,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (unsubscribeCanvases) {
         unsubscribeCanvases();
-      }
-      if (unsubscribeSubscription) {
-        unsubscribeSubscription();
       }
       if (unsubscribeUser) {
         unsubscribeUser();
@@ -76,24 +74,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
         }
 
-        unsubscribeSubscription = onSnapshot(userDocRef, (snapshot) => {
-          const userData = snapshot.data();
-          setUserData(userData || null);
-          
-          // Calculate trial period
-          if (userData?.createdAt) {
-            const createdAt = new Date(userData.createdAt);
-            const trialEndDate = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
-            const now = new Date();
-            
-            setIsInTrialPeriod(now < trialEndDate);
-            
-            const remainingTime = trialEndDate.getTime() - now.getTime();
-            const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
-            setTrialDaysRemaining(remainingDays);
-          }
-        });
-
         unsubscribeUser = onSnapshot(userDocRef, (snapshot) => {
           const userData = snapshot.data();
           setUserData(userData || null);
@@ -105,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const now = new Date();
             
             setIsInTrialPeriod(now < trialEndDate);
+            setIsAdminUser(userData.admin);
             
             const remainingTime = trialEndDate.getTime() - now.getTime();
             const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
@@ -122,9 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       unsubscribeAuth();
       if (unsubscribeCanvases) {
         unsubscribeCanvases();
-      }
-      if (unsubscribeSubscription) {
-        unsubscribeSubscription();
       }
       if (unsubscribeUser) {
         unsubscribeUser();
@@ -220,6 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isVerified, 
       isInTrialPeriod,
       trialDaysRemaining,
+      isAdminUser,
       signUp, 
       signIn, 
       logout,
