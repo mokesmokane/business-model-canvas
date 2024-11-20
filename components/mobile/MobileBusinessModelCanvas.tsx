@@ -3,27 +3,17 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 // import { MobileCanvasSection } from "../mobile/MobileCanvasSection";
 import { MobileAIChat } from "./MobileAIChat";
 import 'swiper/css';
-import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins } from "lucide-react";
+import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins, Icon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { CanvasSection } from "../Canvas/CanvasSection";
-
-const sections = [
-  { key: 'keyPartners', title: 'Key Partners', icon: Building2 },
-  { key: 'keyActivities', title: 'Key Activities', icon: Workflow },
-  { key: 'keyResources', title: 'Key Resources', icon: Receipt },
-  { key: 'valuePropositions', title: 'Value Propositions', icon: Gift },
-  { key: 'customerRelationships', title: 'Customer Relationships', icon: Heart },
-  { key: 'channels', title: 'Channels', icon: Truck },
-  { key: 'customerSegments', title: 'Customer Segments', icon: Users2 },
-  { key: 'costStructure', title: 'Cost Structure', icon: Users },
-  { key: 'revenueStreams', title: 'Revenue Streams', icon: Coins },
-];
+import DynamicIcon from "../Util/DynamicIcon";
 
 export function MobileBusinessModelCanvas() {
   const { formData, canvasTheme } = useCanvas();
   const [activeIndex, setActiveIndex] = useState(0);
+
 
   return (
     <div className={`flex flex-col h-[calc(100vh-64px)] ${
@@ -35,18 +25,21 @@ export function MobileBusinessModelCanvas() {
           onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
           className="h-full"
         >
-          {sections.map((section) => (
-            <SwiperSlide key={section.key}>
-              <CanvasSection
-                onChange={() => {}}
-                placeholder={section.title}
-                title={section.title}
-                icon={section.icon}
-                sectionKey={section.key}
-                section={formData.sections.get(section.key) || { name: '', items: [], qAndAs: [] }}
-              />
-            </SwiperSlide>
-          ))}
+          {Array.from(formData.sections.entries()).map(([key, section]) => {
+            const sectionConfig = formData.canvasType.sections.find(s => s.name === section.name);
+            return (
+              <SwiperSlide key={key}>
+                <CanvasSection
+                  onChange={() => {}}
+                  placeholder={section.name}
+                  title={section.name}
+                  icon={sectionConfig?.icon || ''}
+                  sectionKey={key}
+                  section={formData.sections.get(key) || { name: '', items: [], qAndAs: [] }}
+                />
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </div>
 
@@ -55,10 +48,11 @@ export function MobileBusinessModelCanvas() {
       }`}>
         <TooltipProvider>
           <div className="flex justify-between px-4 py-2">
-            {sections.map((section, index) => {
-              const Icon = section.icon;
+          {Array.from(formData.sections.entries()).map(([key, section], index) => {
+            const sectionConfig = formData.canvasType.sections.find(s => s.name === section.name);
+              const icon = sectionConfig?.icon;
               return (
-                <Tooltip key={section.key}>
+                <Tooltip key={section.name}>
                   <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
@@ -75,7 +69,7 @@ export function MobileBusinessModelCanvas() {
                         }
                       }}
                     >
-                      <Icon className="h-4 w-4" />
+                      <DynamicIcon name={icon || ''} className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent 
@@ -86,7 +80,7 @@ export function MobileBusinessModelCanvas() {
                         : 'bg-gray-900 text-gray-100 border-gray-800'
                     }`}
                   >
-                    {section.title}
+                    {section.name}
                   </TooltipContent>
                 </Tooltip>
               );
