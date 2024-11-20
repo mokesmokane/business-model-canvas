@@ -19,14 +19,25 @@ export class CanvasTypeService {
         console.log("Getting canvas types")
         try {
             const querySnapshot = await getDocs(this.collectionRef);
-            let canvasTypes = querySnapshot.docs.map(doc => ({
-                ...doc.data(),
-                id: doc.id
-            } as CanvasType));
-            return canvasTypes.reduce((acc, canvasType) => {
+            let canvasTypes = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    ...data,
+                    id: doc.id,
+                    defaultLayout: data.defaultLayout ? {
+                        ...data.defaultLayout,
+                        id: doc.id
+                    } : undefined
+                } as CanvasType;
+            });
+            console.log("canvasTypes", canvasTypes) 
+
+            let canvasTypesRecord = canvasTypes.reduce((acc, canvasType) => {
                 acc[canvasType.id] = canvasType;
                 return acc;
             }, {} as Record<string, CanvasType>);
+            console.log("canvasTypesRecord", canvasTypesRecord)
+            return canvasTypesRecord;
         } catch (error) {
             console.error("Error retrieving canvasTypes: ", error);
             return {};

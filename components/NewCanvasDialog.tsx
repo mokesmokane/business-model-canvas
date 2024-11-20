@@ -78,7 +78,7 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout }: NewC
         <div className="flex flex-col gap-4">
           <div>
             <Input
-              placeholder="Business Name"
+              placeholder="Name"
               value={tempName}
               onChange={(e) => {
                 const trimmed = e.target.value.trim()
@@ -88,13 +88,13 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout }: NewC
               className={!isValid ? 'border-red-500' : ''}
             />
             {!isValid && (
-              <p className="text-sm text-red-500 mt-1">Business name cannot be empty</p>
+              <p className="text-sm text-red-500 mt-1">Name cannot be empty</p>
             )}
           </div>
           <Textarea
-            placeholder={`Business description
+            placeholder={`Description
 
-The more detail you provide, the better the AI can understand your business and the more insightful the advice will be.
+The more detail you provide, the better the AI can understand your situation and the more insightful the advice will be.
               `}
             value={tempDescription}
             onChange={(e) => setTempDescription(e.target.value)}

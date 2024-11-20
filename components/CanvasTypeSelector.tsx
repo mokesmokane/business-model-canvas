@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { CanvasType, CanvasLayout, CanvasLayoutDetails } from "@/types/canvas-sections"
+import { CanvasType, CanvasLayout, CanvasLayoutDetails, compareLayouts } from "@/types/canvas-sections"
 import { useCanvas } from "@/contexts/CanvasContext"
 import { NewCanvasDialog } from "./NewCanvasDialog"
 import { LayoutSelector } from "./LayoutSelector"
@@ -15,6 +15,7 @@ import { useLayouts } from "@/contexts/LayoutContext"
 import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
 import { useNewCanvas } from "@/contexts/NewCanvasContext"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@/components/ui/badge"
 
 export function CanvasTypeSelector() {
   const { selectedType: initialType, setSelectedType } = useNewCanvas();
@@ -31,7 +32,16 @@ export function CanvasTypeSelector() {
   
   useEffect(() => {
     getCanvasTypes().then((types) => {
-        setCanvasTypes(types)
+        //for each type, type set its id as the key
+        const typs = Object.entries(types).map(([key, type]) => ({
+          ...type,
+          id: key
+        }))
+        let record = typs.reduce((acc, type) => {   
+          acc[type.id] = type;
+          return acc;
+        }, {} as Record<string, CanvasType>);
+        setCanvasTypes(record)    
         console.log("canvasTypes in useEffect", canvasTypes)
     })
   }, [getCanvasTypes])
@@ -39,12 +49,36 @@ export function CanvasTypeSelector() {
   useEffect(() => {
     if (selectedType) {
       const fetchLayouts = async () => {
+        // Get base layouts for this section count
         const layouts = await getLayoutsForSectionCount(selectedType.sections.length);
-        setCompatibleLayouts(layouts);
-        if (!selectedLayout) {
+        
+        // Create a new array with default layout if it exists
+        let allLayouts = [...layouts];
+        if (selectedType.defaultLayout) {
+          allLayouts = [
+            {
+              id: `${selectedType.id}-default`,
+              layout: selectedType.defaultLayout.layout,
+              name: 'Default Layout',
+              sectionCount: selectedType.sections.length,
+              description: 'Default layout for this canvas type'
+            },
+            ...layouts
+          ];
+        }
+        
+        setCompatibleLayouts(allLayouts);
+        
+        // Set default layout as selected if no layout is currently selected
+        if (!selectedLayout && selectedType.defaultLayout) {
+          setSelectedLayout(allLayouts[0]);
         }
       };
       fetchLayouts();
+    } else {
+      // Clear compatible layouts when no type is selected
+      setCompatibleLayouts([]);
+      setSelectedLayout(null);
     }
   }, [selectedType, getLayoutsForSectionCount]);
 
@@ -145,7 +179,7 @@ export function CanvasTypeSelector() {
                   exit={{ opacity: 0, scale: 0.8 }}
                   transition={{ duration: 0.5, ease: "easeInOut" }}
                   style={{
-                    width: 300,
+                    width: 510,
                     height: 'auto',
                   }}
                 >
@@ -158,10 +192,24 @@ export function CanvasTypeSelector() {
                     <CanvasTypeIcon icon={type.icon} theme={theme} />
                     <div className="space-y-2 text-center">
                       <h3 className="font-semibold text-foreground">{type.name}</h3>
-                      <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-normal">
+                      <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis line-clamp-4">
                         {type.description}
                       </p>
                     </div>
+                    
+                    <div className="flex flex-wrap gap-2 justify-center mt-2">
+                      {type.sections.map((section, index) => (
+                        <Badge 
+                          key={index} 
+                          variant="secondary"
+                          className="flex items-center gap-1 font-normal text-muted-foreground bg-opacity-50"
+                        >
+                          <DynamicIcon name={section.icon} className="w-3 h-3" />
+                          <span className="text-xs">{section.name}</span>
+                        </Badge>
+                      ))}
+                    </div>
+
                     {selectedType === type && (
                       <Button
                         variant="outline"
@@ -199,13 +247,22 @@ export function CanvasTypeSelector() {
       )}
 
       {selectedType && selectedLayout && (
-        <NewCanvasDialog
-          open={showDialog}
-          onOpenChange={setShowDialog}
-          canvasType={selectedType || "businessModel"}
-          layout={selectedLayout.layout}
+        <>
+          <Button 
+            className="mb-8"
+            size="lg"
+            onClick={() => setShowDialog(true)}
+          >
+            Create Canvas
+          </Button>
+          <NewCanvasDialog
+            open={showDialog}
+            onOpenChange={setShowDialog}
+            canvasType={selectedType || "businessModel"}
+            layout={selectedLayout.layout}
           />
-        )}
+        </>
+      )}
     </div>
   )
 }

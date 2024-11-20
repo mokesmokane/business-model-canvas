@@ -43,6 +43,9 @@ export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }
             {canvasType && layout.layout.areas.map((area, index) => {
               const [row, col, rowSpan, colSpan] = area.split('/').map(n => n.trim());
               const sectionData = canvasType.sections[index];
+              
+              if (!sectionData) return null;
+              
               return (
                 <div
                   key={index}

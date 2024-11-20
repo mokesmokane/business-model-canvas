@@ -12,7 +12,8 @@ function compareAreas(areas1: string[], areas2: string[]): boolean {
     return areas1.length === areas2.length && areas1.every((area, index) => area === areas2[index]);
 }
 
-export function compareLayouts(layout1: CanvasLayout, layout2: CanvasLayout): boolean {
+export function compareLayouts(layout1: CanvasLayout | null, layout2: CanvasLayout | null): boolean {
+    if (!layout1 || !layout2) return false;
     return layout1.gridTemplate.columns === layout2.gridTemplate.columns &&
            layout1.gridTemplate.rows === layout2.gridTemplate.rows &&
            compareAreas(layout1.areas, layout2.areas);
@@ -31,6 +32,7 @@ export interface CanvasLayoutDetails {
     sectionCount: number
     name: string
     layout: CanvasLayout
+    description: string
 }
 
 export interface CanvasType {
@@ -74,7 +76,8 @@ export const BUSINESS_MODEL_LAYOUT: CanvasLayoutDetails = {
       "3 / 1 / 4 / 4",
         "3 / 4 / 4 / 7"
       ]
-    }
+    },
+    description: "A strategic management template for developing new or documenting existing business models"
   }
 
 
