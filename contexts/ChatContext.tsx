@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { useCanvas } from './CanvasContext';
+import { CanvasLayoutSuggestion, CanvasType, CanvasTypeSuggestion } from '@/types/canvas-sections';
 
 export interface Message {
   role: 'user' | 'assistant' | 'error' | 'system';
@@ -24,6 +25,11 @@ export interface Message {
       label: string;
     };
   }>;
+}
+
+export interface AdminMessage extends Message {
+  canvasTypeSuggestions?: CanvasTypeSuggestion[];
+  canvasLayoutSuggestions?: CanvasLayoutSuggestion[];
 }
 
 interface ChatContextType {

@@ -17,7 +17,7 @@ export function LayoutSelector({ layouts, selectedLayout, onSelect }: LayoutSele
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         {layouts.map((layout) => (
           <motion.div
-            key={layout.name}
+            key={layout.id}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: layout === selectedLayout ? 1.05 : 1 }}
             whileHover={{ scale: 1.05 }}

@@ -5,7 +5,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useCanvas } from '@/contexts/CanvasContext';
-import { CANVAS_TYPES } from '@/types/canvas-sections'
+import DynamicIcon from '../Util/DynamicIcon';
 
 
 interface SectionButtonsProps {
@@ -17,11 +17,11 @@ export function SectionButtons({ activeSection, onSectionSelect }: SectionButton
   let {formData} = useCanvas();
 // Type the Map entries and conversion
   const sections = Array.from(
-    CANVAS_TYPES.businessModel.sections.entries()
+    formData.canvasType.sections.entries()
   ).map(([i,section]) => ({
     icon: section.icon,
     name: section.name,
-    key: section.key
+    key: section.name
   }));
   return (
     <div className="flex justify-between px-4 py-2">
@@ -44,7 +44,7 @@ export function SectionButtons({ activeSection, onSectionSelect }: SectionButton
                 }
               }}
             >
-              <Icon className="h-4 w-4" />
+              <DynamicIcon name={Icon} className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent 

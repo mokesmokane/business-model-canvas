@@ -1,5 +1,5 @@
 import React from 'react'
-import { Settings, HelpCircle, Users, LogOut, Moon, Sun } from 'lucide-react'
+import { Settings, HelpCircle, Users, LogOut, Moon, Sun, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -18,7 +18,7 @@ interface SidebarFooterProps {
 }
 
 export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterProps) {
-  const {  logout } = useAuth();
+  const {  logout, isAdminUser } = useAuth();
   const { clearState } = useCanvas();
   const { clearMessages } = useChat();
   const { theme, setTheme } = useTheme()
@@ -39,6 +39,7 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
     { icon: Settings, label: 'Settings', action: () => router.push('/settings') },
     { icon: theme === "light" ? Moon : Sun, label: 'Theme', action: () => { setTheme(theme === "light" ? "dark" : "light") } },
     { icon: HelpCircle, label: 'Help', action: () => router.push('/help') },
+    ...(isAdminUser ? [{ icon: Shield, label: 'Admin', action: () => router.push('/admin') }] : []),
     { icon: LogOut, label: 'Sign Out', action: handleSignOut },
   ];
 

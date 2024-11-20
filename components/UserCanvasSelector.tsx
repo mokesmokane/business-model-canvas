@@ -10,6 +10,7 @@ import { useExpanded } from "@/contexts/ExpandedContext"
 import { useLayouts } from "@/contexts/LayoutContext"
 import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
 import { CanvasLayoutDetails, CanvasType } from "@/types/canvas-sections"
+import { useNewCanvas } from "@/contexts/NewCanvasContext"
 
 export function UserCanvasSelector() {
   const { userCanvases, loadCanvas } = useCanvas()
@@ -19,6 +20,7 @@ export function UserCanvasSelector() {
   const { getCanvasTypes } = useCanvasTypes()
   const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({})
   const [canvasLayouts, setCanvasLayouts] = useState<Record<string, CanvasLayoutDetails>>({})
+  const { setNewCanvas, setSelectedType } = useNewCanvas();
 
   useEffect(() => {
     getCanvasTypes().then(setCanvasTypes)
@@ -39,6 +41,11 @@ export function UserCanvasSelector() {
     await loadCanvas(canvasId)
     localStorage.setItem('lastCanvasId', canvasId)
   }
+
+  const handleNewCanvasSelect = (type: CanvasType) => {
+    setSelectedType(type);
+    setNewCanvas(true);
+  };
 
   useEffect(() => {
     const preventScroll = (e: WheelEvent) => {
@@ -155,7 +162,10 @@ export function UserCanvasSelector() {
                 transition={{ duration: 0.2 }}
                 className="w-[300px] flex-shrink-0"
               >
-                <Card className="cursor-pointer hover:shadow-lg transition-shadow h-[280px] flex flex-col">
+                <Card 
+                  className="cursor-pointer hover:shadow-lg transition-shadow h-[280px] flex flex-col"
+                  onClick={() => handleNewCanvasSelect(type)}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-xl">{type.name}</CardTitle>
@@ -168,16 +178,16 @@ export function UserCanvasSelector() {
                       <div
                         className="w-full h-full grid gap-1"
                         style={{
-                          gridTemplateColumns: type.defaultLayout.layout.gridTemplate.columns,
-                          gridTemplateRows: type.defaultLayout.layout.gridTemplate.rows,
+                          gridTemplateColumns: type.defaultLayout?.layout.gridTemplate.columns,
+                          gridTemplateRows: type.defaultLayout?.layout.gridTemplate.rows,
                         }}
                       >
-                        {Array.from({ length: type.defaultLayout.sectionCount }).map((_, index) => (
+                        {Array.from({ length: type.sections.length }).map((_, index) => (
                           <div
                             key={index}
                             className="rounded-sm bg-muted"
                             style={{
-                              gridArea: type.defaultLayout.layout.areas?.[index] || 'auto',
+                              gridArea: type.defaultLayout?.layout.areas?.[index] || 'auto',
                             }}
                           />
                         ))}

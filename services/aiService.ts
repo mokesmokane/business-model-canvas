@@ -42,3 +42,41 @@ export async function sendChatRequest(messages: Message[], currentContent: any) 
     }))
   }
 } 
+
+export async function sendAdminChatRequest(messages: Message[]) {
+  //log in detail the messages 
+  console.log("Sending admin chat request with messages:", messages)
+  const response = await fetch('/api/ai-admin-chat', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ messages }),
+  })
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'No additional error details available' }))
+    throw new Error(`${response.status} ${response.statusText}\n\nDetails: ${JSON.stringify(errorData, null, 2)}`)
+  }
+
+  let data = await response.json()
+
+  console.log(data)
+
+  let result = {
+    role: 'assistant',
+    content: data.message,
+    canvasTypeSuggestions: data.canvasTypeSuggestions?.map((s: any) => ({
+      ...s,
+      id: uuidv4()
+    })),
+    canvasLayoutSuggestions: data.canvasLayoutSuggestions?.map((s: any) => ({
+      ...s,
+      id: uuidv4()
+    }))
+  }
+
+  console.log("Admin chat response:", result)
+
+  return result
+}

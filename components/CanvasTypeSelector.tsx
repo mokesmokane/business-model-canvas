@@ -13,9 +13,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import DynamicIcon from "./Util/DynamicIcon"
 import { useLayouts } from "@/contexts/LayoutContext"
 import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
+import { useNewCanvas } from "@/contexts/NewCanvasContext"
 
 export function CanvasTypeSelector() {
-  const [selectedType, setSelectedType] = useState<CanvasType | null>(null)
+  const { selectedType: initialType, setSelectedType } = useNewCanvas();
+  const [selectedType, setSelectedTypeLocal] = useState<CanvasType | null>(initialType);
   const [selectedLayout, setSelectedLayout] = useState<CanvasLayoutDetails | null>(null)
   const [showDialog, setShowDialog] = useState(false)
   const { theme } = useTheme()
@@ -27,16 +29,35 @@ export function CanvasTypeSelector() {
   const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({})
   
   useEffect(() => {
-    getCanvasTypes().then(setCanvasTypes)
+    getCanvasTypes().then((types) => {
+        setCanvasTypes(types)
+        console.log("canvasTypes in useEffect", canvasTypes)
+    })
   }, [getCanvasTypes])
+
+  useEffect(() => {
+    if (selectedType) {
+      const fetchLayouts = async () => {
+        const layouts = await getLayoutsForSectionCount(selectedType.sections.length);
+        setCompatibleLayouts(layouts);
+        if (!selectedLayout) {
+        }
+      };
+      fetchLayouts();
+    }
+  }, [selectedType, getLayoutsForSectionCount]);
+
+  useEffect(() => {
+    setSelectedType(selectedType);
+  }, [selectedType, setSelectedType]);
 
   const handleCanvasTypeSelect = (canvasType: CanvasType) => {
     if (selectedType === canvasType) {
-      setSelectedType(null)
-      setSelectedLayout(null)
+      setSelectedTypeLocal(null);
+      setSelectedLayout(null);
+      setCompatibleLayouts([]);
     } else {
-      setSelectedType(canvasType)
-      setSelectedLayout(canvasType.defaultLayout)
+      setSelectedTypeLocal(canvasType);
     }
   }
 
@@ -45,21 +66,12 @@ export function CanvasTypeSelector() {
 }
 
   useEffect(() => {
-    if (selectedType) {
-      const fetchLayouts = async () => {
-        const layouts = await getLayoutsForSectionCount(selectedType.defaultLayout.sectionCount)
-        setCompatibleLayouts(layouts)
-      }
-      fetchLayouts()
-    }
-  }, [selectedType, getLayoutsForSectionCount])
-
-  useEffect(() => {
     if (selectedType && containerRef.current) {
       containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
     }
   }, [selectedType])
 
+  console.log("canvasTypes in CanvasTypeSelector", canvasTypes)
   return (
     <div className="flex flex-col items-center gap-8 p-8 bg-background w-full">
       <motion.div

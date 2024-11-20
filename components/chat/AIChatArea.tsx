@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { useChat } from '@/contexts/ChatContext'
+import { AdminMessage, useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
-import { sendChatRequest } from '@/services/aiService'
+import { sendAdminChatRequest, sendChatRequest } from '@/services/aiService'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { ChatHeader } from './ChatHeader'
 import { Section } from '@/types/canvas'
 import { ChatInput } from './ChatInput'
 import { ChatMessageList } from './ChatMessageList'
 import { useAuth } from '@/contexts/AuthContext'
+import { CanvasTypeSuggestion, CanvasLayoutSuggestion } from '@/types/canvas-sections'
 
 
 export function AIChatArea({ onClose }: { onClose?: () => void }) {
@@ -21,6 +22,8 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
   const { isInTrialPeriod, userData } = useAuth()
+  const [activeTool, setActiveTool] = useState<string | null>(null)
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
@@ -48,7 +51,56 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
       addMessages([{ role: 'assistant', content: 'Your trial period has ended. Please upgrade to continue using AI features.' }])
       return
     }
-    if (input.trim()) {
+    if(activeTool) {
+      if(input.trim()) {
+        const userMessage = { role: 'user', content: input, action: activeTool } as Message
+        const updatedMessages = [...messages, userMessage]
+        addMessages(updatedMessages)      
+        setInput('')
+        setIsLoading(true)
+
+        try {
+          const currentMessages = [...updatedMessages.filter((m: Message) => 
+            m.role == 'system' || m.role == 'user' || m.role == 'assistant'
+          )]
+          const aiResponse = await sendAdminChatRequest([...currentMessages])
+          const formattedResponse: AdminMessage = {
+            role: 'assistant',
+            content: aiResponse.content || '',
+            canvasTypeSuggestions: aiResponse.canvasTypeSuggestions?.map((suggestion: any) => ({
+              id: suggestion.id,
+              name: suggestion.name,
+              icon: suggestion.icon,
+              description: suggestion.description,
+              defaultLayout: suggestion.defaultLayout,
+              sections: suggestion.sections,
+              rationale: suggestion.rationale
+            } as CanvasTypeSuggestion)),
+            canvasLayoutSuggestions: aiResponse.canvasLayoutSuggestions?.map((suggestion: any) => ({
+              gridTemplate: {
+                columns: suggestion.gridTemplate.columns,
+                rows: suggestion.gridTemplate.rows
+              },
+              areas: suggestion.areas,
+              rationale: suggestion.rationale
+            } as CanvasLayoutSuggestion))
+          }
+          addMessages([...updatedMessages, formattedResponse])
+        } catch (error) {
+          const errorMessage = error instanceof Error 
+            ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
+            : String(error)
+          
+          addMessages([...updatedMessages, { 
+            role: 'error', 
+            content: `An error occurred:\n\n${errorMessage}` 
+          }])
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    }
+    else if (input.trim()) {
       const userMessage = { role: 'user', content: input } as Message
       const updatedMessages = [...messages, userMessage]
       addMessages(updatedMessages)      
@@ -212,6 +264,10 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     clearMessages()
   }
 
+  const handleAdminToolSelect = async (tool: string | null) => {
+    setActiveTool(tool)
+  }
+
   return (
     <>
           <div className="flex-shrink-0">
@@ -236,6 +292,8 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
                 updateQuestionAnswer(question.section, question)
               }}
               messagesEndRef={messagesEndRef}
+              onAdminToolSelect={handleAdminToolSelect}
+              activeTool={activeTool}
             />
           </div>
           <div className="flex-shrink-0">

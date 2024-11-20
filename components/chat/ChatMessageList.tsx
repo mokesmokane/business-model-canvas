@@ -1,7 +1,7 @@
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Bot, User, AlertTriangle, Users, Heart, Truck, Users2, Coins, Receipt, Building2, Workflow, Gift } from 'lucide-react'
-import { Message } from '@/contexts/ChatContext'
+import { Bot, User, AlertTriangle, Users, Heart, Truck, Users2, Coins, Receipt, Building2, Workflow, Gift, Shield } from 'lucide-react'
+import { Message, AdminMessage } from '@/contexts/ChatContext'
 import { AIThinkingIndicator } from '@/components/ui/ai-thinking'
 import ReactMarkdown from 'react-markdown'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -12,6 +12,10 @@ import { ActionButtons } from './ActionButtons'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Search, HelpCircle, Zap, MessageCircle, Lightbulb } from 'lucide-react'
+import { AdminButtonBar } from './AdminButtonBar'
+import DynamicIcon from '../Util/DynamicIcon'
+import { CanvasTypeService } from '@/services/canvasTypeService'
+import { CanvasLayoutDetails, CanvasType } from '@/types/canvas-sections'
 
 interface ChatMessageListProps {
   messages: Message[]
@@ -21,9 +25,20 @@ interface ChatMessageListProps {
   onSuggestionExpand: (suggestion: { suggestion: string }) => void
   onQuestionSubmit: (question: any) => void
   activeSection: string | null
+  activeTool: string | null
   onSectionSelect: (section: string | null) => void
   onActionSelect: (action: { message: string, section: string, action: string }) => void
   messagesEndRef: React.RefObject<HTMLDivElement>
+  onAdminToolSelect: (tool: string | null) => void
+}
+
+interface CanvasTypeSuggestion {
+  name: string;
+  description: string;
+  icon: string;
+  rationale: string;
+  sections: any[]; // You may want to type this more specifically based on your data structure
+  defaultLayout: CanvasLayoutDetails;
 }
 
 export function ChatMessageList({
@@ -34,9 +49,11 @@ export function ChatMessageList({
   onSuggestionExpand,
   onQuestionSubmit,
   activeSection,
+  activeTool,
   onSectionSelect,
   onActionSelect,
-  messagesEndRef
+  messagesEndRef,
+  onAdminToolSelect
 }: ChatMessageListProps) {
 
   const isEmptyChat = messages.length === 0
@@ -117,10 +134,32 @@ export function ChatMessageList({
   }
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [adminTool, setAdminTool] = useState<string | null>(null)
+  const [showAdminTool, setShowAdminTool] = useState(false)
+
+  const handleSaveCanvasType = async (suggestion: any) => {
+    try {
+      const canvasTypeService = new CanvasTypeService();
+      const canvasType: CanvasType = {
+        id: '', // This will be set by Firestore
+        name: suggestion.name,
+        description: suggestion.description,
+        icon: suggestion.icon,
+        sections: suggestion.sections || [],
+        defaultLayout: suggestion.defaultLayout
+      };
+      
+      await canvasTypeService.saveCanvasType(canvasType);
+      // You might want to add some success feedback here
+    } catch (error) {
+      console.error('Error saving canvas type:', error);
+      // You might want to add some error feedback here
+    }
+  };
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {isEmptyChat ? (
+      {isEmptyChat && !showAdminTool ? (
         <div className="h-full flex flex-col justify-center">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center justify-center gap-2">
@@ -260,6 +299,21 @@ export function ChatMessageList({
                       <HelpCircle className="w-4 h-4 text-purple-500 dark:text-purple-400" />
                       Question Me
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2 text-muted-foreground hover:text-foreground
+                        border-gray-200 dark:border-gray-700 
+                        bg-gray-50 dark:bg-gray-900 
+                        hover:bg-gray-100 dark:hover:bg-gray-800"
+                      onClick={() => {
+                        setShowAdminTool(true)
+                        setSelectedCategory(null)
+                      }}
+                    >
+                      <Shield className="w-4 h-4 text-muted-foreground" />
+                      Admin
+                    </Button>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -294,6 +348,58 @@ export function ChatMessageList({
                 {message.content}
               </ReactMarkdown>
             )}
+            
+            {(message as AdminMessage).canvasTypeSuggestions && (
+              <div className="mt-4 space-y-3">
+                <h4 className="font-medium text-sm">Suggested Canvas Types:</h4>
+                {(message as AdminMessage).canvasTypeSuggestions?.map((suggestion, index) => (
+                  <div key={index} className="bg-background/50 rounded-md p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {/* <DynamicIcon name={suggestion.icon} className="w-5 h-5" /> */}
+                        <h5 className="font-medium">name:{suggestion.name}</h5>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSaveCanvasType(suggestion)}
+                        className="text-blue-500 hover:text-blue-600"
+                      >
+                        Save Canvas Type
+                      </Button>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{suggestion.description}</p>
+                    <div className="text-sm">
+                      <strong className="text-foreground">Rationale:</strong> {suggestion.rationale}
+                    </div>
+                    
+                    {suggestion.sections && suggestion.sections.length > 0 && (
+                      <div className="mt-3">
+                        <h6 className="font-medium text-sm mb-2">Sections:</h6>
+                        <div className="grid grid-cols-2 gap-2">
+                          {suggestion.sections.map((section, sIdx) => (
+                            <div key={sIdx} className="bg-background/30 p-2 rounded-md">
+                              <div className="flex items-center gap-2 mb-1">
+                                <DynamicIcon name={section.icon} className="w-4 h-4" />
+                                <span className="font-medium text-sm">{section.name}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{section.placeholder}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {suggestion.defaultLayout && (
+                      <div className="mt-2 text-sm">
+                        <strong className="text-foreground">Layout:</strong> {suggestion.defaultLayout.name}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {message.suggestions && (
               <div className="mt-2">
                 <AnimatePresence initial={false}>
@@ -316,6 +422,7 @@ export function ChatMessageList({
                 </AnimatePresence>
               </div>
             )}
+
             {message.questions && (
               <motion.div
                 key="questions"
@@ -353,27 +460,38 @@ export function ChatMessageList({
     </div>
   </ScrollArea>
   <div className="flex-shrink-0 flex flex-col">
-    <SectionButtons 
-      activeSection={activeSection}
-      onSectionSelect={onSectionSelect}
-    />
-    <div className={`transition-all duration-200 ease-in-out overflow-hidden ${
-      activeSection 
-        ? 'opacity-100 h-12 translate-y-0' 
-        : 'opacity-0 h-0 translate-y-2 pointer-events-none'
-    }`}>
-      <ActionButtons
-        onActionSelect={(action) => {
-          if(activeSection) {
-            onActionSelect({
-              message: getMessage(action, sectionsMap[activeSection as keyof typeof sectionsMap].name),
-              section: activeSection,
-              action: action
-            })
-          }
-        }}
-      />
-    </div>
+    {showAdminTool ? (
+      <AdminButtonBar activeTool={activeTool} onToolSelect={(tool) => {
+        onAdminToolSelect(tool)
+        if(!tool) {
+          setShowAdminTool(false)
+        }
+      }} />
+    ) : (
+      <>
+        <SectionButtons 
+          activeSection={activeSection}
+          onSectionSelect={onSectionSelect}
+        />
+        <div className={`transition-all duration-200 ease-in-out overflow-hidden ${
+          activeSection 
+            ? 'opacity-100 h-12 translate-y-0' 
+            : 'opacity-0 h-0 translate-y-2 pointer-events-none'
+        }`}>
+          <ActionButtons
+            onActionSelect={(action) => {
+              if(activeSection) {
+                onActionSelect({
+                  message: getMessage(action, sectionsMap[activeSection as keyof typeof sectionsMap].name),
+                  section: activeSection,
+                  action: action
+                })
+              }
+            }}
+          />
+        </div>
+      </>
+    )}
   </div>
         </>
       )}

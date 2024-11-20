@@ -7,7 +7,7 @@ import { useAuth } from './AuthContext';
 import debounce from 'lodash/debounce';
 import { AIQuestion, Canvas, SerializedCanvas, SerializedSections } from '@/types/canvas';
 import { deleteDoc } from 'firebase/firestore';
-import { CANVAS_LAYOUTS, CanvasLayout, CANVAS_TYPES, CanvasLayoutDetails, CanvasType, getInitialCanvasState } from '@/types/canvas-sections';
+import { BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT, CanvasLayout, CanvasLayoutDetails, CanvasType, getInitialCanvasState } from '@/types/canvas-sections';
 
 interface Section {
   name: string;
@@ -47,13 +47,13 @@ interface CanvasContextType {
 
 export const CanvasContext = createContext<CanvasContextType>({
   currentCanvas: null,
-  formData: getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL.layout),
+  formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
   status: 'idle',
   error: null,
   userCanvases: [],
   canvasTheme: 'light',
-  canvasType: CANVAS_TYPES.businessModel,
-  canvasLayout: CANVAS_LAYOUTS.BUSINESS_MODEL.layout,
+  canvasType: BUSINESS_MODEL_CANVAS,
+  canvasLayout: BUSINESS_MODEL_LAYOUT.layout,
   updateLayout: () => { },
   updateField: () => { },
   updateSection: () => { },
@@ -102,7 +102,7 @@ const deserializeSections = (sections: SerializedSections): Map<string, Section>
 export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = React.useState<CanvasState>({
     currentCanvas: null,
-    formData: getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL.layout),
+    formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
     status: 'idle',
     error: null
   });
@@ -289,7 +289,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const resetForm = useCallback(() => {
     setState(prev => ({
       ...prev,
-      formData: prev.currentCanvas || getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL.layout),
+      formData: prev.currentCanvas || getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
       status: 'idle',
       error: null
     }));
@@ -307,7 +307,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         setState(prev => ({
           ...prev,
           currentCanvas: null,
-          formData: getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL.layout),
+          formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
           status: 'idle',
           error: null
         }));
@@ -323,7 +323,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const clearState = useCallback(() => {
     setState({
       currentCanvas: null,
-      formData: getInitialCanvasState(CANVAS_TYPES.businessModel, CANVAS_LAYOUTS.BUSINESS_MODEL.layout),
+      formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
       status: 'idle',
       error: null
     });
