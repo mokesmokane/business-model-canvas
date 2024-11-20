@@ -26,7 +26,7 @@ const canvasTypeSchema = {
           },
           icon: { 
             type: "string",
-            description: "Icon identifier for the canvas type"
+            description: "Lucide Icon identifier for the canvas type e.g. Building2, Gift, Zap etc"
           },
           description: { 
             type: "string",
@@ -93,7 +93,7 @@ const canvasTypeSchema = {
                 },
                 icon: { 
                   type: "string",
-                  description: "Icon identifier for this section"
+                  description: "Lucide Icon identifier for this section e.g. Building2, Gift, Zap etc"
                 },
                 placeholder: { 
                   type: "string",

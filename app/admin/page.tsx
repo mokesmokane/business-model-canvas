@@ -16,6 +16,7 @@ import { CanvasType, CanvasLayoutDetails } from '@/types/canvas-sections';
 import { CanvasTypeService } from '@/services/canvasTypeService';
 import { Trash2, Pencil } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import DynamicIcon from '@/components/Util/DynamicIcon';
 
 export default function AdminPage() {
   const { user, isAdminUser } = useAuth();
@@ -96,6 +97,7 @@ export default function AdminPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Icon</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Sections</TableHead>
@@ -105,6 +107,13 @@ export default function AdminPage() {
             <TableBody>
               {sortCanvasTypeByName(Object.entries(canvasTypes)).map(([id, type]) => (
                 <TableRow key={id}>
+                  <TableCell>
+                    <DynamicIcon 
+                      name={type.icon || 'image'} 
+                      className="w-8 h-8" 
+                      size={24}
+                    />
+                  </TableCell>
                   <TableCell>{type.name}</TableCell>
                   <TableCell>{type.description}</TableCell>
                   <TableCell>{type.sections.length}</TableCell>

@@ -38,8 +38,6 @@ function GridItem({
   onDragEnter,
   onDragEnd,
 }: GridItemProps) {
-  const Icon = item.icon;
-
   return (
     <div
       draggable
@@ -49,7 +47,7 @@ function GridItem({
       onDragOver={(e) => e.preventDefault()}
       style={{ gridArea: item.gridArea }}
       className={`
-        p-4 rounded-lg border flex flex-col justify-between gap-2
+        p-4 rounded-lg border flex flex-col
         transition-colors duration-200 cursor-grab active:cursor-grabbing
         ${isHighlighted ? 'ring-2 ring-primary bg-primary/10' : ''}
         ${canvasTheme === 'dark' 
@@ -59,10 +57,7 @@ function GridItem({
     >
       <div className="flex items-center gap-2">
         <DynamicIcon name={item.icon} className="h-4 w-4 text-muted-foreground" />
-        <span className="font-medium">{item.content}</span>
-      </div>
-      <div className="flex-grow flex items-center justify-center">
-        {/* Content can be added here if needed */}
+        <span className="text-sm font-medium text-muted-foreground">{item.content}</span>
       </div>
     </div>
   );

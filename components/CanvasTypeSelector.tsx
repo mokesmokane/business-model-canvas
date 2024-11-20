@@ -14,6 +14,7 @@ import DynamicIcon from "./Util/DynamicIcon"
 import { useLayouts } from "@/contexts/LayoutContext"
 import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
 import { useNewCanvas } from "@/contexts/NewCanvasContext"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function CanvasTypeSelector() {
   const { selectedType: initialType, setSelectedType } = useNewCanvas();
@@ -73,98 +74,138 @@ export function CanvasTypeSelector() {
 
   console.log("canvasTypes in CanvasTypeSelector", canvasTypes)
   return (
-    <div className="flex flex-col items-center gap-8 p-8 bg-background w-full">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4 w-full max-w-[600px]"
-      >
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Create Your {userCanvases && userCanvases.length > 0 ? 'Next' : 'First'} Canvas</h2>
-        <p className="text-muted-foreground">
-          Choose a canvas type to get started. Each canvas is designed to help you visualize and develop different aspects of your business.
-        </p>
-      </motion.div>
-
-      <div ref={containerRef} className="relative flex flex-wrap gap-6 w-full justify-center min-h-[400px]">
-        <AnimatePresence>
-          {Object.entries(canvasTypes).map(([key, type]) => (
+    <div className="flex flex-col items-center gap-8 bg-background w-full h-screen overflow-hidden">
+      <div className="h-[200px]">
+        <AnimatePresence mode="wait">
+          {!selectedType ? (
             <motion.div
-              key={key}
-              layout
-              initial={{ opacity: 1, scale: 1 }}
-              animate={{
-                opacity: selectedType ? (selectedType === type ? 1 : 0.5) : 1,
-                scale: selectedType === type ? 1.05 : 1,
-                zIndex: selectedType === type ? 10 : 1,
-              }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              style={{
-                width: 300,
-                height: 'auto',
-              }}
+              key="header"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="text-center space-y-4 w-full max-w-[600px] p-8 h-full"
             >
-              <div
-                className={`h-full p-8 flex flex-col items-center gap-4 w-full bg-background hover:bg-muted cursor-pointer border rounded-md relative ${
-                  selectedType === type ? 'shadow-lg' : ''
-                }`}
-                onClick={() => handleCanvasTypeSelect(type)}
-              >
-                <CanvasTypeIcon icon={type.icon} theme={theme} />
+              <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                Create Your {userCanvases && userCanvases.length > 0 ? 'Next' : 'First'} Canvas
+              </h2>
+              <p className="text-muted-foreground">
+                Choose a canvas type to get started. Each canvas is designed to help you visualize and develop different aspects of your business.
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="selected-type"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="w-full max-w-[600px] p-8 h-full"
+            >
+              <div className="flex flex-col items-center gap-4">
+                <CanvasTypeIcon icon={selectedType.icon} theme={theme} />
                 <div className="space-y-2 text-center">
-                  <h3 className="font-semibold text-foreground">{type.name}</h3>
-                  <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-normal">
-                    {type.description}
+                  <h3 className="text-2xl font-semibold text-foreground">{selectedType.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedType.description}
                   </p>
                 </div>
-                {selectedType === type && (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setSelectedType(null)
-                      setSelectedLayout(null)
-                    }}
-                  >
-                    <XIcon className="w-4 h-4" />
-                    <span className="sr-only">Close</span>
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedTypeLocal(null);
+                    setSelectedLayout(null);
+                  }}
+                  className="mt-2"
+                >
+                  <XIcon className="w-4 h-4 mr-2" />
+                  Choose Different Type
+                </Button>
               </div>
             </motion.div>
-          ))}
+          )}
         </AnimatePresence>
       </div>
 
-      
-      <AnimatePresence>
-        {selectedType && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: -20, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mt-8 overflow-hidden"
-          >
-            <LayoutSelector
-              layouts={compatibleLayouts}
-              selectedLayout={selectedLayout}
-              onSelect={handleLayoutSelect}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-    {selectedType && selectedLayout && (
-      <NewCanvasDialog
-        open={showDialog}
-        onOpenChange={setShowDialog}
-        canvasType={selectedType || "businessModel"}
-        layout={selectedLayout.layout}
-        />
+      {!selectedType ? (
+        <ScrollArea className="w-full flex-1">
+          <div className="relative flex flex-wrap gap-6 w-full justify-center p-6">
+            <AnimatePresence>
+              {Object.entries(canvasTypes).map(([key, type]) => (
+                <motion.div
+                  key={key}
+                  layout
+                  initial={{ opacity: 1, scale: 1 }}
+                  animate={{
+                    opacity: selectedType ? (selectedType === type ? 1 : 0.5) : 1,
+                    scale: selectedType === type ? 1.05 : 1,
+                    zIndex: selectedType === type ? 10 : 1,
+                  }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
+                  style={{
+                    width: 300,
+                    height: 'auto',
+                  }}
+                >
+                  <div
+                    className={`h-full p-8 flex flex-col items-center gap-4 w-full bg-background hover:bg-muted cursor-pointer border rounded-md relative ${
+                      selectedType === type ? 'shadow-lg' : ''
+                    }`}
+                    onClick={() => handleCanvasTypeSelect(type)}
+                  >
+                    <CanvasTypeIcon icon={type.icon} theme={theme} />
+                    <div className="space-y-2 text-center">
+                      <h3 className="font-semibold text-foreground">{type.name}</h3>
+                      <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis whitespace-normal">
+                        {type.description}
+                      </p>
+                    </div>
+                    {selectedType === type && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedType(null)
+                          setSelectedLayout(null)
+                        }}
+                      >
+                        <XIcon className="w-4 h-4" />
+                        <span className="sr-only">Close</span>
+                      </Button>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </ScrollArea>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="w-full flex-1 overflow-auto p-8"
+        >
+          <LayoutSelector
+            layouts={compatibleLayouts}
+            selectedLayout={selectedLayout}
+            onSelect={handleLayoutSelect}
+            canvasType={selectedType}
+          />
+        </motion.div>
       )}
+
+      {selectedType && selectedLayout && (
+        <NewCanvasDialog
+          open={showDialog}
+          onOpenChange={setShowDialog}
+          canvasType={selectedType || "businessModel"}
+          layout={selectedLayout.layout}
+          />
+        )}
     </div>
   )
 }

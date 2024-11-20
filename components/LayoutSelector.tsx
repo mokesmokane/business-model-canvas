@@ -2,56 +2,80 @@
 
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { CanvasLayout, CanvasLayoutDetails } from "@/types/canvas-sections"
+import { CanvasLayout, CanvasLayoutDetails, CanvasType } from "@/types/canvas-sections"
+import DynamicIcon from "./Util/DynamicIcon"
 
 interface LayoutSelectorProps {
   layouts: CanvasLayoutDetails[]
   selectedLayout: CanvasLayoutDetails | null
   onSelect: (layout: CanvasLayoutDetails) => void
+  canvasType: CanvasType | null
 }
 
-export function LayoutSelector({ layouts, selectedLayout, onSelect }: LayoutSelectorProps) {
+export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }: LayoutSelectorProps) {
   return (
-    <div className="space-y-4">
-      <h3 className="text-xl font-semibold text-foreground text-center">Choose a Layout</h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-        {layouts.map((layout) => (
-          <motion.div
-            key={layout.id}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: layout === selectedLayout ? 1.05 : 1 }}
-            whileHover={{ scale: 1.05 }}
-            className="min-h-[160px] p-4 transition-all duration-300"
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {layouts.map((layout) => (
+        <Button
+          key={layout.id}
+          variant={selectedLayout?.id === layout.id ? "default" : "outline"}
+          className={`h-[200px] p-4 relative ${
+            selectedLayout?.id === layout.id 
+              ? 'ring-2 ring-primary ring-offset-2'
+              : 'hover:border-primary/50'
+          }`}
+          onClick={() => onSelect(layout)}
+        >
+          <div 
+            className={`absolute inset-1 rounded-lg ${
+              selectedLayout?.id === layout.id
+                ? 'border-primary/30'
+                : 'border-muted-foreground/20'
+            }`}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: layout.layout.gridTemplate.columns,
+              gridTemplateRows: layout.layout.gridTemplate.rows,
+              gap: '0.5rem',
+              padding: '0.5rem',
+            }}
           >
-            <Button
-              variant="outline"
-              className={`w-full h-full min-h-[160px] p-4 ${
-                layout.name === selectedLayout?.name ? 'bg-blue-500 text-white' : 'bg-card text-card-foreground'
-              } hover:bg-blue-400`}
-              onClick={() => onSelect(layout)}
-            >
-              <div className="w-full h-full grid gap-2"
-                style={{
-                  gridTemplateColumns: layout.layout.gridTemplate.columns,
-                  gridTemplateRows: layout.layout.gridTemplate.rows,
-                }}>
-                {Array.from({ length: layout.sectionCount }).map((_, index) => (
-                  <div
-                    key={index}
-                    className={`rounded-sm min-h-[30px] min-w-[30px] ${
-                      layout.name === selectedLayout?.name ? 'bg-white/80' : 'bg-muted/80'
+            {canvasType && layout.layout.areas.map((area, index) => {
+              const [row, col, rowSpan, colSpan] = area.split('/').map(n => n.trim());
+              const sectionData = canvasType.sections[index];
+              return (
+                <div
+                  key={index}
+                  className={`flex flex-col items-center justify-center gap-2 rounded-md  border-2 border-dashed ${
+                    selectedLayout?.id === layout.id
+                      ? 'border-primary/20 bg-primary/5'
+                      : 'border-muted-foreground/10 bg-muted/5'
+                  }`}
+                  style={{
+                    gridArea: `${row} / ${col} / ${rowSpan} / ${colSpan}`,
+                  }}
+                >
+                  <DynamicIcon 
+                    name={sectionData.icon} 
+                    className={`w-4 h-4 ${
+                      selectedLayout?.id === layout.id
+                        ? 'text-primary'
+                        : 'text-muted-foreground'
                     }`}
-                    style={{
-                      gridArea: layout.layout.areas?.[index] || 'auto',
-                      border: '1px solid var(--muted-foreground)',
-                    }}
                   />
-                ))}
-              </div>
-            </Button>
-          </motion.div>
-        ))}
-      </div>
+                  <span className={`text-xs truncate w-full text-center ${
+                    selectedLayout?.id === layout.id
+                      ? 'text-primary'
+                      : 'text-muted-foreground'
+                  }`}>
+                    {sectionData.name}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </Button>
+      ))}
     </div>
   )
 }

@@ -47,7 +47,7 @@ export default function EditCanvasTypePage() {
     if (!canvasType) return;
 
     try {
-      await canvasTypeService.updateCanvasType(params.id, canvasType);
+      await canvasTypeService.updateCanvasType(params.id as string, canvasType);
       router.push('/admin');
     } catch (err) {
       setError('Failed to save canvas type');
