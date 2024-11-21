@@ -42,7 +42,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
-    let unsubscribeCanvases: (() => void) | undefined;
     let unsubscribeUser: (() => void) | undefined;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
@@ -50,19 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsVerified(user?.emailVerified ?? false);
       setLoading(false);
 
-      if (unsubscribeCanvases) {
-        unsubscribeCanvases();
-      }
       if (unsubscribeUser) {
         unsubscribeUser();
       }
 
       if (user) {
         const userDocRef = doc(db, 'users', user.uid);
-        
+
         // Check if user document exists
         const userDoc = await getDoc(userDocRef);
-        
+
         if (!userDoc.exists()) {
           // Create initial user document if it doesn't exist
           await setDoc(userDocRef, {
@@ -100,13 +96,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
-      unsubscribeAuth();
-      if (unsubscribeCanvases) {
-        unsubscribeCanvases();
-      }
       if (unsubscribeUser) {
         unsubscribeUser();
       }
+      unsubscribeAuth();
     };
   }, []);
 

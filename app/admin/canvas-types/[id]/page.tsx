@@ -183,6 +183,7 @@ export default function EditCanvasTypePage() {
                                   placeholder="Section Name"
                                 />
                                 <IconSelector
+
                                   value={section.icon}
                                   onChange={(icon) => {
                                     const updatedSections = [...canvasType.sections];

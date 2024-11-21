@@ -185,6 +185,8 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
 
     // Update layout with new section order
     updateLayout(orderedSectionKeys, selectedLayout);
+    //also save chhosen layout
+    
 
     onOpenChange(false);
   };

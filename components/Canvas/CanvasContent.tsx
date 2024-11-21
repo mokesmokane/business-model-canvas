@@ -9,15 +9,8 @@ interface CanvasContentProps {
 
 export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
   const { formData, canvasTheme, updateSection } = useCanvas();
-  const [layout, setLayout] = useState(formData.canvasLayout);
   let canvasType = formData.canvasType;
 
-  useEffect(() => {
-    if (!formData.canvasLayout) {
-      new CanvasTypeService().getCanvasLayouts()
-        .then(layouts => setLayout(layouts[canvasType.name].layout));
-    }
-  }, [canvasType.name, formData.canvasLayout]);
 
   // Convert sections Map to array and sort by gridIndex
   const sortedSections = Array.from(formData.sections.entries())
@@ -27,15 +20,15 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
       config: canvasType.sections.find(s => s.name === key)
     }))
     .sort((a, b) => (a.section.gridIndex || 0) - (b.section.gridIndex || 0));
-
+  console.log('sortedSections', sortedSections);
   return (
     <div className={`flex flex-col flex-1 p-4 space-y-4 overflow-auto ${
       canvasTheme === 'light' ? 'bg-white text-black' : 'bg-gray-950 text-white'
     }`}>
       <div style={{
         display: 'grid',
-        gridTemplateColumns: layout.gridTemplate.columns,
-        gridTemplateRows: layout.gridTemplate.rows || 'auto auto auto',
+        gridTemplateColumns: formData.canvasLayout.gridTemplate.columns,
+        gridTemplateRows: formData.canvasLayout.gridTemplate.rows || 'auto auto auto',
         gap: '1rem',
         minHeight: '100%',
       }}>
@@ -43,7 +36,7 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
           <div 
             key={item.key} 
             style={{ 
-              gridArea: layout.areas?.[index] || 'auto',
+              gridArea: formData.canvasLayout.areas?.[index] || 'auto',
               minHeight: 0,
               height: 'auto',
               display: 'flex',

@@ -14,6 +14,7 @@ interface IconSelectorProps {
 
 export default function IconSelector({ value, onChange }: IconSelectorProps) {
   const [search, setSearch] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
   const SelectedIcon = value ? icons[value as keyof typeof icons] : null;
 
   const filteredIcons = Object.entries(icons).filter(([name]) => 
@@ -22,53 +23,54 @@ export default function IconSelector({ value, onChange }: IconSelectorProps) {
 
   return (
     <TooltipProvider>
-      <Dialog>
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="w-full justify-start">
-          {SelectedIcon ? (
-            <>
-              <SelectedIcon className="h-4 w-4 mr-2" />
-              {value}
-            </>
-          ) : (
-            "Select an icon"
-          )}
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[1000px]">
-        <DialogHeader>
-          <DialogTitle>Select an Icon</DialogTitle>
-        </DialogHeader> 
-        <div className="p-2">
-          <Input
-            placeholder="Search icons..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="mb-4"
-          />
-          <div className="grid grid-cols-6 gap-4 max-h-[60vh] overflow-y-auto">
-            {filteredIcons.map(([iconName, Icon]) => (
-              <Tooltip key={iconName}>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="flex items-center justify-center p-4 h-20 w-20 hover:bg-accent"
-                    onClick={() => {
-                      onChange(iconName);
-                      setSearch('');
-                    }}
-                  >
-                    <Icon className="!h-8 !w-8" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {iconName}
-                </TooltipContent>
-              </Tooltip>
-            ))}
+          <Button variant="outline" className="w-full justify-start" onClick={() => setIsOpen(true)}>
+            {SelectedIcon ? (
+              <>
+                <SelectedIcon className="h-4 w-4 mr-2" />
+                {value}
+              </>
+            ) : (
+              "Select an icon"
+            )}
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[1000px]">
+          <DialogHeader>
+            <DialogTitle>Select an Icon</DialogTitle>
+          </DialogHeader> 
+          <div className="p-2">
+            <Input
+              placeholder="Search icons..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="mb-4"
+            />
+            <div className="grid grid-cols-6 gap-4 max-h-[60vh] overflow-y-auto">
+              {filteredIcons.map(([iconName, Icon]) => (
+                <Tooltip key={iconName}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="flex items-center justify-center p-4 h-20 w-20 hover:bg-accent"
+                      onClick={() => {
+                        onChange(iconName);
+                        setSearch('');
+                        setIsOpen(false);
+                      }}
+                    >
+                      <Icon className="!h-8 !w-8" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {iconName}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
           </div>
-        </div>
-      </DialogContent>
+        </DialogContent>
       </Dialog>
     </TooltipProvider>
   );

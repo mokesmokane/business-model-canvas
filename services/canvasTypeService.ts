@@ -1,6 +1,6 @@
 import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc } from "firebase/firestore"; 
 import { CanvasLayout, CanvasType, CanvasLayoutDetails } from "../types/canvas-sections";
-const db = getFirestore();
+import { db } from "../lib/firebase";
 
 export class CanvasTypeService {
     private collectionRef = collection(db, "canvasTypes");
@@ -139,16 +139,15 @@ export class CanvasTypeService {
     }
 
     async updateCanvasLayout(id: string, layout: CanvasLayoutDetails): Promise<void> {
-        const response = await fetch(`/api/layouts/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(layout),
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to update layout');
+        try {
+            console.log(`Updating layout ${id}`, layout)
+            const { id: _, ...updateData } = layout;  // Remove id field from update data
+            const docRef = doc(this.layoutCollectionRef, id);
+            await updateDoc(docRef, updateData);
+            console.log("CanvasLayout updated successfully");
+        } catch (error) {
+            console.error("Error updating canvas layout: ", error);
+            throw error;
         }
     }
 }

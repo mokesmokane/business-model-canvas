@@ -109,6 +109,9 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
 
   const { user } = useAuth();
+  if (!user) {
+    return null;
+  }
   const stateRef = useRef(state);
   stateRef.current = state;
 

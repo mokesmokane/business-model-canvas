@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Grid2x2, Plus } from 'lucide-react'
 import { CanvasTypeService } from '@/services/canvasTypeService'
 import { CanvasLayoutDetails } from '@/types/canvas-sections'
-
+import { VisualGridEditor } from '@/components/LayoutGrid/LayoutGridEditor'
 const COLORS = [
   'bg-red-200',
   'bg-blue-200',
@@ -28,6 +28,9 @@ export default function EditLayoutPage() {
   const [error, setError] = useState<string | null>(null)
   const [gridItems, setGridItems] = useState<any[]>([])
   const canvasTypeService = new CanvasTypeService()
+  const[areas, setAreas] = useState<string[]|null>(null)
+  const[cols, setCols] = useState<string|null>(null)
+  const[rows, setRows] = useState<string|null>(null)
 
   useEffect(() => {
     loadLayout()
@@ -63,24 +66,27 @@ export default function EditLayoutPage() {
     setGridItems(items)
   }
 
-  const handleLayoutChange = (newLayout: any) => {
-    const updatedAreas = newLayout.map((item: any) => 
-      `${item.y + 1} / ${item.x + 1} / ${item.y + item.h + 1} / ${item.x + item.w + 1}`
-    )
-    setLayout(prevLayout => ({
-      ...prevLayout!,
-      layout: {
-        ...prevLayout!.layout,
-        areas: updatedAreas,
-      },
-    }))
-    setGridItems(newLayout)
+  const handleLayoutChange = (areas: string[], cols: string, rows: string) => {
+    setAreas(areas)
+    setCols(cols)
+    setRows(rows)
   }
 
   const handleSave = async () => {
     if (!layout) return
+    const newLayout = {
+        ...layout,
+        layout: {
+            ...layout.layout,
+            areas: areas||layout.layout.areas,
+            gridTemplate: {
+                columns: cols||layout.layout.gridTemplate.columns,
+                rows: rows||layout.layout.gridTemplate.rows
+            }
+        }
+    }
     try {
-      await canvasTypeService.updateCanvasLayout(params.id as string, layout)
+      await canvasTypeService.updateCanvasLayout(params.id as string, newLayout)
       router.push('/admin')
     } catch (err) {
       setError('Failed to save layout')
@@ -144,31 +150,13 @@ export default function EditLayoutPage() {
               <label className="text-sm font-medium">Grid Template</label>
               <div className="grid grid-cols-1 gap-4">
                 <Input
-                  value={layout.layout.gridTemplate.columns}
-                  onChange={(e) => setLayout({
-                    ...layout,
-                    layout: {
-                      ...layout.layout,
-                      gridTemplate: {
-                        ...layout.layout.gridTemplate,
-                        columns: e.target.value
-                      }
-                    }
-                  })}
+                  readOnly={true}
+                  value={cols||layout.layout.gridTemplate.columns}
                   placeholder="Grid Columns (e.g., 1fr 1fr 1fr)"
                 />
                 <Input
-                  value={layout.layout.gridTemplate.rows}
-                  onChange={(e) => setLayout({
-                    ...layout,
-                    layout: {
-                      ...layout.layout,
-                      gridTemplate: {
-                        ...layout.layout.gridTemplate,
-                        rows: e.target.value
-                      }
-                    }
-                  })}
+                  readOnly={true}
+                  value={rows||layout.layout.gridTemplate.rows}
                   placeholder="Grid Rows (e.g., auto auto)"
                 />
               </div>
@@ -176,36 +164,14 @@ export default function EditLayoutPage() {
             <div>
               <label className="text-sm font-medium">Grid Areas</label>
               <pre className="bg-gray-100 p-4 rounded-lg overflow-x-auto h-[120px] text-sm">
-                {layout.layout.areas.map((area, index) => `Area ${index + 1}: ${area}\n`).join('')}
+                {(areas||layout.layout.areas).map((area, index) => `Area ${index + 1}: ${area}\n`).join('')}
               </pre>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="flex-grow">
-        <CardHeader>
-          <CardTitle>Visual Grid Editor</CardTitle>
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <div className="mb-4">
-            <Button onClick={addNewArea} className="mr-2">
-              <Plus className="mr-2 h-4 w-4" /> Add Area
-            </Button>
-          </div>
-          <div className="grid grid-cols-12 gap-4 border rounded-lg p-4 bg-gray-50 h-full">
-            {gridItems.map((item, index) => (
-              <div
-                key={item.i}
-                className={`${COLORS[index % COLORS.length]} rounded-lg p-2 flex flex-col justify-between col-span-${item.w} row-span-${item.h}`}
-                style={{ gridColumnStart: item.x + 1, gridRowStart: item.y + 1 }}
-              >
-                <div className="font-bold text-gray-700">Area {parseInt(item.i) + 1}</div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <VisualGridEditor initialAreas={layout.layout.areas} initialCols={layout.layout.gridTemplate.columns} initialRows={layout.layout.gridTemplate.rows} onChange={handleLayoutChange} />
 
       <div className="flex justify-end gap-4">
         <Button variant="outline" onClick={() => router.push('/admin')}>

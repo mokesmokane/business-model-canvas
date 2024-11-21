@@ -97,7 +97,7 @@ export function CanvasSection({
     // updateQuestions(sectionKey, newQuestions)
   }
   
-  
+  console.log('itemsArray', itemsArray);
   return (
     <Card 
       canvasTheme={canvasTheme}
@@ -127,7 +127,7 @@ export function CanvasSection({
                 <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {}} />
               </CardTitle>
             </TooltipTrigger>
-            {(itemsArray.length > 0) && (
+            {(itemsArray.length === 0) && (
               <TooltipContent className={`whitespace-pre-line text-sm ${
                 canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
               }`}>
@@ -142,6 +142,14 @@ export function CanvasSection({
           className="flex-1 relative"
           style={{ height: 'calc(100% - 60px)' }}
         >
+                    {itemsArray.length === 0 && (
+            <div className={`absolute top-0 left-0 pointer-events-none text-sm whitespace-pre-line ${
+              canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
+            }`}>
+              {placeholder}
+            </div>
+          )}
+
           <div className="space-y-2">
             {itemsArray.map((item, index) => (
               <SectionItem
