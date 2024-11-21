@@ -86,3 +86,4 @@ export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }
     </div>
   )
 }
+

@@ -202,7 +202,7 @@ export function CanvasTypeSelector() {
       </div>
 
       {!selectedType ? (
-        <ScrollArea className="w-full flex-1">
+        <ScrollArea className="w-full flex-1 overflow-y-auto">
           <div className="relative flex flex-wrap gap-6 w-full justify-center p-6">
             <AnimatePresence>
               {Object.entries(canvasTypes)
