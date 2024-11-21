@@ -20,6 +20,8 @@ import DynamicIcon from '@/components/Util/DynamicIcon';
 import { DeleteCanvasDialog } from '@/components/DeleteCanvasDialog';
 import { AIAgentService } from '@/services/aiAgentService';
 import { AIAgent } from '@/types/canvas';
+import { TAG_INFO } from '@/src/constants/tags';
+import { TagSuggesterService } from '@/services/tagSuggesterService';
 
 export default function AdminPage() {
   const { user, isAdminUser } = useAuth();
@@ -135,6 +137,32 @@ export default function AdminPage() {
     }
   };
 
+  const handleGenerateTags = async (typeId: string) => {
+    const loadingId = `tags-${typeId}`;
+    setLoading(new Set([...loading, loadingId]));
+    try {
+      const tagSuggesterService = new TagSuggesterService();
+      const suggestedTags = await tagSuggesterService.getSuggestedTags({
+        name: canvasTypes[typeId].name,
+        description: canvasTypes[typeId].description,
+        sections: canvasTypes[typeId].sections
+      });
+      
+      const updatedType = {
+        ...canvasTypes[typeId],
+        tags: suggestedTags
+      };
+      
+      await canvasTypeService.updateCanvasType(typeId, updatedType);
+      await loadData(); // Refresh data
+    } catch (err) {
+      setError('Failed to generate tags');
+      console.error(err);
+    } finally {
+      setLoading(new Set([...loading].filter(id => id !== loadingId)));
+    }
+  };
+
   // Helper function to sort entries by name
   const sortCanvasTypeByName = (entries: [string, CanvasType][]) => {
     return entries.sort((a, b) => a[1].name.localeCompare(b[1].name));
@@ -184,6 +212,7 @@ export default function AdminPage() {
                   <TableHead>Icon</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Tags</TableHead>
                   <TableHead>Sections</TableHead>
                   <TableHead style={{ width: '300px' }}>Default Layout</TableHead>
                   <TableHead>AI Agent</TableHead>
@@ -202,6 +231,37 @@ export default function AdminPage() {
                     </TableCell>
                     <TableCell>{type.name}</TableCell>
                     <TableCell>{type.description}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap gap-1">
+                          {type.tags?.map((tag) => {
+                            const tagInfo = TAG_INFO.find(t => t.name === tag);
+                            return tagInfo ? (
+                              <span
+                                key={tag}
+                                className={`px-2 py-0.5 rounded-full text-sm ${tagInfo.color}`}
+                              >
+                                {tag}
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                        {(!type.tags || type.tags.length === 0) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleGenerateTags(id)}
+                            disabled={loading.has(`tags-${id}`)}
+                          >
+                            {loading.has(`tags-${id}`) ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500" />
+                            ) : (
+                              <PlusCircle className="h-4 w-4" />
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{type.sections.length}</TableCell>
                     <TableCell style={{ width: '300px' }}>
                       <div 

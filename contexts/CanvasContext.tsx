@@ -5,9 +5,10 @@ import { collection, doc, getDoc, setDoc, addDoc, updateDoc, DocumentData, onSna
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 import debounce from 'lodash/debounce';
-import { AIQuestion, Canvas, SerializedCanvas, SerializedSections } from '@/types/canvas';
+import { AIAgent, AIQuestion, Canvas, SerializedCanvas, SerializedSections } from '@/types/canvas';
 import { deleteDoc } from 'firebase/firestore';
 import { BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT, CanvasLayout, CanvasLayoutDetails, CanvasType, getInitialCanvasState } from '@/types/canvas-sections';
+import { AIAgentService } from '@/services/aiAgentService';
 
 interface Section {
   name: string;
@@ -18,6 +19,7 @@ interface Section {
 interface CanvasState {
   currentCanvas: Canvas | null;
   formData: Canvas;
+  aiAgent: AIAgent | null;
   status: 'idle' | 'loading' | 'saving' | 'error';
   error: string | null;
 }
@@ -30,6 +32,7 @@ interface CanvasContextType {
   error: string | null;
   userCanvases: DocumentData[];
   canvasTheme: 'light' | 'dark';
+  aiAgent: AIAgent | null;
   canvasType: CanvasType;
   canvasLayout: CanvasLayout;
   updateField: (field: keyof Canvas, value: string) => void;
@@ -52,6 +55,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   error: null,
   userCanvases: [],
   canvasTheme: 'light',
+  aiAgent: null,
   canvasType: BUSINESS_MODEL_CANVAS,
   canvasLayout: BUSINESS_MODEL_LAYOUT.layout,
   updateLayout: () => { },
@@ -103,6 +107,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = React.useState<CanvasState>({
     currentCanvas: null,
     formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
+    aiAgent: null,
     status: 'idle',
     error: null
   });
@@ -328,6 +333,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     setState({
       currentCanvas: null,
       formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
+      aiAgent: null,
       status: 'idle',
       error: null
     });
@@ -454,6 +460,27 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const canvasType = state.formData.canvasType
   const canvasLayout = state.formData.canvasLayout
 
+  // Add new effect to subscribe to AI agent updates
+  useEffect(() => {
+    if (!state.formData?.canvasType?.id) return;
+
+    // Create reference to AI agent document
+    const aiAgentRef = doc(db, "aiAgents", state.formData.canvasType.id);
+    
+    // Subscribe to real-time updates
+    const unsubscribe = onSnapshot(aiAgentRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setState(prev => ({
+          ...prev,
+          aiAgent: { ...snapshot.data() } as AIAgent
+        }));
+      }
+    });
+
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, [state.formData?.canvasType?.id]);
+
   return (
     <CanvasContext.Provider
       value={{
@@ -463,6 +490,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         error: state.error,
         userCanvases,
         canvasTheme: state.formData.theme || 'light',
+        aiAgent: state.aiAgent,
         canvasType,
         canvasLayout,
         updateField,

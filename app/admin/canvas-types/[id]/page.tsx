@@ -17,6 +17,9 @@ import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { VisualGridEditor } from '@/components/LayoutGrid/LayoutGridEditor';
 import { AIAgent } from '@/types/canvas';
 import { AIAgentService } from '@/services/aiAgentService';
+import { TAG_INFO } from '@/src/constants/tags';
+import { TagSuggesterService } from '@/services/tagSuggesterService';
+
 function isValidGridTemplate(template: string): boolean {
   // Basic validation to check for common grid template patterns
   const validPattern = /^(\d+fr|\d+px|auto)(\s+(\d+fr|\d+px|auto))*$/;
@@ -36,6 +39,7 @@ export default function EditCanvasTypePage() {
   const [aiAgent, setAiAgent] = useState<AIAgent | null>(null);
   const aiAgentService = new AIAgentService();
   const [loading, setLoading] = useState<boolean>(false);
+  const tagSuggesterService = new TagSuggesterService();
 
   const loadAiAgent = async () => {
     const agent = await aiAgentService.getAIAgent(params.id as string);
@@ -148,6 +152,24 @@ export default function EditCanvasTypePage() {
     }
   };
 
+  const fetchSuggestedTags = async () => {
+    setLoading(true);
+    try {
+      const suggestedTags = await tagSuggesterService.getSuggestedTags({
+        name: canvasType!.name,
+        description: canvasType!.description,
+        sections: canvasType!.sections
+      });
+      
+      setCanvasType({ ...canvasType!, tags: suggestedTags });
+    } catch (error) {
+      setError('Failed to fetch tag suggestions');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!canvasType) return null;
 
   return (
@@ -192,6 +214,44 @@ export default function EditCanvasTypePage() {
                 onChange={(icon) => setCanvasType({ ...canvasType, icon })}
                 />
               </TooltipProvider>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">Tags</label>
+                <Button 
+                  onClick={fetchSuggestedTags} 
+                  disabled={loading}
+                  size="sm"
+                  variant="outline"
+                >
+                  <Pencil className="h-4 w-4 mr-2" />
+                  {loading ? 'Suggesting...' : 'Suggest Tags'}
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {TAG_INFO.map(({ name, color }) => {
+                  const isSelected = canvasType.tags?.includes(name);
+                  return (
+                    <button
+                      key={name}
+                      onClick={() => {
+                        const currentTags = canvasType.tags || [];
+                        const newTags = currentTags.includes(name)
+                          ? currentTags.filter((t) => t !== name)
+                          : [...currentTags, name];
+                        setCanvasType({ ...canvasType, tags: newTags });
+                      }}
+                      className={`
+                        px-3 py-1 rounded-full text-sm font-medium
+                        transition-colors duration-200
+                        ${isSelected ? color : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
+                      `}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </CardContent>
         </Card>

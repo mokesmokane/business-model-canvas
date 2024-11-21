@@ -37,7 +37,7 @@ export function AIItemAssistButton({
   onDropdownStateChange 
 }: AIItemAssistButtonProps) {
   const { setIsLoading, addMessages, isLoading, messages } = useChat()
-  const { formData, canvasTheme } = useCanvas()
+  const { formData, canvasTheme, aiAgent } = useCanvas()
 
   const handleAction = async (action: string) => {
     onExpandSidebar()
@@ -61,7 +61,10 @@ export function AIItemAssistButton({
     await addMessages(updatedMessages)
     setIsLoading(true)
     try {
-      const aiResponse = await sendChatRequest(updatedMessages, formData)
+      if(!aiAgent) {
+        throw new Error('No AI agent found')
+      }
+      const aiResponse = await sendChatRequest(updatedMessages, formData, aiAgent)
       const formattedResponse: Message = {
         role: 'assistant',
         content: aiResponse.content || '',

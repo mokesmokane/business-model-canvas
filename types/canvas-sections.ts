@@ -42,6 +42,7 @@ export interface CanvasType {
   description: string
   defaultLayout?: CanvasLayoutDetails
   sections: CanvasSection[]
+  tags?: string[]
 }
 
 export interface CanvasLayoutSuggestion extends CanvasLayout {

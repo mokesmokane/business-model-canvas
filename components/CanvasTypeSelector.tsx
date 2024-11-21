@@ -16,6 +16,7 @@ import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
 import { useNewCanvas } from "@/contexts/NewCanvasContext"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
+import { TAG_INFO } from "@/src/constants/tags"
 
 export function CanvasTypeSelector() {
   const { selectedType: initialType, setSelectedType } = useNewCanvas();
@@ -29,6 +30,7 @@ export function CanvasTypeSelector() {
   const { getCanvasTypes } = useCanvasTypes()
   const [compatibleLayouts, setCompatibleLayouts] = useState<CanvasLayoutDetails[]>([])
   const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({})
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   useEffect(() => {
     getCanvasTypes().then((types) => {
@@ -107,6 +109,15 @@ export function CanvasTypeSelector() {
   }, [selectedType])
 
   console.log("canvasTypes in CanvasTypeSelector", canvasTypes)
+
+  const handleTagSelect = (tagName: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tagName) 
+        ? prev.filter(t => t !== tagName)
+        : [...prev, tagName]
+    );
+  };
+
   return (
     <div className="flex flex-col items-center gap-8 bg-background w-full h-screen overflow-hidden">
       <div className="h-[200px]">
@@ -118,7 +129,7 @@ export function CanvasTypeSelector() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="text-center space-y-4 w-full max-w-[600px] p-8 h-full"
+              className="text-center space-y-4 w-full min-w-[600px] max-w-[800px] p-8 h-full"
             >
               <h2 className="text-3xl font-bold tracking-tight text-foreground">
                 Create Your {userCanvases && userCanvases.length > 0 ? 'Next' : 'First'} Canvas
@@ -126,6 +137,21 @@ export function CanvasTypeSelector() {
               <p className="text-muted-foreground">
                 Choose a canvas type to get started. Each canvas is designed to help you visualize and develop different aspects of your business.
               </p>
+              <div className="flex flex-wrap gap-2 justify-center mt-4">
+                {TAG_INFO.map(({ name, color }) => (
+                  <button
+                    key={name}
+                    onClick={() => handleTagSelect(name)}
+                    className={`
+                      px-3 py-1 rounded-full text-sm font-medium
+                      transition-colors duration-200
+                      ${selectedTags.includes(name) ? color : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
+                    `}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
             </motion.div>
           ) : (
             <motion.div
@@ -166,7 +192,12 @@ export function CanvasTypeSelector() {
         <ScrollArea className="w-full flex-1">
           <div className="relative flex flex-wrap gap-6 w-full justify-center p-6">
             <AnimatePresence>
-              {Object.entries(canvasTypes).map(([key, type]) => (
+              {Object.entries(canvasTypes)
+                .filter(([_, type]) => 
+                  selectedTags.length === 0 || 
+                  selectedTags.every(tag => type.tags?.includes(tag))
+                )
+                .map(([key, type]) => (
                 <motion.div
                   key={key}
                   layout
