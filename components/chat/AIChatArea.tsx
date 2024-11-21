@@ -17,7 +17,7 @@ import { useAIAgents } from '@/contexts/AIAgentContext'
 
 export function AIChatArea({ onClose }: { onClose?: () => void }) {
 
-  const { updateSection, updateQuestionAnswer, formData } = useCanvas()
+  const { updateSection, updateQuestionAnswer, formData, aiAgent } = useCanvas()
   const { messages, addMessage, addMessages, input, setInput, isLoading, setIsLoading, clearMessages } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
@@ -25,7 +25,6 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   const { isInTrialPeriod, userData } = useAuth()
   const [activeTool, setActiveTool] = useState<string | null>(null)
   const { getAIAgent } = useAIAgents()
-  const [aiAgent, setAiAgent] = useState<AIAgent | null>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -38,15 +37,6 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     updateSection(section, newItems)
     // handleRemoveSuggestion(index, suggestionId)
   }
-
-  useEffect(() => {
-    if (formData.canvasType) {
-      getAIAgent(formData.canvasType.id).then((agent) => {
-        console.log('agent', agent)
-        setAiAgent(agent)
-      })
-    }
-  }, [setAiAgent])
 
   const handleSend = async () => {
     console.log('isInTrialPeriod', isInTrialPeriod)

@@ -29,7 +29,7 @@ interface AISectionAssistButtonProps {
 
 export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: AISectionAssistButtonProps) {
   const { setIsLoading, addMessages, isLoading, messages } = useChat()
-  const { formData, canvasTheme } = useCanvas()
+  const { formData, canvasTheme, aiAgent } = useCanvas()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   const handleAction = async (action: string) => {
@@ -56,7 +56,10 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
     await addMessages(updatedMessages)
     setIsLoading(true)
     try {
-      const aiResponse = await sendChatRequest(updatedMessages, formData)
+      if(!aiAgent) {
+        throw new Error('No AI agent selected')
+      }
+      const aiResponse = await sendChatRequest(updatedMessages, formData, aiAgent)
       const formattedResponse: Message = {
         role: 'assistant',
         content: aiResponse.content || '',
