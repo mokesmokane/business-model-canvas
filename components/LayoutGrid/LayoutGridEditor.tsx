@@ -22,9 +22,17 @@ interface VisualGridEditorProps {
 }
 
 export function VisualGridEditor({ initialAreas, initialCols, initialRows, onChange }: VisualGridEditorProps) {
+    console.log('initialAreas', initialAreas)
+    console.log('initialCols', initialCols)
+    console.log('initialRows', initialRows)
   const [gridItems, setGridItems] = useState<GridItem[]>([])
 
   useEffect(() => {
+    if (initialRows.includes('repeat')) {
+      console.error('Invalid row definition: "repeat" syntax is not supported.')
+      return
+    }
+
     const initialItems = cssToGridItems(initialAreas, initialCols, initialRows)
     setGridItems(initialItems)
   }, [initialAreas, initialCols, initialRows])

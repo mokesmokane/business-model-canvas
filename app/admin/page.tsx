@@ -14,10 +14,12 @@ import {
 } from '@/components/ui/table';
 import { CanvasType, CanvasLayoutDetails } from '@/types/canvas-sections';
 import { CanvasTypeService } from '@/services/canvasTypeService';
-import { Trash2, Pencil } from 'lucide-react';
+import { Trash2, Pencil, Bot, PlusCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import DynamicIcon from '@/components/Util/DynamicIcon';
 import { DeleteCanvasDialog } from '@/components/DeleteCanvasDialog';
+import { AIAgentService } from '@/services/aiAgentService';
+import { AIAgent } from '@/types/canvas';
 
 export default function AdminPage() {
   const { user, isAdminUser } = useAuth();
@@ -31,13 +33,17 @@ export default function AdminPage() {
   const [dialogType, setDialogType] = useState<'type' | 'layout' | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState<string>('');
+  const [aiAgents, setAiAgents] = useState<Record<string,AIAgent>>({});
+  const [loading, setLoading] = useState<Set<string>>(new Set());
+
+  const aiAgentService = new AIAgentService();
 
   useEffect(() => {
     if (!isAdminUser) {
       router.push('/');
       return;
     }
-
+    
     loadData();
   }, [user, router]);
 
@@ -45,8 +51,10 @@ export default function AdminPage() {
     try {
       const types = await canvasTypeService.getCanvasTypes();
       const layoutsData = await canvasTypeService.getCanvasLayouts();
+      const aiAgentsData = await aiAgentService.getAiAgents();
       setCanvasTypes(types);
       setLayouts(layoutsData);
+      setAiAgents(aiAgentsData);
     } catch (err) {
       setError('Failed to load data');
       console.error(err);
@@ -93,6 +101,37 @@ export default function AdminPage() {
     } catch (err) {
       setError('Failed to delete layout');
       console.error(err);
+    }
+  };
+
+  const handleGenerateAIAgent = async (typeId: string) => {
+    setLoading(new Set([...loading, typeId]));
+    try {
+      const response = await fetch('/api/ai-agent-creator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ canvasType: typeId }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate AI agent');
+      }
+
+      const { aiAgent } = await response.json();
+
+      if (aiAgent) {
+        await aiAgentService.updateAIAgent(typeId, aiAgent);
+        await loadData(); // Refresh data after creating AI agent
+      } else {
+        throw new Error('AI agent creation failed');
+      }
+    } catch (err) {
+      setError('Failed to generate AI agent');
+      console.error(err);
+    } finally {
+      setLoading(new Set([...loading].filter(id => id !== typeId)));
     }
   };
 
@@ -147,6 +186,7 @@ export default function AdminPage() {
                   <TableHead>Description</TableHead>
                   <TableHead>Sections</TableHead>
                   <TableHead style={{ width: '300px' }}>Default Layout</TableHead>
+                  <TableHead>AI Agent</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -186,6 +226,20 @@ export default function AdminPage() {
                           );
                         })}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {aiAgents[id] ? (
+                        <Bot className="h-4 w-4 text-green-500" />
+                      ) : loading.has(id) ?<div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                      :(
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleGenerateAIAgent(id)}
+                        >
+                          <PlusCircle className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -285,6 +339,7 @@ export default function AdminPage() {
         onConfirm={confirmDelete}
         canvasName={selectedName}
       />
+
     </div>
   );
 } 

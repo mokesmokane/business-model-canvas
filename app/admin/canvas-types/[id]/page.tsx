@@ -14,6 +14,14 @@ import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Grip, Plus, Trash2, Pencil } from 'lucide-react';
 import IconSelector from '@/app/components/IconSelector';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
+import { VisualGridEditor } from '@/components/LayoutGrid/LayoutGridEditor';
+import { AIAgent } from '@/types/canvas';
+import { AIAgentService } from '@/services/aiAgentService';
+function isValidGridTemplate(template: string): boolean {
+  // Basic validation to check for common grid template patterns
+  const validPattern = /^(\d+fr|\d+px|auto)(\s+(\d+fr|\d+px|auto))*$/;
+  return validPattern.test(template);
+}
 
 export default function EditCanvasTypePage() {
   const { isAdminUser } = useAuth();
@@ -22,6 +30,17 @@ export default function EditCanvasTypePage() {
   const [error, setError] = useState<string | null>(null);
   const [canvasType, setCanvasType] = useState<CanvasType | null>(null);
   const canvasTypeService = new CanvasTypeService();
+  const [defaultAreas, setDefaultAreas] = useState<string[]>(canvasType?.defaultLayout?.layout.areas || []);
+  const [defaultCols, setDefaultCols] = useState<string>(canvasType?.defaultLayout?.layout.gridTemplate.columns || '');
+  const [defaultRows, setDefaultRows] = useState<string>(canvasType?.defaultLayout?.layout.gridTemplate.rows || '');
+  const [aiAgent, setAiAgent] = useState<AIAgent | null>(null);
+  const aiAgentService = new AIAgentService();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const loadAiAgent = async () => {
+    const agent = await aiAgentService.getAIAgent(params.id as string);
+    setAiAgent(agent);
+  }
 
   useEffect(() => {
     if (!isAdminUser) {
@@ -30,6 +49,7 @@ export default function EditCanvasTypePage() {
     }
 
     loadCanvasType();
+    loadAiAgent();
   }, [isAdminUser, router]);
 
   const loadCanvasType = async () => {
@@ -37,6 +57,11 @@ export default function EditCanvasTypePage() {
       const typeId = params.id as string;
       const type = await canvasTypeService.getCanvasType(typeId);
       setCanvasType(type);
+
+      setDefaultAreas(type?.defaultLayout?.layout.areas || []);
+      setDefaultCols(type?.defaultLayout?.layout.gridTemplate.columns || '');
+      setDefaultRows(type?.defaultLayout?.layout.gridTemplate.rows || '');
+      //use examples for testing
     } catch (err) {
       setError('Failed to load canvas type');
       console.error(err);
@@ -46,11 +71,31 @@ export default function EditCanvasTypePage() {
   const handleSave = async () => {
     if (!canvasType) return;
 
+    // Save CanvasType
+    const updatedCanvasType = {
+      ...canvasType,
+      defaultLayout: {
+        ...canvasType.defaultLayout!,
+        layout: {
+          ...canvasType.defaultLayout!.layout,
+          areas: defaultAreas,
+          gridTemplate: {
+            columns: defaultCols,
+            rows: defaultRows,
+          },
+        },
+      },
+    };
+
     try {
-      await canvasTypeService.updateCanvasType(params.id as string, canvasType);
+      await canvasTypeService.updateCanvasType(params.id as string, updatedCanvasType);
+      // Save AIAgent
+      if (aiAgent) {
+        await aiAgentService.updateAIAgent(params.id as string, aiAgent);
+      }
       router.push('/admin');
     } catch (err) {
-      setError('Failed to save canvas type');
+      setError('Failed to save changes');
       console.error(err);
     }
   };
@@ -72,6 +117,35 @@ export default function EditCanvasTypePage() {
       ...canvasType,
       sections: updatedSections
     });
+  };
+
+  const fetchSuggestedAIAgent = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/ai-agent-creator', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ canvasType }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch AI agent');
+      }
+
+      const data = await response.json();
+      if (data.aiAgent) {
+        setAiAgent(data.aiAgent);
+      } else {
+        setError('No AI agent data received');
+      }
+    } catch (error) {
+      setError('Failed to fetch AI agent');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!canvasType) return null;
@@ -121,7 +195,47 @@ export default function EditCanvasTypePage() {
             </div>
           </CardContent>
         </Card>
-
+        <Card>
+          <CardHeader>
+            <CardTitle>Default Layout</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Grid Columns</label>
+              <Input
+                value={defaultCols}
+                onChange={(e) => setDefaultCols(e.target.value)}
+                placeholder="Grid Columns (e.g., 1fr 1fr 1fr)"
+              />
+              {!isValidGridTemplate(defaultCols) && (
+                <p className="text-red-500 text-sm">Invalid syntax: Please use a valid grid template format.</p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Grid Rows</label>
+              <Input
+                value={defaultRows}
+                onChange={(e) => setDefaultRows(e.target.value)}
+                placeholder="Grid Rows (e.g., auto auto)"
+              />
+              {!isValidGridTemplate(defaultRows) && (
+                <p className="text-red-500 text-sm">Invalid syntax: Please use a valid grid template format.</p>
+              )}
+            </div>
+            {isValidGridTemplate(defaultCols) && isValidGridTemplate(defaultRows) && (
+              <VisualGridEditor
+                initialAreas={defaultAreas}
+                initialCols={defaultCols}
+                initialRows={defaultRows}
+                onChange={(areas, cols, rows) => {
+                  setDefaultAreas(areas);
+                  setDefaultCols(cols);
+                  setDefaultRows(rows);
+                }}
+              />
+            )}
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
@@ -240,11 +354,100 @@ export default function EditCanvasTypePage() {
             </DragDropContext>
           </CardContent>
         </Card>
-
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>AI Agent</span>
+              <Button onClick={fetchSuggestedAIAgent} disabled={loading}>
+                {loading ? 'Loading...' : 'Fetch Suggested AI Agent'}
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={aiAgent?.name || ''}
+                onChange={(e)=>{
+                    var newAiAgent = {...aiAgent, name: e.target.value } as AIAgent
+                    setAiAgent(newAiAgent)
+                }}
+                placeholder="AI Agent Name"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">System Prompt</label>
+              <Textarea
+                value={aiAgent?.systemPrompt || ''}
+                onChange={(e) => {
+                    var newAiAgent = {...aiAgent, systemPrompt: e.target.value } as AIAgent
+                    setAiAgent(newAiAgent)
+                }}
+                placeholder="System Prompt"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Question Prompt</label>
+              <Textarea
+                value={aiAgent?.questionPrompt || ''}
+                onChange={(e) => {
+                    var newAiAgent = {...aiAgent, questionPrompt: e.target.value } as AIAgent
+                    setAiAgent(newAiAgent)
+                }}
+                placeholder="Question Prompt"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Critique Prompt</label>
+              <Textarea
+                value={aiAgent?.critiquePrompt || ''}
+                onChange={(e) => {
+                    var newAiAgent = {...aiAgent, critiquePrompt: e.target.value } as AIAgent
+                    setAiAgent(newAiAgent)
+                }}
+                placeholder="Critique Prompt"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Research Prompt</label>
+              <Textarea
+                value={aiAgent?.researchPrompt || ''}
+                onChange={(e) => {
+                    var newAiAgent = {...aiAgent, researchPrompt: e.target.value } as AIAgent
+                    setAiAgent(newAiAgent)
+                }}
+                placeholder="Research Prompt"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Suggest Prompt</label>
+              <Textarea
+                value={aiAgent?.suggestPrompt || ''}
+                onChange={(e) => {
+                    var newAiAgent = {...aiAgent, suggestPrompt: e.target.value } as AIAgent
+                    setAiAgent(newAiAgent)
+                }}
+                placeholder="Suggest Prompt"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Question Tool Description</label>
+              <Textarea
+                value={aiAgent?.questionToolDescription || ''}
+                onChange={(e) => {
+                    var newAiAgent = {...aiAgent, questionToolDescription: e.target.value } as AIAgent
+                    setAiAgent(newAiAgent)
+                }}
+                placeholder="Question Tool Description"
+              />
+            </div>
+          </CardContent>
+        </Card>
         <div className="flex justify-end">
           <Button onClick={handleSave}>Save Changes</Button>
         </div>
       </div>
+
     </div>
   );
 } 

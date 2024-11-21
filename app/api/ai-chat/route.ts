@@ -7,34 +7,41 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })
 
-const businessModelSchema = {
-  type: "object",
-  properties: {
-    suggestions: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          section: {
-            type: "string",
-            enum: ["keyPartners", "keyActivities", "keyResources", "valuePropositions", "customerRelationships", "channels", "customerSegments", "costStructure", "revenueStreams"],
-            description: "The section of the Business Model Canvas that the suggestion is for"
+const sections = ["keyPartners", "keyActivities", "keyResources", "valuePropositions", "customerRelationships", "channels", "customerSegments", "costStructure", "revenueStreams"]
+
+
+
+function suggestionsToolSchema(sections:string[],canvasName:string) {
+  return {
+    type: "object",
+    properties: {
+      suggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            section: {
+              type: "string",
+              enum: sections,
+              description: `The section of the ${canvasName} that the suggestion is for`
+            },
+            suggestion: { type: "string", description: "The suggested improvement" },
+            rationale: { type: "string", description: "Brief explanation of why this suggestion would be valuable" }
           },
-          suggestion: { type: "string", description: "The suggested improvement" },
-          rationale: { type: "string", description: "Brief explanation of why this suggestion would be valuable" }
-        },
-        required: ["suggestion", "rationale"],
-        additionalProperties: false
+          required: ["suggestion", "rationale"],
+          additionalProperties: false
+        }
       }
-    }
-  },
-  required: ["suggestions"],
-  additionalProperties: false
+    },
+    required: ["suggestions"],
+    additionalProperties: false
+  }
 }
 
-const questionSchema = {
-  type: "object",
-  properties: {
+function questionSchema(sections:string[],canvasName:string) {
+  return {
+    type: "object",
+    properties: {
     questions: { 
       type: "array", 
       items: { 
@@ -51,8 +58,8 @@ const questionSchema = {
           },
           section: {
             type: "string",
-            enum: ["keyPartners", "keyActivities", "keyResources", "valuePropositions", "customerRelationships", "channels", "customerSegments", "costStructure", "revenueStreams"],
-            description: "The section of the Business Model Canvas that the suggestion is for"
+            enum: sections,
+            description: `The section of the ${canvasName} that the question is for`
           },
           options: {
             type: "array",
@@ -79,7 +86,7 @@ const questionSchema = {
   required: ["questions"],
   additionalProperties: false
 }
-
+}
 export async function POST(request: Request) {
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
@@ -89,7 +96,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { currentContent, messages } = await request.json()
+    const { currentContent, messages, aiAgent, canvasName } = await request.json()
     
     // Expand any messages that contain suggestions into individual messages
     const expanded_messages = messages.flatMap((msg: Message) => {
@@ -103,34 +110,65 @@ export async function POST(request: Request) {
     })
     //if the last message is an action, chaneg the system prompt accordingly
     const action = messages[messages.length - 1].action
+    
+    let spromt = aiAgent.systemPrompt
+    let questionPrompt = aiAgent.questionPrompt
+    let critiquePrompt = aiAgent.critiquePrompt
+    let researchPrompt = aiAgent.researchPrompt
+    let suggestPrompt = aiAgent.suggestPrompt
+    let questionToolDescription = aiAgent.questionToolDescription
+
+    // let spromt = `You are a business model expert. 
+    //   You can either provide structured suggestions using the suggestions function, or engage in a natural conversation about business models.
+    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.`
+    
+    // let questionPrompt = `You are a business model expert helping a client understand their business model. 
+    //   Based on your expertise, you come up with insightful questions that makes it easy for the client to develop their business model.
+    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.`
+
+    // let critiquePrompt = `You are a business model expert. Your task is to critique the business model and drill down on any weaknesses
+    //     You should focus one one section, or one specific point at a time and provide a detailed critique.
+    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
+    //     Give your response in Markdown format.`
+
+    // let researchPrompt = `You are a business model expert. 
+    //   You suggest ways in which the client needs to research aspects of their business model. give very specific advice on how they can do this and areas of research to focus on.
+    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
+    //   Give your response in Markdown format.`
+
+    // let suggestPrompt = `You are a business model expert. You can suggest items to add to the business model canvas.
+    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.`
+
+    // let questionToolDescription = `Ask up to 3 questions to the client about their business model. ask question to help the client surface their thoughts and ideas about their business model. You will later use the data to help them further`
+    
+    
+
     let canvasInfo = `The Canvas currently looks like this:
       
-Company Name: ${currentContent?.name ?? ''}
-Company Description: ${currentContent?.description ?? ''}
+      Name: ${currentContent?.name ?? ''}
+      Company Description: ${currentContent?.description ?? ''}
 
-${Object.entries(currentContent?.sections || {}).map(([key, section]: [string, any]) => `
-${section.name}:
-Items: ${section.items?.join('\n') ?? ''}
-Q&A: ${section.qAndAs?.map((qa: { question: string; answer?: string | number; type: string; scale?: { max: number; label: string } }) => {
-  let formattedAnswer = 'Unanswered';
-  if (qa.answer !== undefined) {
-    if (qa.type === 'rating' && qa.scale) {
-      formattedAnswer = `${qa.answer}/${qa.scale.max} (${qa.scale.label})`;
-    } else if (qa.type === 'multipleChoice') {
-      formattedAnswer = `Selected: ${qa.answer}`;
-    } else {
-      formattedAnswer = String(qa.answer);
-    }
-  }
-  return `\nQ: ${qa.question}\nA: ${formattedAnswer}`;
-}).join('\n') ?? ''}`).join('\n\n')}
-`
+      ${Object.entries(currentContent?.sections || {}).map(([key, section]: [string, any]) => `
+      ${section.name}:
+      Items: ${section.items?.join('\n') ?? ''}
+      Q&A: ${section.qAndAs?.map((qa: { question: string; answer?: string | number; type: string; scale?: { max: number; label: string } }) => {
+        let formattedAnswer = 'Unanswered';
+        if (qa.answer !== undefined) {
+          if (qa.type === 'rating' && qa.scale) {
+            formattedAnswer = `${qa.answer}/${qa.scale.max} (${qa.scale.label})`;
+          } else if (qa.type === 'multipleChoice') {
+            formattedAnswer = `Selected: ${qa.answer}`;
+          } else {
+            formattedAnswer = String(qa.answer);
+          }
+        }
+        return `\nQ: ${qa.question}\nA: ${formattedAnswer}`;
+      }).join('\n') ?? ''}`).join('\n\n')}`
+    
 
     let systemPrompt = {
       role: "system",
-      content: `You are a business model expert. 
-      You can either provide structured suggestions using the business_model_suggestions function, or engage in a natural conversation about business models.
-      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
+      content: `${spromt}
 
       ${canvasInfo}
       
@@ -138,32 +176,24 @@ Q&A: ${section.qAndAs?.map((qa: { question: string; answer?: string | number; ty
     }
     let tool_call = 'auto'
     if (action === 'question') {
-      systemPrompt.content = `You are a business model expert helping a client understand their business model. 
-      Based on your expertise, you come up with insightful questions that makes it easy for the client to develop their business model.
-      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
+      systemPrompt.content = `${questionPrompt}
 
       ${canvasInfo}
       `
       tool_call = 'required'
     } else if (action === 'critique') {
-      systemPrompt.content = `You are a business model expert. Your task is to critique the business model and drill down on any weaknesses
-        You should focus one one section, or one specific point at a time and provide a detailed critique.
-      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
-      Give your response in Markdown format.
+      systemPrompt.content = `${critiquePrompt}
 
       ${canvasInfo}
       `
     } else if (action === 'research') {
-      systemPrompt.content = `You are a business model expert. 
-      You suggest ways in which the client needs to research aspects of their business model. give very specific advice on how they can do this and areas of research to focus on.
-      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
-      Give your response in Markdown format.
+      systemPrompt.content = `${researchPrompt}
+
       ${canvasInfo}
       `
     } else if (action === 'suggest') {
-      systemPrompt.content = `You are a business model expert. You can suggest items to add to the business model canvas.
-      The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
-      
+      systemPrompt.content = `${suggestPrompt}
+
       ${canvasInfo}
       `
       tool_call = 'required'
@@ -178,19 +208,21 @@ Q&A: ${section.qAndAs?.map((qa: { question: string; answer?: string | number; ty
       type: "function" as const,
       function: {
         name: "questions",
-        description: "Ask up to 3 questions to the client about their business model. ask question to help the client surface their thoughts and ideas about their business model. You will later use the data to help them further",
+        description: questionToolDescription,
         strict: true,
-        parameters: questionSchema
+        parameters: questionSchema(sections, canvasName)
       }
     }
+
     let suggestTool = {
       type: "function" as const,
       function: {
         name: "business_model_suggestions",
-        description: "Provide structured suggestions for improving a section of the Business Model Canvas",
-        parameters: businessModelSchema
+        description: 'Provide structured suggestions for improving a section of the Business Model Canvas',
+        parameters: suggestionsToolSchema(sections, canvasName)
       }
     }
+
     const completion = await openai.chat.completions.create({
       messages: messages_list as ChatCompletionMessageParam[],
       model: "gpt-4o",

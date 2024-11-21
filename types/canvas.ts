@@ -2,6 +2,17 @@ import { CanvasLayout, CanvasLayoutDetails } from "./canvas-sections";
 
 import { CanvasType } from "./canvas-sections";
 
+
+export interface AIAgent {
+  name: string;
+  systemPrompt: string;
+  questionPrompt: string;
+  critiquePrompt: string;
+  researchPrompt: string;
+  suggestPrompt: string;
+  questionToolDescription: string;
+}
+
 export interface AISuggestion {
   id: string;
   suggestion: string;
