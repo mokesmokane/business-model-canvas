@@ -7,6 +7,17 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  safelist: [
+    {
+      pattern: /bg-(blue|green|purple|orange|pink|indigo|yellow|red|teal|cyan|lime|emerald|sky|violet|rose|amber|fuchsia)-(100|200|800)/,
+    },
+    {
+      pattern: /text-(blue|green|purple|orange|pink|indigo|yellow|red|teal|cyan|lime|emerald|sky|violet|rose|amber|fuchsia)-800/,
+    },
+    {
+      pattern: /hover:bg-(blue|green|purple|orange|pink|indigo|yellow|red|teal|cyan|lime|emerald|sky|violet|rose|amber|fuchsia)-200/,
+    }
+  ],
   theme: {
   	extend: {
   		colors: {

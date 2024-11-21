@@ -129,23 +129,29 @@ export function CanvasTypeSelector() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="text-center space-y-4 w-full min-w-[600px] max-w-[800px] p-8 h-full"
+              className="text-center space-y-4 w-full p-8 h-full"
             >
-              <h2 className="text-3xl font-bold tracking-tight text-foreground">
-                Create Your {userCanvases && userCanvases.length > 0 ? 'Next' : 'First'} Canvas
-              </h2>
-              <p className="text-muted-foreground">
-                Choose a canvas type to get started. Each canvas is designed to help you visualize and develop different aspects of your business.
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center mt-4">
+              <div className="max-w-[800px] mx-auto">
+                <h2 className="text-3xl font-bold tracking-tight text-foreground">
+                  Create Your {userCanvases && userCanvases.length > 0 ? 'Next' : 'First'} Canvas
+                </h2>
+                <p className="text-muted-foreground">
+                  Choose a canvas type to get started. Each canvas is designed to help you visualize and develop different aspects of your business.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center mt-4 max-w-[1200px] mx-auto">
                 {TAG_INFO.map(({ name, color }) => (
                   <button
                     key={name}
                     onClick={() => handleTagSelect(name)}
                     className={`
-                      px-3 py-1 rounded-full text-sm font-medium
-                      transition-colors duration-200
-                      ${selectedTags.includes(name) ? color : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
+                        px-3 py-1 rounded-full text-sm font-medium
+                        transition-colors duration-200
+ -                      ${selectedTags.includes(name) ? color : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
+ +                      ${selectedTags.includes(name) 
+                        ? color
+                        : 'bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200'
+                      }
                     `}
                   >
                     {name}
