@@ -34,17 +34,17 @@ export function BusinessModelCanvasComponent() {
   return (
     <>
           {currentCanvas ? (
-            <div className="flex h-[calc(100vh-64px)] bg-white">
+            <div className="flex h-full bg-white">
               <Sidebar setShowAuthDialog={setShowAuthDialog} />
               <Canvas onExpandSidebar={handleExpandSidebar} />  
           </div>
           ) : newCanvas || !userCanvases || userCanvases.length === 0 ? (
-            <div className="flex h-[calc(100vh-64px)] bg-white overflow-hidden">
+            <div className="flex h-full bg-white">
               <Sidebar setShowAuthDialog={setShowAuthDialog} />
               <CanvasTypeSelector />
             </div>
           ) : (
-            <div className="flex h-[calc(100vh-64px)] bg-white overflow-hidden">
+            <div className="flex h-full bg-white">
               <Sidebar setShowAuthDialog={setShowAuthDialog} />
               <UserCanvasSelector />
             </div>

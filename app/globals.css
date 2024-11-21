@@ -38,3 +38,37 @@ body {
   user-select: none;
   pointer-events: none;
 }
+
+.embla {
+  overflow: visible !important;
+}
+
+.embla__container {
+  padding: 20px 0;
+}
+
+/* Add a gradient fade effect to the sides of the carousel */
+.overflow-hidden {
+  position: relative;
+}
+
+.overflow-hidden::before,
+.overflow-hidden::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 100px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.overflow-hidden::before {
+  left: 0;
+  background: linear-gradient(to right, hsl(var(--background)) 0%, transparent 100%);
+}
+
+.overflow-hidden::after {
+  right: 0;
+  background: linear-gradient(to left, hsl(var(--background)) 0%, transparent 100%);
+}

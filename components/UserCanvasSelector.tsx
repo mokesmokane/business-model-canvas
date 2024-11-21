@@ -13,6 +13,7 @@ import { CanvasLayoutDetails, CanvasType } from "@/types/canvas-sections"
 import { useNewCanvas } from "@/contexts/NewCanvasContext"
 import DynamicIcon from "./Util/DynamicIcon"
 import { TAG_INFO } from "@/src/constants/tags"
+import useEmblaCarousel from 'embla-carousel-react'
 
 export function UserCanvasSelector() {
   const { userCanvases, loadCanvas } = useCanvas()
@@ -26,6 +27,23 @@ export function UserCanvasSelector() {
   const [searchTerm, setSearchTerm] = useState('')
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPosition, setDragStartPosition] = useState<{ x: number; y: number } | null>(null);
+  const [existingCanvasesRef, existingCanvasesApi] = useEmblaCarousel({
+    dragFree: true,
+    containScroll: "trimSnaps"
+  })
+  const [newCanvasRef, newCanvasApi] = useEmblaCarousel({
+    dragFree: true,
+    containScroll: "trimSnaps"
+  })
+
+  const tagCarousels = TAG_INFO.reduce((acc, tag) => {
+    const [ref, api] = useEmblaCarousel({
+      dragFree: true,
+      containScroll: "trimSnaps"
+    });
+    acc[tag.name] = { ref, api };
+    return acc;
+  }, {} as Record<string, { ref: ReturnType<typeof useEmblaCarousel>[0], api: ReturnType<typeof useEmblaCarousel>[1] }>);
 
   useEffect(() => {
     getCanvasTypes().then(setCanvasTypes)
@@ -34,32 +52,6 @@ export function UserCanvasSelector() {
   useEffect(() => {
     getLayouts().then(setCanvasLayouts)
   }, [getLayouts])
-
-  const handleDrag = (info: any, ref: React.RefObject<HTMLDivElement>) => {
-    if (ref.current) {
-      ref.current.scrollLeft -= info.delta.x
-      setIsDragging(true);
-    }
-  }
-
-  const handleDragStart = (e: React.MouseEvent) => {
-    setDragStartPosition({ x: e.clientX, y: e.clientY });
-    setIsDragging(false);
-  };
-
-  const handleCardInteraction = (e: React.MouseEvent, type: CanvasType) => {
-    if (dragStartPosition) {
-      const deltaX = Math.abs(e.clientX - dragStartPosition.x);
-      const deltaY = Math.abs(e.clientY - dragStartPosition.y);
-      
-      if (!isDragging && deltaX < 5 && deltaY < 5) {
-        handleNewCanvasSelect(type);
-      }
-      
-      setDragStartPosition(null);
-      setIsDragging(false);
-    }
-  };
 
   const handleCanvasSelect = async (canvasId: string) => {
     await loadCanvas(canvasId)
@@ -98,21 +90,8 @@ export function UserCanvasSelector() {
       <div className="p-8 space-y-12">
         <div>
           <h2 className="text-3xl font-bold tracking-tight mb-4">Your Canvases</h2>
-          <div 
-            className="overflow-x-auto scrollbar-hide p-1" 
-            ref={existingConstraintsRef}
-            style={{ width: '100%', overflowX: 'auto' }}
-          >
-            <motion.div 
-              className="flex gap-6 pb-4"
-              drag="x"
-              dragDirectionLock
-              dragMomentum={false}
-              dragElastic={0}
-              onDrag={(_, info) => handleDrag(info, existingConstraintsRef)}
-              dragConstraints={existingConstraintsRef}
-              style={{ minWidth: '150%' }}
-            >
+          <div className="overflow-hidden" ref={existingCanvasesRef}>
+            <div className="flex gap-6 pb-4">
               {userCanvases.map((canvas) => (
                 <motion.div
                   key={canvas.id}
@@ -169,7 +148,7 @@ export function UserCanvasSelector() {
                   </Card>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
 
@@ -184,90 +163,118 @@ export function UserCanvasSelector() {
               className="border border-gray-300 rounded-md p-2 max-w-xs"
             />
           </div>
-          <div 
-            className="overflow-x-auto scrollbar-hide pt-1 pl-1" 
-            ref={newCanvasConstraintsRef}
-          >
-            <motion.div 
-              className="flex gap-6 pb-4"
-              drag="x"
-              dragDirectionLock
-              dragMomentum={false}
-              dragElastic={0}
-              onDrag={(_, info) => handleDrag(info, newCanvasConstraintsRef)}
-              dragConstraints={newCanvasConstraintsRef}
-            >
+          <div className="overflow-hidden" ref={newCanvasRef}>
+            <div className="flex gap-6 pl-6">
               {filteredCanvasTypes.map(([key, type]) => (
                 <motion.div
                   key={key}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ 
+                    scale: 1.15,
+                    zIndex: 50,
+                    transition: { duration: 0.3 }
+                  }}
                   transition={{ duration: 0.2 }}
-                  className="w-[300px] flex-shrink-0"
+                  className="w-[300px] flex-shrink-0 py-6"
                 >
                   <Card 
-                    className="cursor-pointer hover:shadow-lg transition-shadow h-[280px] flex flex-col"
-                    onMouseDown={handleDragStart}
-                    onMouseUp={(e) => handleCardInteraction(e, type)}
+                    className="cursor-pointer hover:shadow-xl transition-all duration-300 relative group h-[280px]"
+                    onClick={() => handleNewCanvasSelect(type)}
                   >
-                    <CardHeader>
+                    <CardHeader className="group-hover:opacity-0 transition-opacity duration-300">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-xl">{type.name}</CardTitle>
-                        {type.icon && <DynamicIcon name={type.icon} className="h-6 w-6 text-muted-foreground" />}
+                        {type.icon && <DynamicIcon name={type.icon} className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />}
                       </div>
-                      <CardDescription className="line-clamp-3">{type.description}</CardDescription>
+                      <CardDescription className="line-clamp-2">
+                        {type.description}
+                      </CardDescription>
                     </CardHeader>
-                    <CardContent className="flex-1 flex items-center">
-                      <div className="w-full h-24">
-                        <div
-                          className="w-full h-full grid gap-1"
-                          style={{
-                            gridTemplateColumns: type.defaultLayout?.layout.gridTemplate.columns,
-                            gridTemplateRows: type.defaultLayout?.layout.gridTemplate.rows,
-                          }}
-                        >
-                          {Array.from({ length: type.sections.length }).map((_, index) => (
+                    <CardContent>
+                      <div className="group-hover:opacity-0 transition-opacity duration-300">
+                        <div className="mt-2">
+                          <div className="w-full h-24">
+                            <div
+                              className="w-full h-full grid gap-1"
+                              style={{
+                                gridTemplateColumns: type.defaultLayout?.layout.gridTemplate.columns,
+                                gridTemplateRows: type.defaultLayout?.layout.gridTemplate.rows,
+                              }}
+                            >
+                              {Array.from({ length: type.sections.length }).map((_, index) => (
+                                <div
+                                  key={index}
+                                  className="rounded-sm bg-muted"
+                                  style={{
+                                    gridArea: type.defaultLayout?.layout.areas?.[index] || 'auto',
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div 
+                        className="absolute inset-x-4 top-8 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:-translate-y-2"
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: type.defaultLayout?.layout.gridTemplate.columns || 'repeat(2, 1fr)',
+                          gridTemplateRows: type.defaultLayout?.layout.gridTemplate.rows || 'repeat(2, 1fr)',
+                          gap: '0.5rem',
+                          height: '240px'
+                        }}
+                      >
+                        {type.sections.map((section, index) => {
+                          let gridArea;
+                          if (type.defaultLayout?.layout.areas?.[index]) {
+                            const [row, col, rowSpan, colSpan] = type.defaultLayout.layout.areas[index].split('/').map(n => n.trim());
+                            gridArea = `${row} / ${col} / ${rowSpan} / ${colSpan}`;
+                          } else {
+                            const row = Math.floor(index / 2) + 1;
+                            const col = (index % 2) + 1;
+                            gridArea = `${row} / ${col} / ${row + 1} / ${col + 1}`;
+                          }
+                          
+                          return (
                             <div
                               key={index}
-                              className="rounded-sm bg-muted"
-                              style={{
-                                gridArea: type.defaultLayout?.layout.areas?.[index] || 'auto',
-                              }}
-                            />
-                          ))}
-                        </div>
+                              className="flex items-center justify-center gap-2 rounded-md border-2 border-dashed
+                                border-primary/20 bg-primary/5 transition-all duration-300"
+                              style={{ gridArea }}
+                            >
+                              <div className="flex items-center justify-center flex-wrap gap-1">
+                                <DynamicIcon 
+                                  name={section.icon} 
+                                  className="w-4 h-4 text-primary"
+                                />
+                                <span className="text-xs text-center text-primary">
+                                  {section.name}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </div>
 
         {TAG_INFO.map(tag => {
           const canvasTypesForTag = getCanvasTypesByTag(tag.name);
-          if (canvasTypesForTag.length === 0) return null; // Skip tags with no canvas types
+          if (canvasTypesForTag.length === 0) return null;
 
+          
           return (
             <div key={tag.name}>
               <h2 className="text-3xl font-bold tracking-tight mb-4">{`${tag.name} Canvases`}</h2>
-              <div 
-                className="overflow-x-auto scrollbar-hide p-1" 
-                ref={existingConstraintsRef}
-                style={{ width: '100%', overflowX: 'auto' }}
-              >
-                <motion.div 
-                  className="flex gap-6 pb-4"
-                  drag="x"
-                  dragDirectionLock
-                  dragMomentum={false}
-                  dragElastic={0}
-                  onDrag={(_, info) => handleDrag(info, existingConstraintsRef)}
-                  dragConstraints={existingConstraintsRef}
-                  style={{ minWidth: '150%' }}
-                >
+              <div className="overflow-hidden" ref={tagCarousels[tag.name].ref}>
+                <div className="flex gap-6 pb-4">
                   {canvasTypesForTag.map(([key, type]) => (
                     <motion.div
                       key={key}
@@ -279,8 +286,7 @@ export function UserCanvasSelector() {
                     >
                       <Card 
                         className="cursor-pointer hover:shadow-lg transition-shadow h-[280px] flex flex-col"
-                        onMouseDown={handleDragStart}
-                        onMouseUp={(e) => handleCardInteraction(e, type)}
+                        onClick={() => handleNewCanvasSelect(type)}
                       >
                         <CardHeader>
                           <div className="flex items-center justify-between">
@@ -313,7 +319,7 @@ export function UserCanvasSelector() {
                       </Card>
                     </motion.div>
                   ))}
-                </motion.div>
+                </div>
               </div>
             </div>
           );

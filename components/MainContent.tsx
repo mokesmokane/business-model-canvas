@@ -18,7 +18,7 @@ export function MainContent() {
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768) // You can adjust this breakpoint
+      setIsMobile(window.innerWidth < 768)
     }
     
     checkMobile()
@@ -27,7 +27,7 @@ export function MainContent() {
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       {user && isVerified ? (
         <ThemeProvider
           attribute="class"
@@ -36,23 +36,23 @@ export function MainContent() {
           disableTransitionOnChange
         >
           <NewCanvasProvider>
-          <CanvasProvider>
-            <AIAgentProvider>
-              <div className="flex-1">
-              {isMobile ? (
-                <>
-                  <MobileHeader />
-                  <MobileBusinessModelCanvas />
-                </>
-              ) : (
-                <>
-                  <SiteHeader />
-                  <BusinessModelCanvasComponent />
-                </>
-              )}
-              </div>
-            </AIAgentProvider>
-          </CanvasProvider>
+            <CanvasProvider>
+              <AIAgentProvider>
+                {isMobile ? (
+                  <>
+                    <MobileHeader />
+                    <MobileBusinessModelCanvas />
+                  </>
+                ) : (
+                  <div className="flex flex-col h-screen overflow-hidden">
+                    <SiteHeader />
+                    <div className="flex-1 overflow-hidden">
+                      <BusinessModelCanvasComponent />
+                    </div>
+                  </div>
+                )}
+              </AIAgentProvider>
+            </CanvasProvider>
           </NewCanvasProvider>  
         </ThemeProvider>
       ) : (
