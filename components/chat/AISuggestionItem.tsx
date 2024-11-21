@@ -5,32 +5,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useState, useRef, useEffect } from 'react'
 import { 
-  Building2, 
-  Users, 
-  Workflow, 
-  Gift, 
-  Heart, 
-  Users2, 
-  Truck, 
-  Receipt, 
-  Coins,
-  LucideIcon,
   ThumbsUp,
   X
 } from 'lucide-react'
-
-// Map section names to their corresponding icons
-const sectionIcons: Record<string, LucideIcon> = {
-  keyPartners: Building2,
-  keyActivities: Workflow,
-  keyResources: Receipt,
-  valuePropositions: Gift,
-  customerRelationships: Heart,
-  channels: Truck,
-  customerSegments: Users2,
-  costStructure: Users,
-  revenueStreams: Coins,
-}
+import DynamicIcon from '../Util/DynamicIcon'
+import { useCanvas } from '@/contexts/CanvasContext'
 
 interface AISuggestion {
   id: string;
@@ -52,9 +31,9 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
   const [isRemoving, setIsRemoving] = useState(false)
   const [isLiked, setIsLiked] = useState(false)
   const [isDismissed, setIsDismissed] = useState(false)
+  const { formData } = useCanvas()
   const actionExecuted = useRef(false)
-
-  const Icon = suggestion.section ? sectionIcons[suggestion.section] : undefined
+  const icon = formData?.canvasType?.sections.find(section => section.name === suggestion.section)?.icon
 
   useEffect(() => {
     if (isRemoving && !actionExecuted.current) {
@@ -100,7 +79,7 @@ function AISuggestionItem({ suggestion, onLike, onDismiss, onExpand }: AISuggest
         <div className={`flex items-start gap-2 ${
           isLiked ? 'text-green-600 dark:text-green-400' : ''
         }`}>
-          {Icon && <Icon className={`w-4 h-4 mt-1 ${
+          {icon && <DynamicIcon name={icon}  className={`w-4 h-4 mt-1 ${
             isLiked 
               ? 'text-green-600 dark:text-green-400' 
               : 'dark:text-gray-400 text-gray-500'

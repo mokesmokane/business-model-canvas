@@ -10,6 +10,8 @@ import { MobileHeader } from "./mobile/MobileHeader"
 import { MobileBusinessModelCanvas } from "./mobile/MobileBusinessModelCanvas"
 import { CanvasProvider } from "@/contexts/CanvasContext"
 import { NewCanvasProvider } from "@/contexts/NewCanvasContext"
+import { AIAgentProvider } from "@/contexts/AIAgentContext"
+
 export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
@@ -35,8 +37,8 @@ export function MainContent() {
         >
           <NewCanvasProvider>
           <CanvasProvider>
-
-            <div className="flex-1">
+            <AIAgentProvider>
+              <div className="flex-1">
               {isMobile ? (
                 <>
                   <MobileHeader />
@@ -49,6 +51,7 @@ export function MainContent() {
                 </>
               )}
               </div>
+            </AIAgentProvider>
           </CanvasProvider>
           </NewCanvasProvider>  
         </ThemeProvider>

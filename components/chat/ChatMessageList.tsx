@@ -15,7 +15,9 @@ import { Search, HelpCircle, Zap, MessageCircle, Lightbulb } from 'lucide-react'
 import { AdminButtonBar } from './AdminButtonBar'
 import DynamicIcon from '../Util/DynamicIcon'
 import { CanvasTypeService } from '@/services/canvasTypeService'
-import { CanvasLayoutDetails, CanvasType } from '@/types/canvas-sections'
+import { CanvasLayoutDetails, CanvasSection, CanvasType } from '@/types/canvas-sections'
+import { useCanvas } from '@/contexts/CanvasContext'
+import { AIQuestion } from '@/types/canvas'
 
 interface ChatMessageListProps {
   messages: Message[]
@@ -23,7 +25,7 @@ interface ChatMessageListProps {
   onSuggestionAdd: (messageIndex: number, section: string, suggestion: string, rationale: string, id: string) => void
   onSuggestionDismiss: (messageIndex: number, id: string) => void
   onSuggestionExpand: (suggestion: { suggestion: string }) => void
-  onQuestionSubmit: (question: any) => void
+  onQuestionSubmit: (question: AIQuestion) => void
   activeSection: string | null
   activeTool: string | null
   onSectionSelect: (section: string | null) => void
@@ -62,62 +64,75 @@ export function ChatMessageList({
       return `Suggest items for ${section}`
     }
     if(action === 'critique') {
-      return `Critique my ${section}`
+      return `Critique ${section}`
     }
     if(action === 'research') {
-      return `Suggest research for my ${section}`
+      return `Suggest research for ${section}`
     }
     else {
-      return `Question me about my ${section}`
+      return `Question me about ${section}`
     }
   }
-  const sectionsMap = {
-    keyPartners: {
-      key: 'keyPartners',
-      name: "Key Partners",
-      icon: <Building2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    },
-    keyActivities: {
-      key: 'keyActivities',
-      name: "Key Activities",
-      icon: <Workflow className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    },
-    keyResources: {
-      key: 'keyResources',
-      name: "Key Resources",
-      icon: <Receipt className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    },
-    valuePropositions: {
-      key: 'valuePropositions',
-      name: "Value Propositions",
-      icon: <Gift className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    },
-    customerRelationships: {
-      key: 'customerRelationships',
-      name: "Customer Relationships",
-      icon: <Heart className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    },
-    channels: {
-      key: 'channels',
-      name: "Channels",
-      icon: <Truck className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    },
-    customerSegments: {
-      key: 'customerSegments',
-      name: "Customer Segments",
-      icon: <Users2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    },
-    costStructure: {
-      key: 'costStructure',
-      name: "Cost Structure",
-      icon: <Receipt className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    },
-    revenueStreams: {
-      key: 'revenueStreams',
-      name: "Revenue Streams",
-      icon: <Coins className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-    }
-  }
+  // const sectionsMap = {
+  //   keyPartners: {
+  //     key: 'keyPartners',
+  //     name: "Key Partners",
+  //     icon: <Building2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   },
+  //   keyActivities: {
+  //     key: 'keyActivities',
+  //     name: "Key Activities",
+  //     icon: <Workflow className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   },
+  //   keyResources: {
+  //     key: 'keyResources',
+  //     name: "Key Resources",
+  //     icon: <Receipt className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   },
+  //   valuePropositions: {
+  //     key: 'valuePropositions',
+  //     name: "Value Propositions",
+  //     icon: <Gift className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   },
+  //   customerRelationships: {
+  //     key: 'customerRelationships',
+  //     name: "Customer Relationships",
+  //     icon: <Heart className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   },
+  //   channels: {
+  //     key: 'channels',
+  //     name: "Channels",
+  //     icon: <Truck className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   },
+  //   customerSegments: {
+  //     key: 'customerSegments',
+  //     name: "Customer Segments",
+  //     icon: <Users2 className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   },
+  //   costStructure: {
+  //     key: 'costStructure',
+  //     name: "Cost Structure",
+  //     icon: <Receipt className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   },
+  //   revenueStreams: {
+  //     key: 'revenueStreams',
+  //     name: "Revenue Streams",
+  //     icon: <Coins className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+  //   }
+  // }
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [adminTool, setAdminTool] = useState<string | null>(null)
+  const [showAdminTool, setShowAdminTool] = useState(false)
+  const { formData } = useCanvas()
+  const sectionsMap = formData?.canvasType?.sections.reduce((acc: any, section: CanvasSection) => {
+    acc[section.name] = {
+      name: section.name,
+      icon: section.icon
+    };
+    return acc;
+  }, {}) || {};
+
+
   const suggestions = {
     suggest: [
       ...Object.values(sectionsMap).map((section) => ({section: section, action: 'suggest'})),
@@ -132,10 +147,6 @@ export function ChatMessageList({
       ...Object.values(sectionsMap).map((section) => ({section: section, action: 'question'})),
     ]
   }
-
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [adminTool, setAdminTool] = useState<string | null>(null)
-  const [showAdminTool, setShowAdminTool] = useState(false)
 
   const handleSaveCanvasType = async (suggestion: any) => {
     try {
@@ -198,7 +209,7 @@ export function ChatMessageList({
                   >
                     {suggestions[selectedCategory as keyof typeof suggestions].map((suggestion: any, index: number) => (
                       <motion.div
-                        key={suggestion.section.key + suggestion.action}
+                        key={suggestion.section.name + suggestion.action}
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
@@ -218,7 +229,7 @@ export function ChatMessageList({
                           }}
                         >
                           <div className="flex items-center gap-2">
-                            {suggestion.section.icon}
+                            <DynamicIcon name={suggestion.section.icon} className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                             {getMessage(suggestion.action, suggestion.section.name)}
                           </div>
                         </Button>

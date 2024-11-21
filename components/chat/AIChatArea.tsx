@@ -7,11 +7,12 @@ import { Message } from '@/contexts/ChatContext'
 import { sendAdminChatRequest, sendChatRequest } from '@/services/aiService'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { ChatHeader } from './ChatHeader'
-import { Section } from '@/types/canvas'
+import { AIAgent, Section } from '@/types/canvas'
 import { ChatInput } from './ChatInput'
 import { ChatMessageList } from './ChatMessageList'
 import { useAuth } from '@/contexts/AuthContext'
 import { CanvasTypeSuggestion, CanvasLayoutSuggestion } from '@/types/canvas-sections'
+import { useAIAgents } from '@/contexts/AIAgentContext'
 
 
 export function AIChatArea({ onClose }: { onClose?: () => void }) {
@@ -23,6 +24,8 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
   const { isInTrialPeriod, userData } = useAuth()
   const [activeTool, setActiveTool] = useState<string | null>(null)
+  const { getAIAgent } = useAIAgents()
+  const [aiAgent, setAiAgent] = useState<AIAgent | null>(null)
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -36,13 +39,14 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     // handleRemoveSuggestion(index, suggestionId)
   }
 
-  // const handleRemoveSuggestion = (index: number, suggestionId: string) => {
-  //   let updatedMessage = {...messages[index],
-  //     suggestions: messages[index]?.suggestions?.filter((s: any) => s.id !== suggestionId)
-  //   }
-  //   const updatedMessages = [...messages.slice(0, index), updatedMessage, ...messages.slice(index + 1)]
-  //   addMessages(updatedMessages)
-  // }
+  useEffect(() => {
+    if (formData.canvasType) {
+      getAIAgent(formData.canvasType.id).then((agent) => {
+        console.log('agent', agent)
+        setAiAgent(agent)
+      })
+    }
+  }, [setAiAgent])
 
   const handleSend = async () => {
     console.log('isInTrialPeriod', isInTrialPeriod)
@@ -111,7 +115,10 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
         const currentMessages = [...updatedMessages.filter((m: Message) => 
           m.role == 'system' || m.role == 'user' || m.role == 'assistant'
         )]
-        const aiResponse = await sendChatRequest([...currentMessages], formData)
+        if(!aiAgent) {
+          throw new Error('No AI agent found')
+        }
+        const aiResponse = await sendChatRequest([...currentMessages], formData, aiAgent)
         const formattedResponse: Message = {
           role: 'assistant',
           content: aiResponse.content || '',
@@ -159,8 +166,10 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
       const userMessage = { role: 'user', content: 'Tell me more' } as Message
       const currentMessages = [...messages.filter((m: Message) => m.role == 'system' || m.role == 'user' || m.role == 'assistant')]
       addMessages([...currentMessages, userMessage])
-
-      const aiResponse = await sendChatRequest([...currentMessages, { role: 'user', content: expandMessage }], formData)
+      if(!aiAgent) {
+        throw new Error('No AI agent found')
+      }
+      const aiResponse = await sendChatRequest([...currentMessages, { role: 'user', content: expandMessage }], formData, aiAgent)
       const formattedResponse: Message = {
         role: 'assistant',
         content: aiResponse.content || '',
@@ -226,7 +235,10 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     setIsLoading(true);
 
     try {
-      const aiResponse = await sendChatRequest(updatedMessages, formData);
+      if(!aiAgent) {
+        throw new Error('No AI agent found')
+      }
+      const aiResponse = await sendChatRequest(updatedMessages, formData, aiAgent);
       const formattedResponse: Message = {
         role: 'assistant',
         content: aiResponse.content || '',
@@ -239,7 +251,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
         questions: aiResponse.questions?.map((question: any) => ({
           id: question.id,
           question: question.question,
-          section: action.section,
+          section: question.section || activeSection,
           type: question.type || 'open',
           options: question.options || [],
           scale: question.scale || null
@@ -288,9 +300,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
               onSuggestionAdd={handleAddSuggestion}
               onSuggestionDismiss={handleDismiss}
               onSuggestionExpand={handleExpand}
-              onQuestionSubmit={(question) => {
-                updateQuestionAnswer(question.section, question)
-              }}
+              onQuestionSubmit={updateQuestionAnswer}
               messagesEndRef={messagesEndRef}
               onAdminToolSelect={handleAdminToolSelect}
               activeTool={activeTool}

@@ -35,7 +35,7 @@ interface CanvasContextType {
   updateField: (field: keyof Canvas, value: string) => void;
   updateLayout: (layout: string[], canvasLayout: CanvasLayout) => void;
   updateSection: (sectionKey: string, items: string[]) => void;
-  updateQuestionAnswer: (sectionKey: string, question: AIQuestion) => void;
+  updateQuestionAnswer: (question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<void>;
   createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, layout?: CanvasLayout }) => Promise<string | undefined>;
   resetForm: () => void;
@@ -256,14 +256,15 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   };
 
 
-  const updateQuestionAnswer = useCallback((sectionKey: string, question: AIQuestion) => {
+  const updateQuestionAnswer = useCallback((question: AIQuestion) => {
+    console.log('updateQuestionAnswer', question.section)
     setState(prev => {
       const sections = prev.formData.sections;
-      const section = sections.get(sectionKey);
+      const section = sections.get(question.section);
       if (!section) return prev;
 
       const updatedSections = new Map(sections);
-      updatedSections.set(sectionKey, {
+      updatedSections.set(question.section, {
         ...section,
         qAndAs: [...section.qAndAs, question]
       });

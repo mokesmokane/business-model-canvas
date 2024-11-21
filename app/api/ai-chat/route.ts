@@ -7,7 +7,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })
 
-const sections = ["keyPartners", "keyActivities", "keyResources", "valuePropositions", "customerRelationships", "channels", "customerSegments", "costStructure", "revenueStreams"]
+// const sections = ["keyPartners", "keyActivities", "keyResources", "valuePropositions", "customerRelationships", "channels", "customerSegments", "costStructure", "revenueStreams"]
 
 
 
@@ -96,8 +96,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { currentContent, messages, aiAgent, canvasName } = await request.json()
-    
+    const { currentContent, messages, aiAgent } = await request.json()
+    const sections = Object.keys(currentContent?.sections || {})
+    const canvasName = currentContent?.canvasType?.name || ''
     // Expand any messages that contain suggestions into individual messages
     const expanded_messages = messages.flatMap((msg: Message) => {
       if (msg.suggestions) {
@@ -117,36 +118,13 @@ export async function POST(request: Request) {
     let researchPrompt = aiAgent.researchPrompt
     let suggestPrompt = aiAgent.suggestPrompt
     let questionToolDescription = aiAgent.questionToolDescription
+    console.log('aiAgent', aiAgent)
 
-    // let spromt = `You are a business model expert. 
-    //   You can either provide structured suggestions using the suggestions function, or engage in a natural conversation about business models.
-    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.`
     
-    // let questionPrompt = `You are a business model expert helping a client understand their business model. 
-    //   Based on your expertise, you come up with insightful questions that makes it easy for the client to develop their business model.
-    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.`
-
-    // let critiquePrompt = `You are a business model expert. Your task is to critique the business model and drill down on any weaknesses
-    //     You should focus one one section, or one specific point at a time and provide a detailed critique.
-    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
-    //     Give your response in Markdown format.`
-
-    // let researchPrompt = `You are a business model expert. 
-    //   You suggest ways in which the client needs to research aspects of their business model. give very specific advice on how they can do this and areas of research to focus on.
-    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
-    //   Give your response in Markdown format.`
-
-    // let suggestPrompt = `You are a business model expert. You can suggest items to add to the business model canvas.
-    //   The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.`
-
-    // let questionToolDescription = `Ask up to 3 questions to the client about their business model. ask question to help the client surface their thoughts and ideas about their business model. You will later use the data to help them further`
-    
-    
-
     let canvasInfo = `The Canvas currently looks like this:
       
       Name: ${currentContent?.name ?? ''}
-      Company Description: ${currentContent?.description ?? ''}
+      Description: ${currentContent?.description ?? ''}
 
       ${Object.entries(currentContent?.sections || {}).map(([key, section]: [string, any]) => `
       ${section.name}:
@@ -217,8 +195,8 @@ export async function POST(request: Request) {
     let suggestTool = {
       type: "function" as const,
       function: {
-        name: "business_model_suggestions",
-        description: 'Provide structured suggestions for improving a section of the Business Model Canvas',
+        name: "suggestions",
+        description: 'Provide structured suggestions for improving a section of the Canvas',
         parameters: suggestionsToolSchema(sections, canvasName)
       }
     }
@@ -238,7 +216,7 @@ export async function POST(request: Request) {
     // Handle either tool response or regular chat
     if (response.tool_calls) {
       const toolResponse = JSON.parse(response.tool_calls[0].function.arguments)
-      if (response.tool_calls[0].function.name === "business_model_suggestions") {
+      if (response.tool_calls[0].function.name === "suggestions") {
       return NextResponse.json({ 
         message: "Here are my suggestions:",
         suggestions: toolResponse.suggestions 

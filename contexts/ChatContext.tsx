@@ -13,10 +13,12 @@ export interface Message {
     section: string;
     suggestion: string;
     rationale: string;
+    icon: string;
   }>;
   questions?: Array<{
     id: string;
     question: string;
+    section: string;
     type: 'open' | 'rating' | 'multipleChoice';
     options?: string[];
     scale?: {

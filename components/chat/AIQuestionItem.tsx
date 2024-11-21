@@ -7,44 +7,24 @@ import { Input } from '@/components/ui/input'
 import { Slider } from '@/components/ui/slider'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
-import { 
-  Building2, 
-  Users, 
-  Workflow, 
-  Gift, 
-  Heart, 
-  Users2, 
-  Truck, 
-  Receipt, 
-  Coins,
-  LucideIcon
-} from 'lucide-react'
 import { AIQuestion } from '@/types/canvas'
+import DynamicIcon from '../Util/DynamicIcon'
+import { useCanvas } from '@/contexts/CanvasContext'
 
 interface AIQuestionItemProps {
   question: AIQuestion;
   onSubmit: (question: AIQuestion) => void;
 }
-
-const sectionIcons: Record<string, LucideIcon> = {
-  keyPartners: Building2,
-  keyActivities: Workflow,
-  keyResources: Receipt,
-  valuePropositions: Gift,
-  customerRelationships: Heart,
-  channels: Truck,
-  customerSegments: Users2,
-  costStructure: Users,
-  revenueStreams: Coins,
-}
-
 function AIQuestionItem({ question, onSubmit }: AIQuestionItemProps) {
   const [answer, setAnswer] = useState<string | number>('')
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const { formData } = useCanvas()
+  const icon = formData?.canvasType?.sections.find((section: any) => section.name === question.section)?.icon
 
   const handleSubmit = () => {
     if (answer) {
       setIsSubmitted(true)
+      console.log('handleSubmit', question, answer)
       onSubmit({
         ...question,
         answer: answer
@@ -101,15 +81,13 @@ function AIQuestionItem({ question, onSubmit }: AIQuestionItemProps) {
     }
   }
 
-  const Icon = question.section ? sectionIcons[question.section] : undefined
-
   return (
     <Card className={`mb-2 border-2 dark:bg-gray-900 bg-white dark:border-gray-800 border-gray-200 
       ${isSubmitted ? 'scale-95 opacity-50' : ''} transition-all duration-300`}
     >
       <CardContent className="p-3">
         <div className="flex items-start gap-2">
-          {Icon && <Icon className="w-4 h-4 mt-1 dark:text-gray-400 text-gray-500" />}
+          {icon && <DynamicIcon name={icon} className="w-4 h-4 mt-1 dark:text-gray-400 text-gray-500" />}
           <div className="flex-1">
             <p className="text-sm dark:text-gray-200 text-gray-700 mb-2">{question.question}</p>
             {renderQuestionInput()}

@@ -1,11 +1,12 @@
 import { Message } from '@/contexts/ChatContext'
+import { AIAgent } from '@/types/canvas';
 import { v4 as uuidv4 } from 'uuid'
 interface ChatRequest {
   messages: Message[]
   currentContent: any
 }
 
-export async function sendChatRequest(messages: Message[], currentContent: any) {
+export async function sendChatRequest(messages: Message[], currentContent: any, aiAgent: AIAgent) {
   const serializedContent = {
     ...currentContent,
     sections: Object.fromEntries(currentContent.sections || new Map())
@@ -19,6 +20,7 @@ export async function sendChatRequest(messages: Message[], currentContent: any) 
     body: JSON.stringify({
       messages,
       currentContent: serializedContent,
+      aiAgent
     }),
   })
 
@@ -29,7 +31,7 @@ export async function sendChatRequest(messages: Message[], currentContent: any) 
 
   let data = await response.json()
 
-  return {
+  const res =  {
     role: 'assistant',
     content: data.message,
     suggestions: data.suggestions?.map((suggestion: any) => ({
@@ -41,6 +43,8 @@ export async function sendChatRequest(messages: Message[], currentContent: any) 
       id: uuidv4()
     }))
   }
+  console.log('sendChatRequest', res)
+  return res  
 } 
 
 export async function sendAdminChatRequest(messages: Message[]) {
