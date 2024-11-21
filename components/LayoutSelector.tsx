@@ -49,7 +49,7 @@ export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }
               return (
                 <div
                   key={index}
-                  className={`flex flex-col items-center justify-center gap-2 rounded-md  border-2 border-dashed ${
+                  className={`flex items-center justify-center gap-2 rounded-md border-2 border-dashed ${
                     selectedLayout?.id === layout.id
                       ? 'border-primary/20 bg-primary/5'
                       : 'border-muted-foreground/10 bg-muted/5'
@@ -58,21 +58,25 @@ export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }
                     gridArea: `${row} / ${col} / ${rowSpan} / ${colSpan}`,
                   }}
                 >
-                  <DynamicIcon 
-                    name={sectionData.icon} 
-                    className={`w-4 h-4 ${
-                      selectedLayout?.id === layout.id
-                        ? 'text-primary'
-                        : 'text-muted-foreground'
-                    }`}
-                  />
-                  <span className={`text-xs truncate w-full text-center ${
-                    selectedLayout?.id === layout.id
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
-                  }`}>
-                    {sectionData.name}
-                  </span>
+                  {sectionData && (
+                    <div className="flex items-center justify-center flex-wrap gap-1">
+                      <DynamicIcon 
+                        name={sectionData.icon} 
+                        className={`w-4 h-4 ${
+                          selectedLayout?.id === layout.id
+                            ? 'text-primary'
+                            : 'text-muted-foreground'
+                        }`}
+                      />
+                      <span className={`text-xs text-center ${
+                        selectedLayout?.id === layout.id
+                          ? 'text-primary'
+                          : 'text-muted-foreground'
+                      }`}>
+                        {sectionData.name}
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}

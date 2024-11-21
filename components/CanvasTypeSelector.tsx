@@ -118,6 +118,14 @@ export function CanvasTypeSelector() {
     );
   };
 
+  const getAvailableTags = () => {
+    const availableTags = new Set<string>();
+    Object.values(canvasTypes).forEach(type => {
+      type.tags?.forEach(tag => availableTags.add(tag));
+    });
+    return TAG_INFO.filter(tag => availableTags.has(tag.name));
+  };
+
   return (
     <div className="flex flex-col items-center gap-8 bg-background w-full h-screen overflow-hidden">
       <div className="h-[200px]">
@@ -140,15 +148,14 @@ export function CanvasTypeSelector() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 justify-center mt-4 max-w-[1200px] mx-auto">
-                {TAG_INFO.map(({ name, color }) => (
+                {getAvailableTags().map(({ name, color }) => (
                   <button
                     key={name}
                     onClick={() => handleTagSelect(name)}
                     className={`
-                        px-3 py-1 rounded-full text-sm font-medium
-                        transition-colors duration-200
- -                      ${selectedTags.includes(name) ? color : 'bg-gray-100 hover:bg-gray-200 text-gray-800'}
- +                      ${selectedTags.includes(name) 
+                      px-3 py-1 rounded-full text-sm font-medium
+                      transition-colors duration-200
+                      ${selectedTags.includes(name) 
                         ? color
                         : 'bg-gray-100 hover:bg-gray-200 text-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200'
                       }
@@ -201,7 +208,7 @@ export function CanvasTypeSelector() {
               {Object.entries(canvasTypes)
                 .filter(([_, type]) => 
                   selectedTags.length === 0 || 
-                  selectedTags.every(tag => type.tags?.includes(tag))
+                  type.tags?.some(tag => selectedTags.includes(tag))
                 )
                 .map(([key, type]) => (
                 <motion.div
@@ -234,18 +241,54 @@ export function CanvasTypeSelector() {
                       </p>
                     </div>
                     
-                    <div className="flex flex-wrap gap-2 justify-center mt-2">
-                      {type.sections.map((section, index) => (
-                        <Badge 
-                          key={index} 
-                          variant="secondary"
-                          className="flex items-center gap-1 font-normal text-muted-foreground bg-opacity-50"
-                        >
-                          <DynamicIcon name={section.icon} className="w-3 h-3" />
-                          <span className="text-xs">{section.name}</span>
-                        </Badge>
-                      ))}
-                    </div>
+                    {type.tags && type.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 justify-center">
+                        {type.tags.map(tagName => {
+                          const tagInfo = TAG_INFO.find(t => t.name === tagName);
+                          return tagInfo && (
+                            <span
+                              key={tagName}
+                              className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${tagInfo.color}`}
+                            >
+                              {tagName}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {type.defaultLayout && (
+                      <div 
+                        className="grid gap-1 p-2 border rounded-md w-full mt-2"
+                        style={{
+                          gridTemplateColumns: type.defaultLayout.layout.gridTemplate.columns,
+                          gridTemplateRows: type.defaultLayout.layout.gridTemplate.rows,
+                          minHeight: '200px'
+                        }}
+                      >
+                        {type.defaultLayout.layout.areas.map((area, index) => {
+                          const [row, col, rowSpan, colSpan] = area.split('/').map(n => n.trim());
+                          const sectionData = type.sections[index];
+
+                          return (
+                            <div
+                              key={index}
+                              className="flex items-center justify-center border-2 border-dashed h-full"
+                              style={{
+                                gridArea: `${row} / ${col} / ${rowSpan} / ${colSpan}`,
+                              }}
+                            >
+                              {sectionData && (
+                                <div className="flex items-center justify-center flex-wrap gap-1">
+                                  <DynamicIcon name={sectionData.icon} className="w-4 h-4 text-muted-foreground" />
+                                  <span className="text-xs text-center text-muted-foreground">{sectionData.name}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     {selectedType === type && (
                       <Button
