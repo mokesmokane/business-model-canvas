@@ -60,7 +60,7 @@ export function UserCanvasSelector() {
 
   const handleNewCanvasSelect = (type: CanvasType) => {
     setSelectedType(type);
-    setNewCanvas(true);
+    setNewCanvas([true, 'root']);
   };
 
   useEffect(() => {
