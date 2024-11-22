@@ -26,7 +26,7 @@ export function BreadcrumbNav({ path, onNavigate }: BreadcrumbNavProps) {
   const { onCanvasCreated, onCreateFolder } = useCanvasFolders()
   const { setNewCanvas } = useNewCanvas()
   const { clearState } = useCanvas()
-  const { isExpanded } = useExpanded()
+  const { isExpanded, setIsExpanded } = useExpanded()
 
   const onAddFolder = () => {
     const currentFolder = (path.length > 0 ? path[path.length - 1] : null)?.id ?? 'root'
@@ -34,10 +34,15 @@ export function BreadcrumbNav({ path, onNavigate }: BreadcrumbNavProps) {
   }
 
   const onAddCanvas = () => {
-    // onCanvasCreated()
+    clearState();
+    setNewCanvas([true, path[path.length - 1]?.id ?? 'root']);
   }
 
   const onNav = (folder: NestedCanvasFolder | null) => {
+    if(!isExpanded) {
+      setIsExpanded(true)
+      return
+    }
     if (path.length === 0) {
       clearState()
       setNewCanvas([false, null])
