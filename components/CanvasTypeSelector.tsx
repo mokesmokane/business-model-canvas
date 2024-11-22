@@ -17,6 +17,7 @@ import { useNewCanvas } from "@/contexts/NewCanvasContext"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { TAG_INFO } from "@/src/constants/tags"
+import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
 
 export function CanvasTypeSelector() {
   const { selectedType: initialType, setSelectedType } = useNewCanvas();
@@ -31,6 +32,7 @@ export function CanvasTypeSelector() {
   const [compatibleLayouts, setCompatibleLayouts] = useState<CanvasLayoutDetails[]>([])
   const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({})
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { currentFolder  } = useCanvasFolders()
   
   useEffect(() => {
     getCanvasTypes().then((types) => {
@@ -44,7 +46,6 @@ export function CanvasTypeSelector() {
           return acc;
         }, {} as Record<string, CanvasType>);
         setCanvasTypes(record)    
-        console.log("canvasTypes in useEffect", canvasTypes)
     })
   }, [getCanvasTypes])
 
@@ -108,7 +109,6 @@ export function CanvasTypeSelector() {
     }
   }, [selectedType])
 
-  console.log("canvasTypes in CanvasTypeSelector", canvasTypes)
 
   const handleTagSelect = (tagName: string) => {
     setSelectedTags(prev => 
@@ -202,8 +202,9 @@ export function CanvasTypeSelector() {
       </div>
 
       {!selectedType ? (
+        <>
         <ScrollArea className="w-full flex-1 overflow-y-auto">
-          <div className="relative flex flex-wrap gap-6 w-full justify-center p-6">
+          <div className="relative flex flex-wrap gap-6 w-full justify-center p-6 pb-32">
             <AnimatePresence>
               {Object.entries(canvasTypes)
                 .filter(([_, type]) => 
@@ -311,6 +312,7 @@ export function CanvasTypeSelector() {
             </AnimatePresence>
           </div>
         </ScrollArea>
+        </>
       ) : (
         <motion.div
           initial={{ opacity: 0 }}
@@ -340,6 +342,7 @@ export function CanvasTypeSelector() {
             onOpenChange={setShowDialog}
             canvasType={selectedType || "businessModel"}
             layout={selectedLayout.layout}
+            folderId={currentFolder?.id}
           />
         </>
       )}

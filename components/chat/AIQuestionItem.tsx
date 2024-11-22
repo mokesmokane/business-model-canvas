@@ -24,7 +24,7 @@ function AIQuestionItem({ question, onSubmit }: AIQuestionItemProps) {
   const handleSubmit = () => {
     if (answer) {
       setIsSubmitted(true)
-      console.log('handleSubmit', question, answer)
+      
       onSubmit({
         ...question,
         answer: answer

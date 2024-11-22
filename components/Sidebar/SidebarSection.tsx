@@ -7,9 +7,9 @@ import {
 } from '@/components/ui/tooltip'
 import React from 'react';
 import { useCanvas } from '@/contexts/CanvasContext';
-import { useExpanded } from '@/contexts/ExpandedContext';
 import { DeleteCanvasDialog } from '../DeleteCanvasDialog';
 import { useNewCanvas } from '@/contexts/NewCanvasContext';
+import { useExpanded } from '@/contexts/ExpandedContext';
 
 interface SidebarSectionProps {
   icon: LucideIcon;
@@ -28,8 +28,8 @@ export function SidebarSection({
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [canvasToDelete, setCanvasToDelete] = React.useState<{ id: string, name: string } | null>(null);
-  const { setIsExpanded, setIsWide } = useExpanded()
   const { setNewCanvas } = useNewCanvas();
+  const {isWide, setIsExpanded, setIsWide} = useExpanded()
   const handleCanvasSelect = React.useCallback(async (canvasId: string) => {
     await loadCanvas(canvasId);
     localStorage.setItem('lastCanvasId', canvasId);
@@ -65,7 +65,7 @@ export function SidebarSection({
     }
   }, [userCanvases, handleCanvasSelect]);
 
-  return (
+  const component = (
     <div className={isExpanded ? "space-y-2 w-full" : "flex flex-col items-center"}>
       {isExpanded ? (
         <>
@@ -73,7 +73,7 @@ export function SidebarSection({
             <Button 
               variant="ghost" 
               className="h-8 w-full justify-start text-muted-foreground hover:text-foreground" 
-              onClick={()=>{clearState(); setNewCanvas(false)}}
+              onClick={()=>{clearState(); setNewCanvas([false, null])}}
             >
               <Icon className="h-4 w-4 mr-2" />
               {title}
@@ -89,7 +89,7 @@ export function SidebarSection({
             className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
             onClick={() => {
               clearState();
-              setNewCanvas(true);
+              setNewCanvas([true, null]);
             }}
           >
             <Plus className="h-4 w-4" />
@@ -138,7 +138,7 @@ export function SidebarSection({
               variant="ghost" 
               size="icon" 
               className="w-10 h-10 p-0 text-muted-foreground hover:text-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
-              onClick={()=>{setIsExpanded(true); setIsWide(false)}}
+              onClick={()=>{setIsExpanded(true);}}
             >
               <Icon className="h-5 w-5" />
             </Button>
@@ -148,6 +148,7 @@ export function SidebarSection({
           </TooltipContent>
         </Tooltip>
       )}
-    </div>
-  )
+    </div>)
+    return  component
+  
 }

@@ -30,7 +30,7 @@ export function BusinessModelCanvasComponent() {
       return;
     }
   }, [user]);
-  console.log('newCanvas', newCanvas);
+  
   return (
     <>
           {currentCanvas ? (

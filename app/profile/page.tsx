@@ -7,6 +7,7 @@ import { useState } from "react"
 import { SiteHeader } from "@/components/site/SiteHeader"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import { Providers } from "@/components/providers/Providers"
 
 export default function ProfilePage() {
   const { user, userData } = useAuth()
@@ -32,9 +33,10 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
-      <div className="container mx-auto py-10">
+    <Providers>
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <div className="container mx-auto py-10">
         <div className="max-w-2xl mx-auto">
           <Card>
             <CardHeader>
@@ -75,7 +77,8 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         </div>
+        </div>
       </div>
-    </div>
+    </Providers>
   )
 } 

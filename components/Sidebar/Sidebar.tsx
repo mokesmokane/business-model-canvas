@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
 import { ChatProvider } from '@/contexts/ChatContext'
+import { CanvasNavigation } from './CanvasNavigation'
 
 interface SidebarProps {
   setShowAuthDialog: (show: boolean) => void
@@ -41,12 +42,8 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
         }`}
         style={{ width: sidebarWidth }}
       >
-        <div className={`flex flex-col gap-4 ${isExpanded ? 'pw-full py-2' : 'items-center py-2'}`}>
-          <SidebarSection
-            icon={LayoutDashboard}
-            title="Business Models"
-            isExpanded={isExpanded}
-          />
+        <div className={`flex flex-col gap-4 ${isExpanded ? 'w-full py-2' : 'items-center py-2'}`}>
+          <CanvasNavigation />
         </div>
         {isExpanded && <div className="border-t border-zinc-300/50 dark:border-zinc-700/50 my-2 w-full"></div>}
         <div className={`flex-grow overflow-hidden ${isExpanded ? 'w-full' : 'w-16'}`}>

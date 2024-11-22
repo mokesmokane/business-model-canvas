@@ -81,7 +81,7 @@ export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) 
         gridIndex: section.gridIndex ?? index
       }))
       .sort((a, b) => a.gridIndex - b.gridIndex);
-    console.log('sortedSections', sortedSections);
+      
     return sortedSections.map((item, index) => {
       const sectionConfig = canvasType.sections.find(s => s.name === item.section.name);
       return {

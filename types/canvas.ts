@@ -3,6 +3,23 @@ import { CanvasLayout, CanvasLayoutDetails } from "./canvas-sections";
 import { CanvasType } from "./canvas-sections";
 
 
+export interface CanvasItem {
+  id: string;
+  name: string;
+  canvasTypeId: string;
+}
+
+export interface CanvasFolder {
+  id: string;
+  name: string;
+  canvases: Map<string, CanvasItem>;
+  parentId: string | null;
+}
+
+export interface NestedCanvasFolder extends CanvasFolder {
+  children: NestedCanvasFolder[];
+}
+
 export interface AIAgent {
   name: string;
   systemPrompt: string;

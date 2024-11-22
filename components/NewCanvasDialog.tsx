@@ -9,16 +9,19 @@ import { Plus } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { CanvasLayout, CanvasLayoutDetails } from '@/types/canvas-sections'
 import { CanvasType } from '@/types/canvas-sections'
+import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'
 
 interface NewCanvasDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canvasType: CanvasType;
   layout?: CanvasLayout;
+  folderId?: string;
 }
 
-export function NewCanvasDialog({ open, onOpenChange, canvasType, layout }: NewCanvasDialogProps) {
+export function NewCanvasDialog({ open, onOpenChange, canvasType, layout, folderId}: NewCanvasDialogProps) {
   const { createNewCanvas, loadCanvas } = useCanvas();
+  const { rootFolderId, setCurrentFolder } = useCanvasFolders()
   const [tempName, setTempName] = React.useState('')
   const [tempDescription, setTempDescription] = React.useState('')
   const [isValid, setIsValid] = React.useState(true)
@@ -30,18 +33,13 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout }: NewC
     }
 
     try {
-      console.log('Creating new canvas with:', {
-        name: tempName.trim(),
-        description: tempDescription.trim(),
-        canvasType: canvasType || '',
-        layout: layout || ''
-      });
 
       const newCanvasId = await createNewCanvas({
         name: tempName.trim(),
         description: tempDescription.trim(),
         canvasType: canvasType,
-        layout: layout
+        layout: layout,
+        folderId: folderId || rootFolderId
       })
       
       if (newCanvasId) {

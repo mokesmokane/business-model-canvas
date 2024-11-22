@@ -1,9 +1,11 @@
 'use client'
 
-import { motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { CanvasLayout, CanvasLayoutDetails, CanvasType } from "@/types/canvas-sections"
 import DynamicIcon from "./Util/DynamicIcon"
+import { ScrollArea } from "@radix-ui/react-scroll-area"
+
 
 interface LayoutSelectorProps {
   layouts: CanvasLayoutDetails[]
@@ -14,12 +16,14 @@ interface LayoutSelectorProps {
 
 export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }: LayoutSelectorProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {layouts.map((layout) => (
+    <div className="flex-1 overflow-hidden">
+      <div className="relative flex flex-wrap gap-6 w-full justify-center p-6">
+        <AnimatePresence>
+          {layouts.map((layout) => (
         <Button
           key={layout.id}
           variant={selectedLayout?.id === layout.id ? "default" : "outline"}
-          className={`h-[200px] p-4 relative ${
+          className={`h-[250px] p-4 relative ${
             selectedLayout?.id === layout.id 
               ? 'ring-2 ring-primary ring-offset-2'
               : 'hover:border-primary/50'
@@ -27,7 +31,7 @@ export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }
           onClick={() => onSelect(layout)}
         >
           <div 
-            className={`absolute inset-1 rounded-lg ${
+            className={`inset-1 rounded-lg ${
               selectedLayout?.id === layout.id
                 ? 'border-primary/30'
                 : 'border-muted-foreground/20'
@@ -38,6 +42,8 @@ export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }
               gridTemplateRows: layout.layout.gridTemplate.rows,
               gap: '0.5rem',
               padding: '0.5rem',
+              height: '100%',
+              minWidth: '400px',
             }}
           >
             {canvasType && layout.layout.areas.map((area, index) => {
@@ -82,7 +88,9 @@ export function LayoutSelector({ layouts, selectedLayout, onSelect, canvasType }
             })}
           </div>
         </Button>
-      ))}
+          ))}
+        </AnimatePresence>
+      </div>
     </div>
   )
 }

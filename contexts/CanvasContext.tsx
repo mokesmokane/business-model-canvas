@@ -1,15 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useCallback, useRef, useState, useEffect } from 'react';
-import { collection, doc, getDoc, setDoc, addDoc, updateDoc, DocumentData, onSnapshot, where, query } from 'firebase/firestore';
+import { collection, doc, getDoc, setDoc, addDoc, updateDoc, DocumentData, onSnapshot, where, query, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 import debounce from 'lodash/debounce';
-import { AIAgent, AIQuestion, Canvas, SerializedCanvas, SerializedSections } from '@/types/canvas';
+import { AIAgent, AIQuestion, Canvas, CanvasItem, SerializedCanvas, SerializedSections } from '@/types/canvas';
 import { deleteDoc } from 'firebase/firestore';
 import { BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT, CanvasLayout, CanvasLayoutDetails, CanvasType, getInitialCanvasState } from '@/types/canvas-sections';
 import { AIAgentService } from '@/services/aiAgentService';
-
+import { useCanvasFolders } from './CanvasFoldersContext';
+import { v4 as uuidv4 } from 'uuid';
 interface Section {
   name: string;
   items: string[];
@@ -40,7 +41,7 @@ interface CanvasContextType {
   updateSection: (sectionKey: string, items: string[]) => void;
   updateQuestionAnswer: (question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<void>;
-  createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, layout?: CanvasLayout }) => Promise<string | undefined>;
+  createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout }) => Promise<string | undefined>;
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
   clearState: () => void;
@@ -111,6 +112,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     status: 'idle',
     error: null
   });
+  const { onCanvasCreated, rootFolderId } = useCanvasFolders()
   const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
 
   const { user } = useAuth();
@@ -191,7 +193,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   }, [saveToFirebase]);
 
   const loadCanvas = useCallback(async (id: string) => {
-    console.log('loadCanvas', id);
+    
     if (!user?.uid || !id) return;
 
     try {
@@ -220,7 +222,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     }
   }, [setStatus, user?.uid]);
 
-  const createNewCanvas = async (data: { name: string, description: string, canvasType: CanvasType, layout?: CanvasLayout }) => {
+  const createNewCanvas = async (data: { name: string, description: string, canvasType: CanvasType, layout?: CanvasLayout, folderId: string }) => {
     if (!user) return;
 
     try {
@@ -229,14 +231,23 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
       const now = new Date();
       const newCanvas = serializeCanvas({
         ...getInitialCanvasState(data.canvasType, data.layout),
+        id: uuidv4(),
         userId: user.uid,
         name: data.name,
         description: data.description,
         createdAt: now,
         updatedAt: now
-      });
+      }); 
 
-      const docRef = await addDoc(collection(db, 'userCanvases', user.uid, 'canvases'), newCanvas);
+      const canvasItem = {
+        id: newCanvas.id,
+        name: newCanvas.name,
+        canvasTypeId: newCanvas.canvasType.id
+      } as CanvasItem;
+
+      const docRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), newCanvas.id);
+      await setDoc(docRef, newCanvas);
+      onCanvasCreated(canvasItem, data.folderId);
 
       // Deserialize the canvas before setting state
       const canvasWithId = deserializeCanvas({
@@ -262,7 +273,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
 
   const updateQuestionAnswer = useCallback((question: AIQuestion) => {
-    console.log('updateQuestionAnswer', question.section)
+    
     setState(prev => {
       const sections = prev.formData.sections;
       const section = sections.get(question.section);
@@ -397,7 +408,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         where('userId', '==', user.uid)
       );
 
-      unsubscribeCanvases = onSnapshot(canvasesQuery, (snapshot: DocumentData) => {
+      unsubscribeCanvases = onSnapshot(canvasesQuery, async (snapshot: DocumentData) => {
         const canvases = snapshot.docs.map((doc: DocumentData) => {
           const data = deserializeCanvas({ ...doc.data(), id: doc.id } as SerializedCanvas);
           return {
@@ -406,6 +417,33 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
           };
         });
         setUserCanvases(canvases);
+
+        // Check for canvases without folders and add them to root
+        for (const canvas of canvases) {
+          const canvasItem: CanvasItem = {
+            id: canvas.id,
+            name: canvas.name,
+            canvasTypeId: canvas.canvasType.id
+          };
+
+          // Check if canvas exists in any folder
+          const foldersRef = collection(db, 'userFolders', user.uid, 'folders');
+          const foldersSnapshot = await getDocs(foldersRef);
+          let foundInFolder = false;
+
+          for (const folderDoc of foldersSnapshot.docs) {
+            const folderData = folderDoc.data();
+            if (folderData.canvases && folderData.canvases[canvas.id]) {
+              foundInFolder = true;
+              break;
+            }
+          }
+
+          // If not found in any folder, add to root folder
+          if (!foundInFolder) {
+            await onCanvasCreated(canvasItem, rootFolderId);
+          }
+        }
       });
     } else {
       setUserCanvases([]);
@@ -416,7 +454,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
         unsubscribeCanvases();
       }
     };
-  }, [user]);
+  }, [user, onCanvasCreated, rootFolderId]);
 
   const updateLayout = useCallback((layout: string[], canvasLayout: CanvasLayout) => {
     setState(prev => {

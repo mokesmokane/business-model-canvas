@@ -16,7 +16,7 @@ export class CanvasTypeService {
     }
 
     async getCanvasTypes(): Promise<Record<string, CanvasType>> {
-        console.log("Getting canvas types")
+        
         try {
             const querySnapshot = await getDocs(this.collectionRef);
             let canvasTypes = querySnapshot.docs.map(doc => {
@@ -30,13 +30,11 @@ export class CanvasTypeService {
                     } : undefined
                 } as CanvasType;
             });
-            console.log("canvasTypes", canvasTypes) 
 
             let canvasTypesRecord = canvasTypes.reduce((acc, canvasType) => {
                 acc[canvasType.id] = canvasType;
                 return acc;
             }, {} as Record<string, CanvasType>);
-            console.log("canvasTypesRecord", canvasTypesRecord)
             return canvasTypesRecord;
         } catch (error) {
             console.error("Error retrieving canvasTypes: ", error);
@@ -45,7 +43,6 @@ export class CanvasTypeService {
     }
 
     async getCanvasLayouts(): Promise<Record<string, CanvasLayoutDetails>> {
-        console.log("Getting canvas layouts")
         try {
             const querySnapshot = await getDocs(this.layoutCollectionRef);
             let canvasLayouts = querySnapshot.docs.map(doc => ({
@@ -82,7 +79,6 @@ export class CanvasTypeService {
     async saveLayout(layout: CanvasLayoutDetails): Promise<void> {
         try {
             await addDoc(this.layoutCollectionRef, layout);
-            console.log("Layout saved successfully");
         } catch (error) {
             console.error("Error saving layout: ", error);
         }
@@ -91,7 +87,6 @@ export class CanvasTypeService {
     async deleteCanvasType(typeId: string): Promise<void> {
         try {
             await deleteDoc(doc(this.collectionRef, typeId));
-            console.log("CanvasType deleted successfully");
         } catch (error) {
             console.error("Error deleting canvasType: ", error);
             throw error;
@@ -101,7 +96,6 @@ export class CanvasTypeService {
     async deleteCanvasLayout(layoutId: string): Promise<void> {
         try {
             await deleteDoc(doc(this.layoutCollectionRef, layoutId));
-            console.log("Layout deleted successfully");
         } catch (error) {
             console.error("Error deleting layout: ", error);
             throw error;
@@ -131,7 +125,6 @@ export class CanvasTypeService {
             const { id: _, ...updateData } = canvasType;  // Remove id field from update data
             const docRef = doc(this.collectionRef, id);
             await updateDoc(docRef, updateData);
-            console.log("CanvasType updated successfully");
         } catch (error) {
             console.error("Error updating canvas type: ", error);
             throw error;
@@ -140,11 +133,9 @@ export class CanvasTypeService {
 
     async updateCanvasLayout(id: string, layout: CanvasLayoutDetails): Promise<void> {
         try {
-            console.log(`Updating layout ${id}`, layout)
             const { id: _, ...updateData } = layout;  // Remove id field from update data
             const docRef = doc(this.layoutCollectionRef, id);
             await updateDoc(docRef, updateData);
-            console.log("CanvasLayout updated successfully");
         } catch (error) {
             console.error("Error updating canvas layout: ", error);
             throw error;

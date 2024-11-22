@@ -97,7 +97,6 @@ export function CanvasSection({
     // updateQuestions(sectionKey, newQuestions)
   }
   
-  console.log('itemsArray', itemsArray);
   return (
     <Card 
       canvasTheme={canvasTheme}

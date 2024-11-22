@@ -20,7 +20,6 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
       config: canvasType.sections.find(s => s.name === key)
     }))
     .sort((a, b) => (a.section.gridIndex || 0) - (b.section.gridIndex || 0));
-  console.log('sortedSections', sortedSections);
   return (
     <div className={`flex flex-col flex-1 p-4 space-y-4 overflow-auto ${
       canvasTheme === 'light' ? 'bg-white text-black' : 'bg-gray-950 text-white'

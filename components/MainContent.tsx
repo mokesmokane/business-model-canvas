@@ -11,7 +11,9 @@ import { MobileBusinessModelCanvas } from "./mobile/MobileBusinessModelCanvas"
 import { CanvasProvider } from "@/contexts/CanvasContext"
 import { NewCanvasProvider } from "@/contexts/NewCanvasContext"
 import { AIAgentProvider } from "@/contexts/AIAgentContext"
-
+import { Providers } from "./providers/Providers"
+import { SIDEBAR_WIDTH_MOBILE} from "@/src/constants/sideBarWidths"
+import { CanvasFoldersProvider } from "@/contexts/CanvasFoldersContext"
 export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
@@ -35,8 +37,10 @@ export function MainContent() {
           enableSystem
           disableTransitionOnChange
         >
-          <NewCanvasProvider>
-            <CanvasProvider>
+          <Providers>
+            <CanvasFoldersProvider>
+            <NewCanvasProvider>
+              <CanvasProvider>
               <AIAgentProvider>
                 {isMobile ? (
                   <>
@@ -53,7 +57,9 @@ export function MainContent() {
                 )}
               </AIAgentProvider>
             </CanvasProvider>
-          </NewCanvasProvider>  
+          </NewCanvasProvider> 
+          </CanvasFoldersProvider>
+          </Providers>
         </ThemeProvider>
       ) : (
         <LandingPage />

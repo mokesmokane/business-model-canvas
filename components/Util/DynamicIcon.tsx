@@ -4,7 +4,7 @@ const DynamicIcon = ({name, className, color, size}: {name: string, className?: 
   const LucideIcon = icons[name as keyof typeof icons];
 
   if (!LucideIcon) {
-    console.warn(`Icon "${name}" not found`);
+    // console.warn(`Icon "${name}" not found`);
     //if its a single letter, try and see if its an emoji
     if (name.length === 1 && name.match(/^[a-zA-Z]$/)) {
       return <span className={className}>{name}</span>;

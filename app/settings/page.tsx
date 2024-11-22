@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useSubscription } from "@/contexts/SubscriptionContext"
 import { Bell, Moon, Sun, Palette, Shield, CreditCard } from "lucide-react"
 import Link from "next/link"
+import { Providers } from "@/components/providers/Providers"
 
 export default function SettingsPage() {
   const { user, userData } = useAuth()
@@ -27,9 +28,10 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <SiteHeader />
-      <div className="container mx-auto py-10">
+    <Providers>
+      <div className="min-h-screen bg-background">
+        <SiteHeader />
+        <div className="container mx-auto py-10">
         <div className="max-w-4xl mx-auto">
           <Tabs defaultValue="general" className="space-y-6">
             <div className="flex justify-between items-center">
@@ -156,7 +158,8 @@ export default function SettingsPage() {
           {success && <p className="mt-4 text-sm text-green-500">{success}</p>}
           {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
         </div>
+        </div>
       </div>
-    </div>
+    </Providers>
   )
 } 

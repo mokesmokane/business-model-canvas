@@ -138,9 +138,6 @@ export async function POST(request: Request) {
   
   try {
     const { messages } = await request.json()
-    console.log("Received admin chat request")
-    console.log(messages)
-    
     //if the last message is an action, chaneg the system prompt accordingly
     const action = messages[messages.length - 1].action
 

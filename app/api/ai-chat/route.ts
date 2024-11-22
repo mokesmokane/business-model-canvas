@@ -118,7 +118,6 @@ export async function POST(request: Request) {
     let researchPrompt = aiAgent.researchPrompt
     let suggestPrompt = aiAgent.suggestPrompt
     let questionToolDescription = aiAgent.questionToolDescription
-    console.log('aiAgent', aiAgent)
 
     
     let canvasInfo = `The Canvas currently looks like this:

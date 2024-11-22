@@ -1,5 +1,6 @@
 'use client'
 
+import { Providers } from "@/components/providers/Providers"
 import { SiteHeader } from "@/components/site/SiteHeader"
 import { useAuth } from "@/contexts/AuthContext"
 import { getStripe } from "@/lib/stripe-client"
@@ -53,9 +54,10 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <SiteHeader />
-      <div className="container mx-auto px-4 py-16">
+    <Providers>
+      <div className="min-h-screen bg-gray-900">
+        <SiteHeader />
+        <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">Pricing Plans</h1>
           <p className="text-gray-400">Choose the perfect plan for your needs</p>
@@ -149,9 +151,10 @@ export default function PricingPage() {
               Contact Sales
             </button>
           </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Providers>
   )
 }
 

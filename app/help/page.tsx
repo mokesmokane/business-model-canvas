@@ -3,6 +3,7 @@
 import { SiteHeader } from "@/components/site/SiteHeader"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Providers } from "@/components/providers/Providers"
 
 export default function HelpPage() {
   const helpSections = [
@@ -35,7 +36,9 @@ export default function HelpPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-background">
+    <Providers>
+      <div className="min-h-screen bg-background">
+
       <SiteHeader />
       <div className="container mx-auto py-10">
         <div className="max-w-3xl mx-auto">
@@ -64,8 +67,9 @@ export default function HelpPage() {
               ))}
             </CardContent>
           </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </Providers>
   )
 } 
