@@ -56,7 +56,7 @@ export function Header() {
         <h1 className={`text-3xl font-bold tracking-tight ${
           canvasTheme === 'light' ? 'text-black' : 'text-white'
         }`}>
-          The Business Model Canvas
+          {formData.canvasType.name}
         </h1>
         <div className="flex items-center gap-2">
           <Input 
