@@ -61,9 +61,7 @@ export function VisualGridEditor({
     setGridItems(newItems)
     
     const { areas, cols, rows } = gridItemsToCss(newItems)
-    console.log("areas", areas)
-    console.log("cols", cols)
-    console.log("rows", rows)
+    
     onChange(areas, cols, rows)
   }
 

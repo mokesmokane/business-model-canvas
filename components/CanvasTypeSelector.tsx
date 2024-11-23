@@ -130,10 +130,24 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
   };
 
   const handleCustomization = (customType: CanvasType, aiAgent: AIAgent | null) => {
-
     setCustomizedType(customType);
     setCustomizedAiAgent(aiAgent);
     setSelectedTypeLocal(customType);
+    
+    // Create a CanvasLayoutDetails object from the customType's defaultLayout
+    if (customType.defaultLayout) {
+      const defaultLayoutDetails: CanvasLayoutDetails = {
+        id: `${customType.id}-default`,
+        layout: customType.defaultLayout.layout,
+        name: 'Default Layout',
+        sectionCount: customType.sections.length,
+        description: 'Default layout for this canvas type'
+      };
+      setSelectedLayout(defaultLayoutDetails);
+    } else {
+      setSelectedLayout(null);
+    }
+    
     setShowCustomEditor(false);
   };
 

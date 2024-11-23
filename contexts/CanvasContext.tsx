@@ -337,7 +337,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Error deleting canvas:', err);
       setStatus('error', err instanceof Error ? err.message : 'Failed to delete canvas');
-    }
+    } 
   }, [user, setStatus, state.currentCanvas?.id]);
 
   const clearState = useCallback(() => {

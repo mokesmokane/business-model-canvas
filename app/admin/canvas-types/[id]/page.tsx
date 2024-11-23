@@ -181,13 +181,78 @@ export default function TabbedEditCanvasTypePage() {
         </Alert>
       )}
 
-      <Tabs defaultValue="basic" className="space-y-6">
+      <Tabs defaultValue="layout" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="basic">Basic Information</TabsTrigger>
           <TabsTrigger value="layout">Layout</TabsTrigger>
+          <TabsTrigger value="basic">Basic Information</TabsTrigger>
           <TabsTrigger value="ai">AI Agent</TabsTrigger>
         </TabsList>
-
+        <TabsContent value="layout">
+          <Card>
+            <CardHeader>
+              <CardTitle>Default Layout</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Grid Columns</label>
+              <Input
+                value={defaultCols}
+                onChange={(e) => setDefaultCols(e.target.value)}
+                placeholder="Grid Columns (e.g., 1fr 1fr 1fr)"
+              />
+              {!isValidGridTemplate(defaultCols) && (
+                <p className="text-red-500 text-sm">Invalid syntax: Please use a valid grid template format.</p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Grid Rows</label>
+              <Input
+                value={defaultRows}
+                onChange={(e) => setDefaultRows(e.target.value)}
+                placeholder="Grid Rows (e.g., auto auto)"
+              />
+              {!isValidGridTemplate(defaultRows) && (
+                <p className="text-red-500 text-sm">Invalid syntax: Please use a valid grid template format.</p>
+              )}
+            </div>
+            {isValidGridTemplate(defaultCols) && isValidGridTemplate(defaultRows) && (
+              <VisualGridEditor
+                initialAreas={defaultAreas}
+                initialCols={defaultCols}
+                initialRows={defaultRows}
+                canvasType={canvasType}
+                showGridAreas={true}
+                onDeleteSection={(index) => {
+                  const updatedSections = [...canvasType.sections];
+                  updatedSections.splice(index, 1);
+                  setCanvasType({ ...canvasType, sections: updatedSections });
+                }}
+                onAddSection={(newSection) => {
+                  const updatedSections = [...canvasType.sections];
+                  updatedSections.push(newSection);
+                  setCanvasType({ ...canvasType, sections: updatedSections });
+                }}
+                onChange={(areas, cols, rows) => {
+                  setDefaultAreas(areas);
+                  setDefaultCols(cols);
+                  setDefaultRows(rows);
+                }}
+                onUpdateSection={(updatedSection) => {
+                  const updatedSections = [...canvasType.sections];
+                  const index = updatedSections.findIndex(s => s.gridIndex === updatedSection.gridIndex);
+                  if (index !== -1) {
+                    updatedSections[index] = updatedSection;
+                    setCanvasType({
+                      ...canvasType,
+                      sections: updatedSections
+                    });
+                  }
+                }}
+              />
+            )}
+            </CardContent>
+          </Card>
+        </TabsContent>
         <TabsContent value="basic">
           <Card>
             <CardHeader>
@@ -259,72 +324,7 @@ export default function TabbedEditCanvasTypePage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="layout">
-          <Card>
-            <CardHeader>
-              <CardTitle>Default Layout</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Grid Columns</label>
-              <Input
-                value={defaultCols}
-                onChange={(e) => setDefaultCols(e.target.value)}
-                placeholder="Grid Columns (e.g., 1fr 1fr 1fr)"
-              />
-              {!isValidGridTemplate(defaultCols) && (
-                <p className="text-red-500 text-sm">Invalid syntax: Please use a valid grid template format.</p>
-              )}
-            </div>
-            <div>
-              <label className="text-sm font-medium">Grid Rows</label>
-              <Input
-                value={defaultRows}
-                onChange={(e) => setDefaultRows(e.target.value)}
-                placeholder="Grid Rows (e.g., auto auto)"
-              />
-              {!isValidGridTemplate(defaultRows) && (
-                <p className="text-red-500 text-sm">Invalid syntax: Please use a valid grid template format.</p>
-              )}
-            </div>
-            {isValidGridTemplate(defaultCols) && isValidGridTemplate(defaultRows) && (
-              <VisualGridEditor
-                initialAreas={defaultAreas}
-                initialCols={defaultCols}
-                initialRows={defaultRows}
-                canvasType={canvasType}
-                showGridAreas={true}
-                onDeleteSection={(index) => {
-                  const updatedSections = [...canvasType.sections];
-                  updatedSections.splice(index, 1);
-                  setCanvasType({ ...canvasType, sections: updatedSections });
-                }}
-                onAddSection={(newSection) => {
-                  const updatedSections = [...canvasType.sections];
-                  updatedSections.push(newSection);
-                  setCanvasType({ ...canvasType, sections: updatedSections });
-                }}
-                onChange={(areas, cols, rows) => {
-                  setDefaultAreas(areas);
-                  setDefaultCols(cols);
-                  setDefaultRows(rows);
-                }}
-                onUpdateSection={(updatedSection) => {
-                  const updatedSections = [...canvasType.sections];
-                  const index = updatedSections.findIndex(s => s.gridIndex === updatedSection.gridIndex);
-                  if (index !== -1) {
-                    updatedSections[index] = updatedSection;
-                    setCanvasType({
-                      ...canvasType,
-                      sections: updatedSections
-                    });
-                  }
-                }}
-              />
-            )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+        
 
         <TabsContent value="ai">
           <Card>

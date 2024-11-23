@@ -70,9 +70,10 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onCon
     setAiAgent(agent);
   }
 
-  const handleSave = async () => {
+  const confirm = async () => {
+    console.log("confirm")
     if (!canvasType || !user) return;
-
+    console.log("canvasType defaultLayout", canvasType.defaultLayout)
     const updatedCanvasType = {
       ...canvasType,
       defaultLayout: {
@@ -87,18 +88,8 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onCon
         },
       },
     };
-
-    try {
-
-      await canvasTypeService.saveCustomCanvasType(canvasType.id, updatedCanvasType, user?.uid);
-      if (aiAgent) {
-        await aiAgentService.saveCustomAIAgent(canvasType.id, aiAgent, user?.uid);
-      }
-      
-    } catch (err) {
-      setError('Failed to save changes');
-      console.error(err);
-    }
+    console.log("updatedCanvasType defaultLayout", updatedCanvasType.defaultLayout)
+    onConfirm(updatedCanvasType, aiAgent);
   };
 
   const fetchSuggestedAIAgent = async () => {
@@ -188,7 +179,7 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onCon
                 variant="secondary"
                 size="sm"
                 onClick={() => {
-                  onConfirm(canvasType, aiAgent);
+                  confirm();
                 }}
               >
                 Confirm
@@ -465,11 +456,7 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onCon
           </Card>
         </TabsContent>
       </Tabs>
-      {admin &&
-      <div className="flex justify-end">
-        <Button onClick={handleSave}>Save Changes</Button>
-        </div>
-      }
+      
     </div>
   );
 } 
