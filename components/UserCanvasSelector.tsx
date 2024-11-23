@@ -3,31 +3,26 @@
 import { useCanvas } from "@/contexts/CanvasContext"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { formatDistanceToNow } from "date-fns"
-import { Grid2x2 } from 'lucide-react'
 import { motion } from "framer-motion"
 import { useRef, useEffect, useState } from "react"
-import { useExpanded } from "@/contexts/ExpandedContext"
-import { useLayouts } from "@/contexts/LayoutContext"
 import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
-import { CanvasLayoutDetails, CanvasType } from "@/types/canvas-sections"
-import { useNewCanvas } from "@/contexts/NewCanvasContext"
+import { CanvasType } from "@/types/canvas-sections"
 import DynamicIcon from "./Util/DynamicIcon"
 import { TAG_INFO } from "@/src/constants/tags"
 import useEmblaCarousel from 'embla-carousel-react'
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { CanvasTypeSelector } from "./CanvasTypeSelector"
 
 export function UserCanvasSelector() {
   const { userCanvases, loadCanvas } = useCanvas()
   const existingConstraintsRef = useRef<HTMLDivElement>(null)
   const newCanvasConstraintsRef = useRef<HTMLDivElement>(null)
-  const { getLayoutsForSectionCount, getLayouts } = useLayouts()
   const { getCanvasTypes } = useCanvasTypes()
   const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({})
-  const [canvasLayouts, setCanvasLayouts] = useState<Record<string, CanvasLayoutDetails>>({})
-  const { setNewCanvas, setSelectedType } = useNewCanvas();
   const [searchTerm, setSearchTerm] = useState('')
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartPosition, setDragStartPosition] = useState<{ x: number; y: number } | null>(null);
-  const [existingCanvasesRef, existingCanvasesApi] = useEmblaCarousel({
+  const [showTypeSelector, setShowTypeSelector] = useState(false)
+  const [selectedType, setSelectedType] = useState<CanvasType | null>(null)
+  const [existingCanvasesRef] = useEmblaCarousel({
     dragFree: true,
     containScroll: "trimSnaps"
   })
@@ -49,18 +44,14 @@ export function UserCanvasSelector() {
     getCanvasTypes().then(setCanvasTypes)
   }, [getCanvasTypes])
 
-  useEffect(() => {
-    getLayouts().then(setCanvasLayouts)
-  }, [getLayouts])
-
   const handleCanvasSelect = async (canvasId: string) => {
     await loadCanvas(canvasId)
     localStorage.setItem('lastCanvasId', canvasId)
   }
 
   const handleNewCanvasSelect = (type: CanvasType) => {
-    setSelectedType(type);
-    setNewCanvas([true, 'root']);
+    setSelectedType(type)
+    setShowTypeSelector(true)
   };
 
   useEffect(() => {
@@ -86,6 +77,7 @@ export function UserCanvasSelector() {
   }
 
   return (
+    <>
     <div className="flex flex-col w-full h-screen overflow-y-auto bg-background">
       <div className="p-8 space-y-12">
         <div>
@@ -377,5 +369,13 @@ export function UserCanvasSelector() {
         })}
       </div>
     </div>
+
+  <Dialog open={showTypeSelector} onOpenChange={setShowTypeSelector}>
+  <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
+    <DialogTitle></DialogTitle>
+    <CanvasTypeSelector selectedType={selectedType} />
+  </DialogContent>
+  </Dialog>
+  </>
   )
 }

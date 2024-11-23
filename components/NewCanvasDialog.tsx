@@ -14,7 +14,7 @@ import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'
 interface NewCanvasDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  canvasType: CanvasType;
+  canvasType?: CanvasType;
   layout?: CanvasLayout;
   folderId?: string;
 }
@@ -33,6 +33,9 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout, folder
     }
 
     try {
+      if (!canvasType) {
+        return
+      }
 
       const newCanvasId = await createNewCanvas({
         name: tempName.trim(),
@@ -64,6 +67,7 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout, folder
       <Button
           variant="default"
           className="mt-4"
+          disabled={!canvasType}
         >
           Create Canvas
         </Button>
@@ -84,6 +88,7 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout, folder
                 setTempName(e.target.value)
               }}
               className={!isValid ? 'border-red-500' : ''}
+              disabled={!canvasType}
             />
             {!isValid && (
               <p className="text-sm text-red-500 mt-1">Name cannot be empty</p>
@@ -97,10 +102,11 @@ The more detail you provide, the better the AI can understand your situation and
             value={tempDescription}
             onChange={(e) => setTempDescription(e.target.value)}
             className="min-h-[200px]"
+            disabled={!canvasType}
           />
           <DialogFooter>
             <DialogClose asChild>
-              <Button onClick={handleSave}>
+              <Button onClick={handleSave} disabled={!canvasType}>
                 Create Canvas
               </Button>
             </DialogClose>

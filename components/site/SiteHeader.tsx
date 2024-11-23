@@ -10,7 +10,7 @@ import { useExpanded } from "@/contexts/ExpandedContext"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { SubscriptionProvider, useSubscription } from "@/contexts/SubscriptionContext"
 import { SubscriptionBadge } from "../subscription/SubscriptionBadge"
-
+import { useCanvas } from "@/contexts/CanvasContext"
 
 export function SiteHeader() {
   const { user, logout, userData } = useAuth()
@@ -18,6 +18,7 @@ export function SiteHeader() {
   const [showAuthDialog, setShowAuthDialog] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const { isExpanded, setIsExpanded } = useExpanded()
+  const { clearState } = useCanvas()
 
   const handleSignOut = async () => {
     try {
@@ -40,9 +41,11 @@ export function SiteHeader() {
               <Menu className="h-4 w-4" />
             </Button>
           )}
-          <Link className="flex items-center justify-center" href="#">
+          <Button variant="link" onClick={() => {
+            clearState()
+          }}>
             <span className="text-2xl font-extrabold text-foreground">cavvy.ai</span>
-          </Link>
+          </Button>
         </div>
         
         <nav className="flex items-center gap-6">

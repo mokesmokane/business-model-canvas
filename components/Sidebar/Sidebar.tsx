@@ -2,10 +2,8 @@
 
 import React from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { LayoutDashboard } from 'lucide-react'
 import { SidebarFooter } from './SidebarFooter'
 import { SidebarAIChatArea } from '../chat/SidebarAIChatArea'
-import { SidebarSection } from './SidebarSection'
 import { useAuth } from '@/contexts/AuthContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext'

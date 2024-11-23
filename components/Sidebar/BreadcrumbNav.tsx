@@ -13,13 +13,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'
-import { useNewCanvas } from '@/contexts/NewCanvasContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { DragEvent } from 'react'
 import { cn } from '@/lib/utils'
 import React from 'react'
 import { MoveCanvasDialog } from "@/components/modals/MoveCanvasDialog"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { CanvasTypeSelector } from "@/components/CanvasTypeSelector"
+import { DialogTitle } from '@radix-ui/react-dialog'
 
 interface BreadcrumbNavProps {
   path: NestedCanvasFolder[]
@@ -34,11 +36,11 @@ interface MoveOperation {
 
 export function BreadcrumbNav({ path, onNavigate }: BreadcrumbNavProps) {
   const { onCanvasCreated, onCreateFolder, onCanvasMoved } = useCanvasFolders()
-  const { setNewCanvas } = useNewCanvas()
   const { clearState } = useCanvas()
   const { isExpanded, setIsExpanded } = useExpanded()
   const [dragOverFolderId, setDragOverFolderId] = React.useState<string | null>(null)
   const [pendingMove, setPendingMove] = React.useState<MoveOperation | null>(null)
+  const [showTypeSelector, setShowTypeSelector] = React.useState(false)
 
   const onAddFolder = () => {
     const currentFolder = (path.length > 0 ? path[path.length - 1] : null)?.id ?? 'root'
@@ -46,8 +48,7 @@ export function BreadcrumbNav({ path, onNavigate }: BreadcrumbNavProps) {
   }
 
   const onAddCanvas = () => {
-    clearState();
-    setNewCanvas([true, path[path.length - 1]?.id ?? 'root']);
+    setShowTypeSelector(true)
   }
 
   const onNav = (folder: NestedCanvasFolder | null) => {
@@ -57,7 +58,6 @@ export function BreadcrumbNav({ path, onNavigate }: BreadcrumbNavProps) {
     }
     if (path.length === 0) {
       clearState()
-      setNewCanvas([false, null])
     }
     onNavigate(folder)
   }
@@ -200,6 +200,12 @@ export function BreadcrumbNav({ path, onNavigate }: BreadcrumbNavProps) {
           targetPath={getPathString(pendingMove.targetFolderId)}
         />
       )}
+      <Dialog open={showTypeSelector} onOpenChange={setShowTypeSelector}>
+        <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
+          <DialogTitle></DialogTitle>
+          <CanvasTypeSelector selectedType={null} />
+        </DialogContent>
+      </Dialog>
     </>
   )
 } 

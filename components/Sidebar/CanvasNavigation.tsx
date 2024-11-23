@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/context-menu'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'
-import { useNewCanvas } from '@/contexts/NewCanvasContext'
 import { CanvasItem, NestedCanvasFolder } from '@/types/canvas'
 import { cn } from '@/lib/utils'
 import { DeleteCanvasDialog } from '../DeleteCanvasDialog'
@@ -65,7 +64,6 @@ function countCanvasesInFolder(folder: NestedCanvasFolder): number {
 export function CanvasNavigation() {
   const { folders, rootFolder, onCreateFolder, onFolderRename, onFolderDelete, onCanvasMoved } = useCanvasFolders()
   const { loadCanvas, currentCanvas, deleteCanvas, clearState } = useCanvas()
-  const { setNewCanvas } = useNewCanvas()
   const [currentPath, setCurrentPath] = React.useState<NestedCanvasFolder[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [canvasToDelete, setCanvasToDelete] = React.useState<{ id: string, name: string } | null>(null)
@@ -106,11 +104,6 @@ export function CanvasNavigation() {
       }
     }
   }, [folders, user?.uid]);
-
-  const handleNewCanvas = (folderId: string | null) => {
-    clearState()
-    setNewCanvas([true, folderId])
-  }
 
   const handleDeleteCanvas = async (canvasId: string) => {
     await deleteCanvas(canvasId)

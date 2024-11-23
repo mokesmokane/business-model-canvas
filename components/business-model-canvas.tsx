@@ -6,15 +6,12 @@ import { Sidebar } from "./Sidebar/Sidebar"
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthDialog } from './auth/AuthDialog';
 import { useExpanded } from "@/contexts/ExpandedContext"
-import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext";
-import { CanvasTypeSelector } from "./CanvasTypeSelector";
-import { NewCanvasProvider, useNewCanvas } from "@/contexts/NewCanvasContext";
+import { useCanvas } from "@/contexts/CanvasContext";
 import { UserCanvasSelector } from "./UserCanvasSelector";
 
 export function BusinessModelCanvasComponent() {
   const { user } = useAuth();
-  const { currentCanvas, userCanvases } = useCanvas();
-  const { newCanvas } = useNewCanvas();
+  const { currentCanvas } = useCanvas();
   
   const { setIsExpanded } = useExpanded()
   const [showAuthDialog, setShowAuthDialog] = React.useState(false);
@@ -38,12 +35,7 @@ export function BusinessModelCanvasComponent() {
               <Sidebar setShowAuthDialog={setShowAuthDialog} />
               <Canvas onExpandSidebar={handleExpandSidebar} />  
           </div>
-          ) : newCanvas || !userCanvases || userCanvases.length === 0 ? (
-            <div className="flex h-full bg-white">
-              <Sidebar setShowAuthDialog={setShowAuthDialog} />
-              <CanvasTypeSelector />
-            </div>
-          ) : (
+          ) :(
             <div className="flex h-full bg-white">
               <Sidebar setShowAuthDialog={setShowAuthDialog} />
               <UserCanvasSelector />
