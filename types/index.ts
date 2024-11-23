@@ -18,17 +18,6 @@ export interface SidebarProps {
   onToggle: () => void
 }
 
-export interface SidebarContentProps {
-  isExpanded: boolean
-}
-
-export interface SidebarSectionProps {
-  icon: LucideIcon
-  title: string
-  items: string[]
-  isExpanded: boolean
-}
-
 export interface SidebarFooterProps {
   isExpanded: boolean
 }
