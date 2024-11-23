@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Grid2x2, Plus } from 'lucide-react'
 import { CanvasTypeService } from '@/services/canvasTypeService'
 import { CanvasLayoutDetails } from '@/types/canvas-sections'
-import { VisualGridEditor } from '@/components/LayoutGrid/LayoutGridEditor'
+import { VisualGridEditor } from '@/components/LayoutGrid/VisualGridEditor'
 const COLORS = [
   'bg-red-200',
   'bg-blue-200',
@@ -171,7 +171,16 @@ export default function EditLayoutPage() {
         </CardContent>
       </Card>
 
-      <VisualGridEditor initialAreas={layout.layout.areas} initialCols={layout.layout.gridTemplate.columns} initialRows={layout.layout.gridTemplate.rows} onChange={handleLayoutChange} />
+      <VisualGridEditor 
+        showGridAreas={true}
+        initialAreas={layout.layout.areas} 
+        initialCols={layout.layout.gridTemplate.columns} 
+        initialRows={layout.layout.gridTemplate.rows} 
+        onChange={handleLayoutChange} 
+        onUpdateSection={() => {}}
+        onAddSection={() => {}}
+        onDeleteSection={() => {}}
+      />
 
       <div className="flex justify-end gap-4">
         <Button variant="outline" onClick={() => router.push('/admin')}>

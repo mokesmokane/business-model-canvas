@@ -20,7 +20,7 @@ interface VisualGridEditorProps {
   initialCols: string
   initialRows: string
   onChange: (areas: string[], cols: string, rows: string) => void
-  canvasType: CanvasType
+  canvasType?: CanvasType
   showGridAreas: boolean
   onUpdateSection: (updatedSection: CanvasSection) => void
   onAddSection: (section: CanvasSection) => void
@@ -70,13 +70,18 @@ export function VisualGridEditor({
   const rowHeight = 50;
 
   const handleAddSection = () => {
+
     // Create new section
-    const newSection: CanvasSection = {
-      name: 'New Section',
-      icon: 'Square',
-      placeholder: '',
-      gridIndex: canvasType.sections.length
-    };
+    if (canvasType) return;
+    {
+      const newSection: CanvasSection = {
+        name: 'New Section',
+        icon: 'Square',
+        placeholder: '',
+        gridIndex: canvasType!.sections.length
+      };
+      onAddSection(newSection);
+  }
 
     // Create new grid item
     const newGridItem: GridItem = {
@@ -96,7 +101,6 @@ export function VisualGridEditor({
     onChange(areas, cols, rows);
 
     // Add section
-    onAddSection(newSection);
   };
 
   const handleDeleteSection = (index: number) => {
