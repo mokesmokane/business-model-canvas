@@ -30,10 +30,16 @@ export function CanvasTypeProvider({ children }: { children: React.ReactNode }) 
     const unsubscribeStandard = onSnapshot(
       collection(db, 'canvasTypes'),
       async (snapshot) => {
-        const standardTypes = snapshot.docs.reduce((acc, doc) => ({
-          ...acc,
-          [doc.id]: { id: doc.id, ...(doc.data() as Omit<CanvasType, 'id'>)}
-        }), {} as Record<string, CanvasType>);
+        const standardTypes = snapshot.docs.reduce((acc, doc) => {
+          const data = doc.data() as Omit<CanvasType, 'id'>;
+          return {
+            ...acc,
+            [doc.id]: {
+              id: doc.id,
+              ...data
+            }
+          };
+        }, {} as Record<string, CanvasType>);
 
         if (user?.uid) {
           // Get custom types
@@ -51,10 +57,16 @@ export function CanvasTypeProvider({ children }: { children: React.ReactNode }) 
       unsubscribeCustom = onSnapshot(
         collection(db, 'userCanvasTypes', user.uid, 'canvasTypes'),
         async (snapshot) => {
-          const customTypes = snapshot.docs.reduce((acc, doc) => ({
-            ...acc,
-            [doc.id]: { id: doc.id, ...(doc.data() as Omit<CanvasType, 'id'>)}
-          }), {} as Record<string, CanvasType>);
+          const customTypes = snapshot.docs.reduce((acc, doc) => {
+            const data = doc.data() as Omit<CanvasType, 'id'>;
+            return {
+              ...acc,
+              [doc.id]: {
+                id: doc.id,
+                ...data
+              }
+            };
+          }, {} as Record<string, CanvasType>);
 
           // Get standard types
           const standardTypes = await canvasTypeService.getStandardCanvasTypes();

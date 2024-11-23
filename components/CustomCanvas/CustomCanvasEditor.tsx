@@ -49,6 +49,7 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onCon
 
   useEffect(() => {
     loadCanvasType();
+    console.log("canvasTypeTemplate", canvasTypeTemplate)
     loadAiAgent(canvasTypeTemplate.id);
   }, []);
 
@@ -347,6 +348,9 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onCon
                   setCanvasType({ ...canvasType, sections: updatedSections });
                 }}
                 onChange={(areas, cols, rows) => {
+                  console.log("areas", areas)
+                  console.log("cols", cols)
+                  console.log("rows", rows)
                   setDefaultAreas(areas);
                   setDefaultCols(cols);
                   setDefaultRows(rows);

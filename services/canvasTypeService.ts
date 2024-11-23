@@ -43,12 +43,11 @@ export class CanvasTypeService {
         const querySnapshot = await getDocs(collection(db, "canvasTypes"));
         return querySnapshot.docs.reduce((acc, doc) => {
             acc[doc.id] = { 
-                id: doc.id, 
                 ...doc.data(),
                 defaultLayout: doc.data().defaultLayout ? {
                     ...doc.data().defaultLayout,
-                    id: doc.id
-                } : undefined
+                } : undefined,
+                id: doc.id
             } as CanvasType;
             return acc;
         }, {} as Record<string, CanvasType>);
@@ -58,12 +57,12 @@ export class CanvasTypeService {
         const querySnapshot = await getDocs(collection(db, 'userCanvasTypes', userId, 'canvasTypes'));
         return querySnapshot.docs.reduce((acc, doc) => {
             acc[doc.id] = { 
-                id: doc.id, 
                 ...doc.data(),
                 defaultLayout: doc.data().defaultLayout ? {
                     ...doc.data().defaultLayout,
                     id: doc.id
-                } : undefined
+                } : undefined,
+                id: doc.id
             } as CanvasType;
             return acc;
         }, {} as Record<string, CanvasType>);
@@ -136,8 +135,11 @@ export class CanvasTypeService {
             const standardDocSnap = await getDoc(standardDocRef);
 
             if (standardDocSnap.exists()) {
-                return { id: typeId, ...standardDocSnap.data() } as CanvasType;
+                const canvasType = {...standardDocSnap.data(),  id: typeId } as CanvasType;
+                console.log("canvasType", canvasType)
+                return canvasType;
             }
+
 
             // If not found and userId provided, check custom types
             if (userId) {

@@ -62,7 +62,7 @@ function countCanvasesInFolder(folder: NestedCanvasFolder): number {
 }
 
 export function CanvasNavigation() {
-  const { folders, rootFolder, onCreateFolder, onFolderRename, onFolderDelete, onCanvasMoved } = useCanvasFolders()
+  const { folders, rootFolder, onCanvasDeleted, onFolderRename, onFolderDelete, onCanvasMoved } = useCanvasFolders()
   const { loadCanvas, currentCanvas, deleteCanvas, clearState } = useCanvas()
   const [currentPath, setCurrentPath] = React.useState<NestedCanvasFolder[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
@@ -107,6 +107,9 @@ export function CanvasNavigation() {
 
   const handleDeleteCanvas = async (canvasId: string) => {
     await deleteCanvas(canvasId)
+    //delete from folder!
+    await onCanvasDeleted(canvasId)
+
     setDeleteDialogOpen(false)
     setCanvasToDelete(null)
   }
