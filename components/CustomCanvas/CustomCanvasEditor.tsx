@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CanvasTypeService } from '@/services/canvasTypeService';
 import { CanvasType, CanvasSection, cloneCanvasType } from '@/types/canvas-sections';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Grip, Plus, Trash2, Pencil } from 'lucide-react';
+import { Grip, Plus, Trash2, Pencil, XIcon } from 'lucide-react';
 import IconSelector from '@/app/components/IconSelector';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { VisualGridEditor } from '@/components/LayoutGrid/VisualGridEditor';
@@ -20,7 +20,7 @@ import { AIAgent } from '@/types/canvas';
 import { AIAgentService } from '@/services/aiAgentService';
 import { TAG_INFO } from '@/src/constants/tags';
 import { TagSuggesterService } from '@/services/tagSuggesterService';
-
+import DynamicIcon from '../Util/DynamicIcon';
 function isValidGridTemplate(template: string): boolean {
   const validPattern = /^(\d+fr|\d+px|auto)(\s+(\d+fr|\d+px|auto))*$/;
   return validPattern.test(template);
@@ -28,10 +28,12 @@ function isValidGridTemplate(template: string): boolean {
 
 interface CustomCanvasEditorProps {
   canvasTypeTemplate: CanvasType;
-  onChooseCanvasType: (canvasType: CanvasType) => void;
+  onCancel: () => void;
+  onConfirm: (canvasType: CanvasType, aiAgent: AIAgent | null) => void;
+  admin?: boolean;
 }
 
-export default function CustomCanvasEditor({ canvasTypeTemplate, onChooseCanvasType }: CustomCanvasEditorProps) {
+export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onConfirm, admin = false }: CustomCanvasEditorProps) {
   const [error, setError] = useState<string | null>(null);
   
   const canvasTypeService = new CanvasTypeService();
@@ -97,6 +99,7 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onChooseCanvasT
       console.error(err);
     }
   };
+
   const fetchSuggestedAIAgent = async () => {
     setLoading(true);
     try {
@@ -154,13 +157,44 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onChooseCanvasT
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-
+      
       <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="basic">Basic Information</TabsTrigger>
-          <TabsTrigger value="layout">Layout</TabsTrigger>
-          <TabsTrigger value="ai">AI Agent</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+              <DynamicIcon name={canvasType.icon} className="w-6 h-6 text-foreground" />
+            </div>        
+            <h3 className="text-2xl font-semibold text-foreground">Customise {canvasType.name}</h3>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <TabsList>
+              <TabsTrigger value="basic">Basic Information</TabsTrigger>
+              <TabsTrigger value="layout">Layout</TabsTrigger>
+              <TabsTrigger value="ai">AI Agent</TabsTrigger>
+            </TabsList>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onCancel}
+            >
+              <XIcon className="w-4 h-4 mr-2" />
+              Cancel
+            </Button>
+            {canvasType && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  onConfirm(canvasType, aiAgent);
+                }}
+              >
+                Confirm
+              </Button>
+            )}
+          </div>
+        </div>
 
         <TabsContent value="basic">
           <Card>
@@ -234,6 +268,40 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onChooseCanvasT
         </TabsContent>
 
         <TabsContent value="layout">
+          {!admin && <VisualGridEditor
+                initialAreas={defaultAreas}
+                initialCols={defaultCols}
+                initialRows={defaultRows}
+                canvasType={canvasType}
+                showGridAreas={admin}
+                onDeleteSection={(index) => {
+                  const updatedSections = [...canvasType.sections];
+                  updatedSections.splice(index, 1);
+                  setCanvasType({ ...canvasType, sections: updatedSections });
+                }}
+                onAddSection={(newSection) => {
+                  const updatedSections = [...canvasType.sections];
+                  updatedSections.push(newSection);
+                  setCanvasType({ ...canvasType, sections: updatedSections });
+                }}
+                onChange={(areas, cols, rows) => {
+                  setDefaultAreas(areas);
+                  setDefaultCols(cols);
+                  setDefaultRows(rows);
+                }}
+                onUpdateSection={(updatedSection) => {
+                  const updatedSections = [...canvasType.sections];
+                  const index = updatedSections.findIndex(s => s.gridIndex === updatedSection.gridIndex);
+                  if (index !== -1) {
+                    updatedSections[index] = updatedSection;
+                    setCanvasType({
+                      ...canvasType,
+                      sections: updatedSections
+                    });
+                  }
+                }}
+              />}
+          {admin &&
           <Card>
             <CardHeader>
               <CardTitle>Default Layout</CardTitle>
@@ -267,6 +335,7 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onChooseCanvasT
                 initialCols={defaultCols}
                 initialRows={defaultRows}
                 canvasType={canvasType}
+                showGridAreas={admin}
                 onDeleteSection={(index) => {
                   const updatedSections = [...canvasType.sections];
                   updatedSections.splice(index, 1);
@@ -297,6 +366,7 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onChooseCanvasT
             )}
             </CardContent>
           </Card>
+          }
         </TabsContent>
 
         <TabsContent value="ai">
@@ -391,10 +461,11 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onChooseCanvasT
           </Card>
         </TabsContent>
       </Tabs>
-
+      {admin &&
       <div className="flex justify-end">
         <Button onClick={handleSave}>Save Changes</Button>
-      </div>
+        </div>
+      }
     </div>
   );
 } 

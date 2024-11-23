@@ -19,6 +19,7 @@ import { TAG_INFO } from "@/src/constants/tags"
 import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
 import CustomCanvasEditor from "@/components/CustomCanvas/CustomCanvasEditor"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { AIAgent } from "@/types/canvas"
 
 interface CanvasTypeSelectorProps {
   selectedType: CanvasType | null;
@@ -39,7 +40,7 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
   const { currentFolder  } = useCanvasFolders()
   const [showCustomEditor, setShowCustomEditor] = useState(false);
   const [customizedType, setCustomizedType] = useState<CanvasType | null>(null);
-  
+  const [customizedAiAgent, setCustomizedAiAgent] = useState<AIAgent | null>(null);
   useEffect(() => {
     getCanvasTypes().then((types) => {
         //for each type, type set its id as the key
@@ -128,8 +129,10 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
     return TAG_INFO.filter(tag => availableTags.has(tag.name));
   };
 
-  const handleCustomization = (customType: CanvasType) => {
+  const handleCustomization = (customType: CanvasType, aiAgent: AIAgent | null) => {
+
     setCustomizedType(customType);
+    setCustomizedAiAgent(aiAgent);
     setSelectedTypeLocal(customType);
     setShowCustomEditor(false);
   };
@@ -366,6 +369,8 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
                 open={showDialog}
                 onOpenChange={setShowDialog}
                 canvasType={selectedTypeLocal || undefined}
+                customizedAiAgent={customizedAiAgent || undefined}
+                customizedType={customizedType || undefined}
                 layout={selectedLayout?.layout}
                 folderId={currentFolder?.id}
               />
@@ -379,27 +384,17 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
             exit={{ opacity: 0, x: -20 }}
             className="h-full"
           >
-            <div className="p-4 flex items-center gap-2 border-b">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowCustomEditor(false)}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Canvas Types
-              </Button>
-              <div className="flex-1 text-center font-semibold">
-                Customize Canvas Type
-              </div>
+            <div className="p-8 flex flex-col items-center">
+              {selectedTypeLocal && (
+                <div className="h-[calc(100%-4rem)] overflow-auto w-full mt-8">
+                  <CustomCanvasEditor
+                    canvasTypeTemplate={selectedTypeLocal}
+                    onCancel={() => setShowCustomEditor(false)}
+                    onConfirm={handleCustomization}
+                  />
+                </div>
+              )}
             </div>
-            {selectedTypeLocal && (
-              <div className="h-[calc(100%-4rem)] overflow-auto">
-                <CustomCanvasEditor
-                  canvasTypeTemplate={selectedTypeLocal}
-                  onChooseCanvasType={handleCustomization}
-                />
-              </div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>

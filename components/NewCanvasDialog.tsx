@@ -10,22 +10,29 @@ import { useRouter } from 'next/navigation'
 import { CanvasLayout, CanvasLayoutDetails } from '@/types/canvas-sections'
 import { CanvasType } from '@/types/canvas-sections'
 import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'
-
+import { AIAgent } from '@/types/canvas'
+import { useCanvasTypes } from '@/contexts/CanvasTypeContext'
+import { useAIAgents } from '@/contexts/AIAgentContext'
+import { useAuth } from '@/contexts/AuthContext'
 interface NewCanvasDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   canvasType?: CanvasType;
+  customizedAiAgent?: AIAgent;
+  customizedType?: CanvasType;
   layout?: CanvasLayout;
   folderId?: string;
 }
 
-export function NewCanvasDialog({ open, onOpenChange, canvasType, layout, folderId}: NewCanvasDialogProps) {
+export function NewCanvasDialog({ open, onOpenChange, canvasType, customizedAiAgent, customizedType, layout, folderId}: NewCanvasDialogProps) {
   const { createNewCanvas, loadCanvas } = useCanvas();
   const { rootFolderId, setCurrentFolder } = useCanvasFolders()
   const [tempName, setTempName] = React.useState('')
   const [tempDescription, setTempDescription] = React.useState('')
   const [isValid, setIsValid] = React.useState(true)
-
+  const { saveCustomCanvasType } = useCanvasTypes();
+  const { saveCustomAIAgent } = useAIAgents();
+  const { user } = useAuth();
   const handleSave = async () => {
     if (!tempName.trim()) {
       setIsValid(false)
@@ -35,6 +42,13 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, layout, folder
     try {
       if (!canvasType) {
         return
+      }
+
+      if (customizedType) {
+        saveCustomCanvasType(customizedType.id, customizedType);
+        if (customizedAiAgent) {
+          saveCustomAIAgent(customizedType.id, customizedAiAgent);
+        }
       }
 
       const newCanvasId = await createNewCanvas({

@@ -21,6 +21,7 @@ interface VisualGridEditorProps {
   initialRows: string
   onChange: (areas: string[], cols: string, rows: string) => void
   canvasType: CanvasType
+  showGridAreas: boolean
   onUpdateSection: (updatedSection: CanvasSection) => void
   onAddSection: (section: CanvasSection) => void
   onDeleteSection: (index: number) => void
@@ -32,6 +33,7 @@ export function VisualGridEditor({
   initialRows, 
   onChange,
   canvasType,
+  showGridAreas,
   onUpdateSection,
   onAddSection,
   onDeleteSection
@@ -121,14 +123,16 @@ export function VisualGridEditor({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow">
-        <div className="mb-4 p-4 bg-muted rounded-lg">
-          <div className="text-sm font-medium mb-2">Initial Grid Areas:</div>
+        {showGridAreas && (
+          <div className="mb-4 p-4 bg-muted rounded-lg">
+            <div className="text-sm font-medium mb-2">Initial Grid Areas:</div>
           <div className="space-y-1">
             {initialAreas.map((area, index) => (
               <code key={index} className="text-sm block">{area}</code>
             ))}
           </div>
         </div>
+        )}
         <ResponsiveGridLayout
           className="layout bg-gray-50 border rounded-lg"
           layouts={{ lg: gridItems }}

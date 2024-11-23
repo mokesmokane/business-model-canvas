@@ -15,31 +15,58 @@ export class CanvasTypeService {
         }
     }
 
-    async getCanvasTypes(): Promise<Record<string, CanvasType>> {
-        
+    async getCanvasTypes(userId?: string): Promise<Record<string, CanvasType>> {
         try {
-            const querySnapshot = await getDocs(this.collectionRef);
-            let canvasTypes = querySnapshot.docs.map(doc => {
-                const data = doc.data();
-                return {
-                    ...data,
-                    id: doc.id,
-                    defaultLayout: data.defaultLayout ? {
-                        ...data.defaultLayout,
-                        id: doc.id
-                    } : undefined
-                } as CanvasType;
-            });
+            // Get standard types
+            const standardTypes = await this.getStandardCanvasTypes();
+            
+            // If no userId, return only standard types
+            if (!userId) {
+                return standardTypes;
+            }
 
-            let canvasTypesRecord = canvasTypes.reduce((acc, canvasType) => {
-                acc[canvasType.id] = canvasType;
-                return acc;
-            }, {} as Record<string, CanvasType>);
-            return canvasTypesRecord;
+            // Get custom types
+            const customTypes = await this.getCustomCanvasTypes(userId);
+            
+            // Merge both collections, with custom types overriding standard ones if same ID
+            return {
+                ...standardTypes,
+                ...customTypes
+            };
         } catch (error) {
-            console.error("Error retrieving canvasTypes: ", error);
+            console.error("Error fetching canvas types:", error);
             return {};
         }
+    }
+
+    async getStandardCanvasTypes(): Promise<Record<string, CanvasType>> {
+        const querySnapshot = await getDocs(collection(db, "canvasTypes"));
+        return querySnapshot.docs.reduce((acc, doc) => {
+            acc[doc.id] = { 
+                id: doc.id, 
+                ...doc.data(),
+                defaultLayout: doc.data().defaultLayout ? {
+                    ...doc.data().defaultLayout,
+                    id: doc.id
+                } : undefined
+            } as CanvasType;
+            return acc;
+        }, {} as Record<string, CanvasType>);
+    }
+
+    async getCustomCanvasTypes(userId: string): Promise<Record<string, CanvasType>> {
+        const querySnapshot = await getDocs(collection(db, 'userCanvasTypes', userId, 'canvasTypes'));
+        return querySnapshot.docs.reduce((acc, doc) => {
+            acc[doc.id] = { 
+                id: doc.id, 
+                ...doc.data(),
+                defaultLayout: doc.data().defaultLayout ? {
+                    ...doc.data().defaultLayout,
+                    id: doc.id
+                } : undefined
+            } as CanvasType;
+            return acc;
+        }, {} as Record<string, CanvasType>);
     }
 
     async getCanvasLayouts(): Promise<Record<string, CanvasLayoutDetails>> {
@@ -102,21 +129,30 @@ export class CanvasTypeService {
         }
     }
 
-    async getCanvasType(id: string): Promise<CanvasType | null> {
+    async getCanvasType(typeId: string, userId?: string): Promise<CanvasType | null> {
         try {
-            const docRef = doc(this.collectionRef, id);
-            const docSnap = await getDoc(docRef);
-            
-            if (docSnap.exists()) {
-                return {
-                    ...docSnap.data(),
-                    id: docSnap.id
-                } as CanvasType;
+            // First check standard types
+            const standardDocRef = doc(db, "canvasTypes", typeId);
+            const standardDocSnap = await getDoc(standardDocRef);
+
+            if (standardDocSnap.exists()) {
+                return { id: typeId, ...standardDocSnap.data() } as CanvasType;
             }
+
+            // If not found and userId provided, check custom types
+            if (userId) {
+                const customDocRef = doc(collection(db, 'userCanvasTypes', userId, 'canvasTypes'), typeId);
+                const customDocSnap = await getDoc(customDocRef);
+                
+                if (customDocSnap.exists()) {
+                    return { id: typeId, ...customDocSnap.data() } as CanvasType;
+                }
+            }
+
             return null;
         } catch (error) {
-            console.error("Error retrieving canvas type: ", error);
-            throw error;
+            console.error("Error fetching canvas type:", error);
+            return null;
         }
     }
 

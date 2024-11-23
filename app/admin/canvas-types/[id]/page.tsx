@@ -293,6 +293,7 @@ export default function TabbedEditCanvasTypePage() {
                 initialCols={defaultCols}
                 initialRows={defaultRows}
                 canvasType={canvasType}
+                showGridAreas={true}
                 onDeleteSection={(index) => {
                   const updatedSections = [...canvasType.sections];
                   updatedSections.splice(index, 1);

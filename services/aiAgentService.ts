@@ -6,38 +6,80 @@ import { CanvasType } from "@/types/canvas-sections";
 
 export class AIAgentService {
 
-  async getAIAgent(agentId: string): Promise<AIAgent | null> {
+  async getAIAgent(agentId: string, userId?: string): Promise<AIAgent | null> {
     try {
-      const docRef = doc(db, "aiAgents", agentId);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        return { ...docSnap.data() } as AIAgent;
-      } else {
-        console.log("No such document!");
-        return null;
+      // First check standard agents
+      console.log("agentId", agentId)
+      const standardDocRef = doc(db, "aiAgents", agentId);
+      const standardDocSnap = await getDoc(standardDocRef);
+      console.log("standardDocSnap", standardDocSnap)
+      if (standardDocSnap.exists()) {
+        return { ...standardDocSnap.data() } as AIAgent;
       }
+      console.log("userId", userId)
+      // If not found and userId provided, check custom agents
+      if (userId) {
+
+        const customDocRef = doc(collection(db, 'userAIAgents', userId, 'aiAgents'), agentId);
+        console.log("customDocRef", customDocRef)
+        const customDocSnap = await getDoc(customDocRef);
+        console.log("customDocSnap", customDocSnap)
+        
+        if (customDocSnap.exists()) {
+          return { ...customDocSnap.data() } as AIAgent;
+        }
+      }
+
+      return null;
     } catch (error) {
       console.error("Error fetching AI Agent:", error);
       return null;
     }
   }
 
-  async getAiAgents(): Promise<Record<string,AIAgent>> {
+  async getAiAgents(userId?: string): Promise<Record<string, AIAgent>> {
     try {
-      const docRef = collection(db, "aiAgents");
-      const docSnap = await getDocs(docRef);
+      // Get standard agents
+      const standardAgents = await this.getStandardAiAgents();
+      
+      // If no userId, return only standard agents
+      if (!userId) {
+        return standardAgents;
+      }
 
-      return docSnap.docs.reduce((acc, doc) => {
-        acc[doc.id] = { ...doc.data() } as AIAgent;
-        return acc;
-      }, {} as Record<string, AIAgent>);
+      // Get custom agents
+      const customAgents = await this.getCustomAiAgents(userId);
+      
+      // Merge both collections, with custom agents overriding standard ones if same ID
+      return {
+        ...standardAgents,
+        ...customAgents
+      };
     } catch (error) {
       console.error("Error fetching AI Agents:", error);
       return {};
     }
   }
 
+  private async getStandardAiAgents(): Promise<Record<string, AIAgent>> {
+    const docRef = collection(db, "aiAgents");
+    const docSnap = await getDocs(docRef);
+
+    return docSnap.docs.reduce((acc, doc) => {
+      acc[doc.id] = { ...doc.data() } as AIAgent;
+      return acc;
+    }, {} as Record<string, AIAgent>);
+  }
+
+  private async getCustomAiAgents(userId: string): Promise<Record<string, AIAgent>> {
+    const docRef = collection(db, 'userAIAgents', userId, 'aiAgents');
+    const docSnap = await getDocs(docRef);
+
+    return docSnap.docs.reduce((acc, doc) => {
+      acc[doc.id] = { ...doc.data() } as AIAgent;
+      return acc;
+    }, {} as Record<string, AIAgent>);
+  }
 
   async saveCustomAIAgent(id: string, aiAgent: AIAgent, userId: string): Promise<void> {
     try {
