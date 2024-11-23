@@ -29,6 +29,9 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useExpanded } from '@/contexts/ExpandedContext';
+import { DragEvent } from 'react'
+import { MoveCanvasDialog } from "@/components/modals/MoveCanvasDialog"
+
 function findFolderInTree(folders: NestedCanvasFolder[], folderId: string): NestedCanvasFolder | null {
   for (const folder of folders) {
     if (folder.id === folderId) return folder;
@@ -40,8 +43,27 @@ function findFolderInTree(folders: NestedCanvasFolder[], folderId: string): Nest
   return null;
 }
 
+interface MoveOperation {
+  canvasId: string
+  canvasName: string
+  targetFolderId: string | null
+  targetPath: string
+}
+
+function countCanvasesInFolder(folder: NestedCanvasFolder): number {
+  let count = folder.canvases.size;
+  
+  if (folder.children) {
+    for (const child of folder.children) {
+      count += countCanvasesInFolder(child);
+    }
+  }
+  
+  return count;
+}
+
 export function CanvasNavigation() {
-  const { folders, rootFolder, onCreateFolder, onFolderRename, onFolderDelete } = useCanvasFolders()
+  const { folders, rootFolder, onCreateFolder, onFolderRename, onFolderDelete, onCanvasMoved } = useCanvasFolders()
   const { loadCanvas, currentCanvas, deleteCanvas, clearState } = useCanvas()
   const { setNewCanvas } = useNewCanvas()
   const [currentPath, setCurrentPath] = React.useState<NestedCanvasFolder[]>([])
@@ -54,12 +76,17 @@ export function CanvasNavigation() {
   const { user } = useAuth();
   const { isExpanded } = useExpanded()
   const currentFolder = currentPath.length > 0 ? currentPath[currentPath.length - 1] : rootFolder
+  const [draggedCanvas, setDraggedCanvas] = useState<CanvasItem | null>(null)
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null)
+  const [pendingMove, setPendingMove] = useState<MoveOperation | null>(null)
   
   React.useEffect(() => {
+    console.log('useEffect triggered')
     if (currentPath.length > 0) {
       const currentFolderId = currentPath[currentPath.length - 1].id;
       
       const updatedFolder = findFolderInTree(folders, currentFolderId);
+      
       
       if (updatedFolder) {
         setCurrentPath(prev => {
@@ -92,6 +119,7 @@ export function CanvasNavigation() {
   }
 
   const handleNavigate = (folder: NestedCanvasFolder | null) => {
+
     if (!folder) {
       setCurrentPath([])
       return
@@ -147,8 +175,93 @@ export function CanvasNavigation() {
     setFolderToRename(null)
   }
 
+  const handleCanvasMove = async (canvasId: string, targetFolderId: string | null) => {
+    if (!canvasId || !currentFolder) {
+      console.error('Missing required data for move')
+      return
+    }
+
+    try {
+      await onCanvasMoved(
+        canvasId,
+        currentFolder.id ?? 'root',
+        targetFolderId ?? 'root'
+      )
+    } catch (error) {
+      console.error('Error moving canvas:', error)
+      throw error
+    } finally {
+      setPendingMove(null)
+    }
+  }
+
+  const getPathString = (targetFolderId: string | null) => {
+    if (!targetFolderId || targetFolderId === 'root') return "Root"
+    
+    const folder = findFolderInTree(folders, targetFolderId)
+    if (!folder) return "Root"
+    
+    let path = []
+    let current: NestedCanvasFolder | null = folder
+    
+    while (current) {
+      path.unshift(current.name)
+      if (!current.parentId || current.parentId === 'root') break;
+      current = findFolderInTree(folders, current.parentId)
+    }
+    
+    return path.join(" → ")
+  }
+
+  const handleDrop = (e: DragEvent<HTMLDivElement>, targetFolderId: string | null) => {
+    e.preventDefault()
+    
+    // Clear drag states
+    setDragOverFolderId(null)
+    setDraggedCanvas(null)
+    
+    // Get the data
+    const canvasId = e.dataTransfer.getData('canvasId')
+    const canvasName = e.dataTransfer.getData('canvasName')
+    
+    // Prevent moving to same folder
+    if (targetFolderId === currentFolder?.id) {
+      console.log('Same folder, ignoring drop')
+      return
+    }
+    console.log('targetFolderId', targetFolderId)
+    const path = getPathString(targetFolderId)
+    console.log('path', path)
+    setPendingMove({ canvasId, canvasName, targetFolderId, targetPath: path })
+  }
+
+  // const handleMoveConfirm = async () => {
+  //   if (!pendingMove) return
+    
+  //   try {
+  //     await handleCanvasMove(pendingMove.canvasId, pendingMove.targetFolderId)
+  //     setPendingMove(null)
+  //   } catch (error) {
+  //     console.error('Move failed:', error)
+  //     setPendingMove(null)
+  //   }
+  // }
+
   const renderCanvasItem = (canvas: CanvasItem) => (
-    <div key={canvas.id} className="flex items-center group px-4 py-1">
+    <div 
+      key={canvas.id} 
+      className="flex items-center group px-4 py-1"
+      draggable
+      onDragStart={(e: DragEvent<HTMLDivElement>) => {
+        e.dataTransfer.setData('canvasId', canvas.id)
+        e.dataTransfer.setData('canvasName', canvas.name)
+        setDraggedCanvas(canvas)
+      }}
+      onDragEnd={() => {
+        setDraggedCanvas(null)
+        setDragOverFolderId(null)
+      }}
+    >
       <Button
         variant="ghost"
         className={cn(
@@ -181,7 +294,19 @@ export function CanvasNavigation() {
     return (
       <div className="space-y-1">
         {displayFolder.children.map((folder) => (
-          <div key={folder.id} className="flex items-center group px-4 py-1">
+          <div 
+            key={folder.id} 
+            className={cn(
+              "flex items-center group px-4 py-1",
+              dragOverFolderId === folder.id && "bg-accent/50"
+            )}
+            onDragOver={(e: DragEvent<HTMLDivElement>) => {
+              e.preventDefault()
+              setDragOverFolderId(folder.id)
+            }}
+            onDragLeave={() => setDragOverFolderId(null)}
+            onDrop={(e) => handleDrop(e, folder.id)}
+          >
             <Button
               variant="ghost"
               className="flex-1 justify-start text-left text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -189,6 +314,11 @@ export function CanvasNavigation() {
             >
               <Folder className="mr-2 h-4 w-4" />
               <span className="flex-1 truncate">{folder.name}</span>
+              {countCanvasesInFolder(folder) > 0 && (
+                <span className="ml-2 rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
+                  {countCanvasesInFolder(folder)}
+                </span>
+              )}
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -259,11 +389,21 @@ export function CanvasNavigation() {
           folderName={folderToRename.name}
         />
       )}
+      {pendingMove && (
+        <MoveCanvasDialog
+          isOpen={true}
+          onClose={() => setPendingMove(null)}
+          onConfirm={() => handleCanvasMove(pendingMove.canvasId, pendingMove.targetFolderId)}
+          canvasName={pendingMove.canvasName}
+          targetPath={pendingMove.targetPath}
+        />
+      )}
     </div>
   )
 }
 
 export default CanvasNavigation
+
 
 
 

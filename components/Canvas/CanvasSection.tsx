@@ -126,7 +126,7 @@ export function CanvasSection({
                 <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {}} />
               </CardTitle>
             </TooltipTrigger>
-            {(itemsArray.length === 0) && (
+            {(itemsArray.length > 0) && (
               <TooltipContent className={`whitespace-pre-line text-sm ${
                 canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
               }`}>
