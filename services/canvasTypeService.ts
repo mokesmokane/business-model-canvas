@@ -1,4 +1,4 @@
-import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc } from "firebase/firestore"; 
+import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc, setDoc } from "firebase/firestore"; 
 import { CanvasLayout, CanvasType, CanvasLayoutDetails } from "../types/canvas-sections";
 import { db } from "../lib/firebase";
 
@@ -127,6 +127,16 @@ export class CanvasTypeService {
             await updateDoc(docRef, updateData);
         } catch (error) {
             console.error("Error updating canvas type: ", error);
+            throw error;
+        }
+    }
+
+    async saveCustomCanvasType(id: string, canvasType: CanvasType, userId: string): Promise<void> {
+        try {
+            const canvasRef = doc(collection(db, 'userCanvasTypes', userId, 'canvasTypes'), id);
+            await setDoc(canvasRef, canvasType);
+        } catch (error) {
+            console.error("Error saving custom canvas type: ", error);
             throw error;
         }
     }

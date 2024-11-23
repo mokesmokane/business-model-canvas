@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { AIAgent } from "@/types/canvas";
 import { db } from "../lib/firebase";
+import { CanvasType } from "@/types/canvas-sections";
 
 
 export class AIAgentService {
@@ -36,6 +37,17 @@ export class AIAgentService {
       return {};
     }
   }
+
+
+  async saveCustomAIAgent(id: string, aiAgent: AIAgent, userId: string): Promise<void> {
+    try {
+        const canvasRef = doc(collection(db, 'userAIAgents', userId, 'aiAgents'), id);
+        await setDoc(canvasRef, aiAgent);
+    } catch (error) {
+        console.error("Error saving custom canvas type: ", error);
+        throw error;
+    }
+}
   
   async updateAIAgent(canvasTypeId: string, data: AIAgent): Promise<void> {
     try {

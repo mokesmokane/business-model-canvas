@@ -1,6 +1,6 @@
 import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins, LucideIcon, Factory, BellElectric, Bolt, Zap, Blend, Handshake, HandCoins,  } from "lucide-react"
 import { Canvas, Section } from "./canvas"
-
+import { v4 as uuidv4 } from 'uuid';
 export interface CanvasSection {
   name: string
   icon: string
@@ -43,6 +43,14 @@ export interface CanvasType {
   defaultLayout?: CanvasLayoutDetails
   sections: CanvasSection[]
   tags?: string[]
+}
+
+export function cloneCanvasType(canvasType: CanvasType): CanvasType {
+  return { ...canvasType,
+    id: uuidv4(),
+    name: canvasType.name + ' (Copy)',
+    description: canvasType.description + ' (Copy)'
+   };
 }
 
 export interface CanvasLayoutSuggestion extends CanvasLayout {

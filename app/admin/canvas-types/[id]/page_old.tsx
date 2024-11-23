@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CanvasTypeService } from '@/services/canvasTypeService';
 import { CanvasType, CanvasSection } from '@/types/canvas-sections';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -22,24 +21,30 @@ import { TAG_INFO } from '@/src/constants/tags';
 import { TagSuggesterService } from '@/services/tagSuggesterService';
 
 function isValidGridTemplate(template: string): boolean {
+  // Basic validation to check for common grid template patterns
   const validPattern = /^(\d+fr|\d+px|auto)(\s+(\d+fr|\d+px|auto))*$/;
   return validPattern.test(template);
 }
 
-export default function TabbedEditCanvasTypePage() {
+export default function EditCanvasTypePage() {
   const { isAdminUser } = useAuth();
   const router = useRouter();
   const params = useParams();
   const [error, setError] = useState<string | null>(null);
   const [canvasType, setCanvasType] = useState<CanvasType | null>(null);
   const canvasTypeService = new CanvasTypeService();
-  const [defaultAreas, setDefaultAreas] = useState<string[]>([]);
-  const [defaultCols, setDefaultCols] = useState<string>('');
-  const [defaultRows, setDefaultRows] = useState<string>('');
+  const [defaultAreas, setDefaultAreas] = useState<string[]>(canvasType?.defaultLayout?.layout.areas || []);
+  const [defaultCols, setDefaultCols] = useState<string>(canvasType?.defaultLayout?.layout.gridTemplate.columns || '');
+  const [defaultRows, setDefaultRows] = useState<string>(canvasType?.defaultLayout?.layout.gridTemplate.rows || '');
   const [aiAgent, setAiAgent] = useState<AIAgent | null>(null);
   const aiAgentService = new AIAgentService();
   const [loading, setLoading] = useState<boolean>(false);
   const tagSuggesterService = new TagSuggesterService();
+
+  const loadAiAgent = async () => {
+    const agent = await aiAgentService.getAIAgent(params.id as string);
+    setAiAgent(agent);
+  }
 
   useEffect(() => {
     if (!isAdminUser) {
@@ -56,23 +61,21 @@ export default function TabbedEditCanvasTypePage() {
       const typeId = params.id as string;
       const type = await canvasTypeService.getCanvasType(typeId);
       setCanvasType(type);
+
       setDefaultAreas(type?.defaultLayout?.layout.areas || []);
       setDefaultCols(type?.defaultLayout?.layout.gridTemplate.columns || '');
       setDefaultRows(type?.defaultLayout?.layout.gridTemplate.rows || '');
+      //use examples for testing
     } catch (err) {
       setError('Failed to load canvas type');
       console.error(err);
     }
   };
 
-  const loadAiAgent = async () => {
-    const agent = await aiAgentService.getAIAgent(params.id as string);
-    setAiAgent(agent);
-  }
-
   const handleSave = async () => {
     if (!canvasType) return;
 
+    // Save CanvasType
     const updatedCanvasType = {
       ...canvasType,
       defaultLayout: {
@@ -90,6 +93,7 @@ export default function TabbedEditCanvasTypePage() {
 
     try {
       await canvasTypeService.updateCanvasType(params.id as string, updatedCanvasType);
+      // Save AIAgent
       if (aiAgent) {
         await aiAgentService.updateAIAgent(params.id as string, aiAgent);
       }
@@ -165,6 +169,7 @@ export default function TabbedEditCanvasTypePage() {
       setLoading(false);
     }
   };
+
   if (!canvasType) return null;
 
   return (
@@ -181,19 +186,12 @@ export default function TabbedEditCanvasTypePage() {
         </Alert>
       )}
 
-      <Tabs defaultValue="basic" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="basic">Basic Information</TabsTrigger>
-          <TabsTrigger value="layout">Layout</TabsTrigger>
-          <TabsTrigger value="ai">AI Agent</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="basic">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Basic Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium">Name</label>
               <Input
@@ -255,16 +253,13 @@ export default function TabbedEditCanvasTypePage() {
                 })}
               </div>
             </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="layout">
-          <Card>
-            <CardHeader>
-              <CardTitle>Default Layout</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Default Layout</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium">Grid Columns</label>
               <Input
@@ -321,21 +316,136 @@ export default function TabbedEditCanvasTypePage() {
                 }}
               />
             )}
-            </CardContent>
-          </Card>
-        </TabsContent>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Sections</span>
+              <Button
+                onClick={() => {
+                  const newSection: CanvasSection = {
+                    name: 'New Section',
+                    icon: 'Square',
+                    placeholder: '',
+                    gridIndex: canvasType.sections.length
+                  };
+                  setCanvasType({
+                    ...canvasType,
+                    sections: [...canvasType.sections, newSection]
+                  });
+                }}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Section
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DragDropContext onDragEnd={handleSectionReorder}>
+              <Droppable droppableId="sections">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef}>
+                    {canvasType.sections.map((section, index) => (
+                      <Draggable
+                        key={`section-${index}`}
+                        draggableId={`section-${index}`}
+                        index={index}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className="border rounded-lg p-4 mb-4"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div {...provided.dragHandleProps}>
+                                <Grip className="h-4 w-4 text-gray-400" />
+                              </div>
+                              <div className="flex-1 space-y-4">
+                                <Input
+                                  value={section.name}
+                                  onChange={(e) => {
+                                    const updatedSections = [...canvasType.sections];
+                                    updatedSections[index] = {
+                                      ...section,
+                                      name: e.target.value
+                                    };
+                                    setCanvasType({
+                                      ...canvasType,
+                                      sections: updatedSections
+                                    });
+                                  }}
+                                  placeholder="Section Name"
+                                />
+                                <IconSelector
 
-        <TabsContent value="ai">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>AI Agent</span>
-                <Button onClick={fetchSuggestedAIAgent} disabled={loading}>
-                  {loading ? 'Loading...' : 'Fetch Suggested AI Agent'}
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+                                  value={section.icon}
+                                  onChange={(icon) => {
+                                    const updatedSections = [...canvasType.sections];
+                                    updatedSections[index] = {
+                                      ...section,
+                                      icon
+                                    };
+                                    setCanvasType({
+                                      ...canvasType,
+                                      sections: updatedSections
+                                    });
+                                  }}
+                                />
+                                <Textarea
+                                  value={section.placeholder}
+                                  onChange={(e) => {
+                                    const updatedSections = [...canvasType.sections];
+                                    updatedSections[index] = {
+                                      ...section,
+                                      placeholder: e.target.value
+                                    };
+                                    setCanvasType({
+                                      ...canvasType,
+                                      sections: updatedSections
+                                    });
+                                  }}
+                                  placeholder="Section Placeholder Text"
+                                />
+                              </div>
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => {
+                                  const updatedSections = canvasType.sections.filter(
+                                    (_, i) => i !== index
+                                  );
+                                  setCanvasType({
+                                    ...canvasType,
+                                    sections: updatedSections
+                                  });
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>AI Agent</span>
+              <Button onClick={fetchSuggestedAIAgent} disabled={loading}>
+                {loading ? 'Loading...' : 'Fetch Suggested AI Agent'}
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div>
               <label className="text-sm font-medium">Name</label>
               <Input
@@ -413,14 +523,13 @@ export default function TabbedEditCanvasTypePage() {
                 placeholder="Question Tool Description"
               />
             </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      <div className="flex justify-end">
-        <Button onClick={handleSave}>Save Changes</Button>
+          </CardContent>
+        </Card>
+        <div className="flex justify-end">
+          <Button onClick={handleSave}>Save Changes</Button>
+        </div>
       </div>
+
     </div>
   );
 } 

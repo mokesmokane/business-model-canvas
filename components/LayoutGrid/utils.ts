@@ -1,19 +1,24 @@
 import { GridItem } from './gridTypes'
 
 export function cssToGridItems(areas: string[], cols: string, rows: string): GridItem[] {
-  const colsArray = cols.split(' ').map(fr => parseInt(fr.replace('fr', '')))
-  const rowsArray = rows.split(' ').map(size => size === 'auto' ? 1 : parseInt(size))
-  
+  const parseSize = (size: string) => {
+    const n = parseFloat(size);
+    return isNaN(n) ? 1 : n;
+  };
+
+  const colsArray = cols.split(' ').map(parseSize);
+  const rowsArray = rows.split(' ').map(parseSize);
+
   return areas.map((area, index) => {
-    const [rowStart, colStart, rowEnd, colEnd] = area.split(' / ').map(Number)
+    const [rowStart, colStart, rowEnd, colEnd] = area.split(' / ').map(Number);
     return {
       i: index.toString(),
       x: colsArray.slice(0, colStart - 1).reduce((a, b) => a + b, 0),
       y: rowsArray.slice(0, rowStart - 1).reduce((a, b) => a + b, 0),
       w: colsArray.slice(colStart - 1, colEnd - 1).reduce((a, b) => a + b, 0),
       h: rowsArray.slice(rowStart - 1, rowEnd - 1).reduce((a, b) => a + b, 0),
-    }
-  })
+    };
+  });
 }
 
 export function gridItemsToCss(items: GridItem[]): { areas: string[], cols: string, rows: string } {

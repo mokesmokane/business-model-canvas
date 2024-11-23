@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CanvasTypeService } from '@/services/canvasTypeService';
-import { CanvasType, CanvasSection } from '@/types/canvas-sections';
+import { CanvasType, CanvasSection, cloneCanvasType } from '@/types/canvas-sections';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Grip, Plus, Trash2, Pencil } from 'lucide-react';
 import IconSelector from '@/app/components/IconSelector';
@@ -26,52 +26,49 @@ function isValidGridTemplate(template: string): boolean {
   return validPattern.test(template);
 }
 
-export default function TabbedEditCanvasTypePage() {
-  const { isAdminUser } = useAuth();
-  const router = useRouter();
-  const params = useParams();
+interface CustomCanvasEditorProps {
+  canvasTypeTemplate: CanvasType;
+  onChooseCanvasType: (canvasType: CanvasType) => void;
+}
+
+export default function CustomCanvasEditor({ canvasTypeTemplate, onChooseCanvasType }: CustomCanvasEditorProps) {
   const [error, setError] = useState<string | null>(null);
-  const [canvasType, setCanvasType] = useState<CanvasType | null>(null);
+  
   const canvasTypeService = new CanvasTypeService();
+  const [canvasType, setCanvasType] = useState<CanvasType | null>(null);
   const [defaultAreas, setDefaultAreas] = useState<string[]>([]);
   const [defaultCols, setDefaultCols] = useState<string>('');
   const [defaultRows, setDefaultRows] = useState<string>('');
   const [aiAgent, setAiAgent] = useState<AIAgent | null>(null);
   const aiAgentService = new AIAgentService();
   const [loading, setLoading] = useState<boolean>(false);
+  const { user } = useAuth();
   const tagSuggesterService = new TagSuggesterService();
 
   useEffect(() => {
-    if (!isAdminUser) {
-      router.push('/');
-      return;
-    }
-
     loadCanvasType();
-    loadAiAgent();
-  }, [isAdminUser, router]);
+    loadAiAgent(canvasTypeTemplate.id);
+  }, []);
 
   const loadCanvasType = async () => {
     try {
-      const typeId = params.id as string;
-      const type = await canvasTypeService.getCanvasType(typeId);
-      setCanvasType(type);
-      setDefaultAreas(type?.defaultLayout?.layout.areas || []);
-      setDefaultCols(type?.defaultLayout?.layout.gridTemplate.columns || '');
-      setDefaultRows(type?.defaultLayout?.layout.gridTemplate.rows || '');
+      setCanvasType(cloneCanvasType(canvasTypeTemplate));
+      setDefaultAreas(canvasTypeTemplate.defaultLayout?.layout.areas || []);
+      setDefaultCols(canvasTypeTemplate.defaultLayout?.layout.gridTemplate.columns || '');
+      setDefaultRows(canvasTypeTemplate.defaultLayout?.layout.gridTemplate.rows || '');
     } catch (err) {
       setError('Failed to load canvas type');
       console.error(err);
     }
   };
 
-  const loadAiAgent = async () => {
-    const agent = await aiAgentService.getAIAgent(params.id as string);
+  const loadAiAgent = async (id: string) => {
+    const agent = await aiAgentService.getAIAgent(id );
     setAiAgent(agent);
   }
 
   const handleSave = async () => {
-    if (!canvasType) return;
+    if (!canvasType || !user) return;
 
     const updatedCanvasType = {
       ...canvasType,
@@ -89,36 +86,17 @@ export default function TabbedEditCanvasTypePage() {
     };
 
     try {
-      await canvasTypeService.updateCanvasType(params.id as string, updatedCanvasType);
+
+      await canvasTypeService.saveCustomCanvasType(canvasType.id, updatedCanvasType, user?.uid);
       if (aiAgent) {
-        await aiAgentService.updateAIAgent(params.id as string, aiAgent);
+        await aiAgentService.saveCustomAIAgent(canvasType.id, aiAgent, user?.uid);
       }
-      router.push('/admin');
+      
     } catch (err) {
       setError('Failed to save changes');
       console.error(err);
     }
   };
-
-  const handleSectionReorder = (result: any) => {
-    if (!result.destination || !canvasType) return;
-
-    const sections = Array.from(canvasType.sections);
-    const [reorderedSection] = sections.splice(result.source.index, 1);
-    sections.splice(result.destination.index, 0, reorderedSection);
-
-    // Update gridIndex values
-    const updatedSections = sections.map((section, index) => ({
-      ...section,
-      gridIndex: index
-    }));
-
-    setCanvasType({
-      ...canvasType,
-      sections: updatedSections
-    });
-  };
-
   const fetchSuggestedAIAgent = async () => {
     setLoading(true);
     try {
@@ -169,10 +147,6 @@ export default function TabbedEditCanvasTypePage() {
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Edit Canvas Type</h1>
-        <Button onClick={() => router.push('/admin')}>Back to Admin</Button>
-      </div>
 
       {error && (
         <Alert variant="destructive">
