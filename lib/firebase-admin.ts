@@ -1,24 +1,40 @@
 // firebaseAdmin.ts
 import * as admin from 'firebase-admin';
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}')
-if (!admin.apps.length) {   
-    //if serviceAccount is not empty, use it to initialize the app
-    if (Object.keys(serviceAccount).length > 0) {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
+try {
+    console.log('Starting Firebase initialization...');
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
+    console.log('Service account parsed:', {
+        hasProjectId: !!serviceAccount.project_id,
+        hasClientEmail: !!serviceAccount.client_email,
+        hasPrivateKey: !!serviceAccount.private_key,
+    });
+
+    if (!admin.apps.length) {   
+        if (Object.keys(serviceAccount).length > 0) {
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+            });
+            console.log('Firebase initialized with service account');
         } else {
-        admin.initializeApp({
-            credential: admin.credential.cert({
-                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                projectId: process.env.FIREBASE_PROJECT_ID,
-            }),
-        });
+            console.log('No service account found, falling back to individual credentials');
+            admin.initializeApp({
+                credential: admin.credential.cert({
+                    privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+                    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                    projectId: process.env.FIREBASE_PROJECT_ID,
+                }),
+            });
+        }
     }
+
+    // Test the connection
+    const db = admin.firestore();
+    console.log('Firestore instance created successfully');
+} catch (error) {
+    console.error('Firebase error:', error);
+    throw error;
 }
 
 const db = admin.firestore();
-
 export { admin, db };
