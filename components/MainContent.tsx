@@ -27,7 +27,7 @@ export function MainContent() {
   }, [])
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className={`h-screen flex flex-col ${user && isVerified ? 'overflow-hidden' : ''}`}>
       {user && isVerified ? (
         <ThemeProvider
           attribute="class"

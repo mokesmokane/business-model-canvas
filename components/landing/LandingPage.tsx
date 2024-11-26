@@ -30,17 +30,17 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
-      <header className="w-full bg-white p-4 fixed top-0 z-50">
-        <div className="flex justify-between items-center">
+    <div className="flex flex-col bg-white">
+      <header className="w-full bg-white p-4 sticky top-0 z-50 border-b">
+        <div className="flex justify-between items-center max-w-7xl mx-auto">
           <div className="flex items-center gap-4">
             <Link className="flex items-center justify-center" href="#">
-              <span className="text-2xl font-extrabold ">cavvy.ai</span>
+              <span className="text-2xl font-extrabold">cavvy.ai</span>
             </Link>
           </div>
           
-          <div className="flex items-center gap-8">
-            <nav className="flex gap-6">
+          <div className="flex items-center gap-4 md:gap-8">
+            <nav className="hidden md:flex gap-6">
               <button 
                 onClick={() => scrollToSection('features')} 
                 className="text-gray-900 hover:underline underline-offset-4 transition-colors font-extrabold"
@@ -69,18 +69,17 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="flex-1 pt-16">
-        <section id="hero" className="w-full flex items-center justify-center" style={{ minHeight: `${windowHeight * 0.75}px` }}>
+      <main className="flex-1">
+        <section id="hero" className="w-full py-12 md:py-24">
           <div className="container px-4 md:px-6 mx-auto max-w-7xl">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px] items-center">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Build Your Business Model Canvas with AI
+                    Create Custom Canvases with AI
                   </h1>
-                  <p className="max-w-[600px] text-gray-500 md:text-xl ">
-                    Create, iterate, and perfect your business model with intelligent AI assistance. Get suggestions,
-                    insights, and real-time feedback.
+                  <p className="max-w-[600px] text-gray-500 md:text-xl">
+                    Whether you're planning a business strategy, organizing creative projects, or mapping out ideas - our AI helps you create and perfect the perfect canvas for your needs.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -107,27 +106,27 @@ export default function LandingPage() {
                   <div className="flex items-center gap-4 rounded-lg border p-4">
                     <Bot className="h-6 w-6" />
                     <div className="space-y-1">
-                      <h3 className="font-medium">AI Assistant</h3>
+                      <h3 className="font-medium">AI Canvas Generation</h3>
                       <p className="text-sm text-gray-500">
-                        Get intelligent suggestions for each section of your canvas
+                        Generate custom canvas frameworks tailored to your specific needs
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 rounded-lg border p-4">
                     <Building2 className="h-6 w-6" />
                     <div className="space-y-1">
-                      <h3 className="font-medium">Business Model Canvas</h3>
+                      <h3 className="font-medium">Multiple Canvas Types</h3>
                       <p className="text-sm text-gray-500">
-                        Industry-standard 9-block canvas with real-time collaboration
+                        From business strategy to creative projects - templates for every purpose
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4 rounded-lg border p-4">
-                    <Users2 className="h-6 w-6" />
+                    <Sparkles className="h-6 w-6" />
                     <div className="space-y-1">
-                      <h3 className="font-medium">Team Collaboration</h3>
+                      <h3 className="font-medium">Smart Suggestions</h3>
                       <p className="text-sm text-gray-500">
-                        Work together with your team in real-time
+                        Get intelligent AI assistance for each section of your canvas
                       </p>
                     </div>
                   </div>
@@ -137,66 +136,66 @@ export default function LandingPage() {
           </div>
         </section>
         
-        <section id="features" className="w-full bg-gray-100 flex items-center justify-center" style={{ minHeight: `${windowHeight * 0.75}px` }}>
+        <section id="features" className="w-full bg-gray-100 py-12 md:py-24">
           <div className="container px-4 md:px-6 mx-auto">
             <div className="max-w-[900px] mx-auto text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-4">Features</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-4">Strategic Canvas Tools</h2>
               <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Everything you need to create and perfect your business model
+                Choose from multiple canvas types to visualize and develop your strategy
               </p>
             </div>
             <div className="grid max-w-5xl mx-auto items-center gap-6 py-12 lg:grid-cols-3 lg:gap-12">
               <div className="flex flex-col items-center text-center justify-center space-y-4">
-                <Sparkles className="h-12 w-12" />
-                <h3 className="text-xl font-bold">AI-Powered Insights</h3>
-                <p className="text-gray-500">
-                  Get intelligent suggestions and feedback for each section of your canvas
-                </p>
-                <ul className="grid gap-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> Smart suggestions
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> Real-time feedback
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> Industry insights
-                  </li>
-                </ul>
-              </div>
-              <div className="flex flex-col items-center text-center justify-center space-y-4">
                 <Building2 className="h-12 w-12" />
-                <h3 className="text-xl font-bold">Business Model Canvas</h3>
+                <h3 className="text-xl font-bold">Canvas Types</h3>
                 <p className="text-gray-500">
-                  Industry-standard 9-block canvas with powerful editing features
+                  Choose from existing templates or create custom frameworks
                 </p>
                 <ul className="grid gap-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> 9-block layout
+                    <Check className="h-4 w-4" /> Business Model Canvas
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> Rich text editing
+                    <Check className="h-4 w-4" /> Creative Project Planning
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> Export options
+                    <Check className="h-4 w-4" /> Custom AI-Generated Frameworks
                   </li>
                 </ul>
               </div>
               <div className="flex flex-col items-center text-center justify-center space-y-4">
-                <Users2 className="h-12 w-12" />
-                <h3 className="text-xl font-bold">Team Collaboration</h3>
+                <Sparkles className="h-12 w-12" />
+                <h3 className="text-xl font-bold">AI-Powered Features</h3>
                 <p className="text-gray-500">
-                  Work together with your team in real-time on your business model
+                  Let AI help you create and populate your canvas
                 </p>
                 <ul className="grid gap-2 text-sm">
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> Real-time editing
+                    <Check className="h-4 w-4" /> Custom framework generation
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> Comments & feedback
+                    <Check className="h-4 w-4" /> Smart content suggestions
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4" /> Version history
+                    <Check className="h-4 w-4" /> Context-aware assistance
+                  </li>
+                </ul>
+              </div>
+              <div className="flex flex-col items-center text-center justify-center space-y-4">
+                <Bot className="h-12 w-12" />
+                <h3 className="text-xl font-bold">Intelligent Assistant</h3>
+                <p className="text-gray-500">
+                  Get personalized guidance throughout your canvas creation journey
+                </p>
+                <ul className="grid gap-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4" /> Section-specific help
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4" /> Content improvement tips
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-4 w-4" /> Strategic insights
                   </li>
                 </ul>
               </div>
@@ -204,26 +203,26 @@ export default function LandingPage() {
           </div>
         </section>
         
-        <section id="pricing" className="w-full flex items-center justify-center" style={{ minHeight: `${windowHeight * 0.75}px` }}>
+        <section id="pricing" className="w-full py-12 md:py-24">
           <div className="container px-4 md:px-6 mx-auto">
             <div className="max-w-[900px] mx-auto text-center">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl mb-4">Pricing</h2>
               <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Choose the perfect plan for your needs
+                Choose the perfect plan for your strategic planning needs
               </p>
             </div>
             <div className="grid max-w-5xl mx-auto gap-6 py-12 lg:grid-cols-3 lg:gap-12">
               <div className="flex flex-col justify-between rounded-lg border p-6">
                 <div>
                   <h3 className="text-xl font-bold">Free</h3>
-                  <p className="mt-2 text-gray-500">Get started with the basics</p>
+                  <p className="mt-2 text-gray-500">Get started with any canvas</p>
                   <div className="mt-4">
                     <span className="text-4xl font-bold">£0</span>
                     <span className="text-gray-500">/month</span>
                   </div>
                   <ul className="mt-4 grid gap-2">
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4" /> 1 Business Model Canvas
+                      <Check className="h-4 w-4" /> 1 Canvas
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4" /> Basic AI Assistance
@@ -233,9 +232,7 @@ export default function LandingPage() {
                     </li>
                   </ul>
                 </div>
-                <Button className="mt-6" variant="outline">
-                  Get Started
-                </Button>
+                <Button className="mt-6" variant="outline">Get Started</Button>
               </div>
               <div className="relative flex flex-col justify-between rounded-lg border p-6">
                 <div className="absolute -top-2 right-0 rounded-full bg-primary px-3 py-1 text-xs text-primary-foreground">
@@ -256,7 +253,7 @@ export default function LandingPage() {
                       <Check className="h-4 w-4" /> Advanced AI Features
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4" /> Team Collaboration
+                      <Check className="h-4 w-4" /> Custom Framework Generation
                     </li>
                     <li className="flex items-center gap-2">
                       <Check className="h-4 w-4" /> Priority Support
@@ -292,56 +289,6 @@ export default function LandingPage() {
                   Contact Sales
                 </Button>
               </div>
-            </div>
-          </div>
-        </section>
-        <section id="origins" className="w-full bg-gray-50 py-12 md:py-24">
-          <div className="container px-4 md:px-6 mx-auto">
-            <div className="max-w-[900px] mx-auto text-center">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">The Origins of the Business Model Canvas</h2>
-              <div className="flex justify-center mb-6">
-                <Info className="h-12 w-12 text-primary" />
-              </div>
-              <p className="text-gray-700 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed mb-6">
-                The Business Model Canvas, a groundbreaking strategic management tool, was developed by Alexander Osterwalder and Yves Pigneur. Introduced in their 2010 book "Business Model Generation," it has since transformed how organizations visualize, design, and innovate their business models.
-              </p>
-              <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                  <h3 className="text-xl font-semibold mb-3">Key Benefits</h3>
-                  <ul className="text-left text-gray-600 space-y-2">
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                      <span>Simplifies complex business models into a single, easy-to-understand page</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                      <span>Facilitates team collaboration and alignment on business strategy</span>
-                    </li>
-                    <li className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 mt-1 flex-shrink-0" />
-                      <span>Enables rapid iteration and testing of business ideas</span>
-                    </li>
-                  </ul>
-                </div>
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                  <h3 className="text-xl font-semibold mb-3">Wide-ranging Impact</h3>
-                  <p className="text-gray-600 text-left">
-                    From startups to Fortune 500 companies, the Business Model Canvas has become an indispensable tool for entrepreneurs, executives, and consultants worldwide. Its versatility and effectiveness have made it a staple in business schools and innovation workshops globally.
-                  </p>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mb-4">
-                The Business Model Canvas is licensed under the Creative Commons Attribution-Share Alike 3.0 Unported License, making it freely accessible and adaptable for various uses.
-              </p>
-              <Link 
-                href="https://creativecommons.org/licenses/by-sa/3.0/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center text-primary hover:underline"
-              >
-                Learn more about the Creative Commons license
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
             </div>
           </div>
         </section>
