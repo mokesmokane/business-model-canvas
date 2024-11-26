@@ -13,7 +13,7 @@ import DynamicIcon from "../Util/DynamicIcon";
 export function MobileBusinessModelCanvas() {
   const { formData, canvasTheme } = useCanvas();
   const [activeIndex, setActiveIndex] = useState(0);
-
+  if (!formData) return null;
 
   return (
     <div className={`flex flex-col h-[calc(100vh-64px)] ${
