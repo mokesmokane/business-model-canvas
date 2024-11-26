@@ -1,9 +1,44 @@
 import { db } from '@/lib/firebase';
 import { collection, doc, setDoc } from 'firebase/firestore';
-import { Canvas } from '@/types/canvas';
-import { CanvasType } from '@/types/canvas-sections';
+import { Canvas, Section } from '@/types/canvas';
+import { CanvasSection, CanvasType } from '@/types/canvas-sections';
+import { SerializedCanvas, SerializedSections } from '@/types/canvas';
 import { v4 as uuidv4 } from 'uuid';
+import { createNewCanvas } from '@/types/canvas';
+import { addCanvasToFolder, } from './folderService';
 
+// Add this helper function at the top of the file
+export const serializeCanvas = (canvas: Canvas): SerializedCanvas => {
+    return {
+      ...canvas,
+      sections: serializeSections(canvas.sections),
+      createdAt: canvas.createdAt?.toISOString(),
+      updatedAt: canvas.updatedAt?.toISOString(),
+    };
+  };
+  
+  // Add this helper function to deserialize data from Firestore
+  export const deserializeCanvas = (data: SerializedCanvas): Canvas => {
+    console.log('datamokes', data)
+    return {
+      ...data,
+      sections: deserializeSections(data.sections),
+  
+      createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
+      updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
+    };
+  };
+  
+  // Helper functions for Map <-> Object conversion
+  export const serializeSections = (sections: Map<string, Section>): SerializedSections => {
+    return Object.fromEntries(sections);
+  };
+  
+  export const deserializeSections = (sections: SerializedSections): Map<string, Section> => {
+    console.log('sections', sections)
+    return new Map(Object.entries(sections));
+  };
+  
 export class CanvasService {
   private static instance: CanvasService;
   private currentUserId: string | null = null;
@@ -40,18 +75,15 @@ export class CanvasService {
   }) {
     const userId = this.getUserId();
     const now = new Date();
-    const newCanvas = {
-      id: uuidv4(),
-      userId,
-      name: data.name,
-      description: data.description,
-      canvasType: data.canvasType,
-      createdAt: now,
-      updatedAt: now
-    };
+    //to Section
+    
+    const newCanvas = createNewCanvas(uuidv4(), data.name, data.description, data.canvasType);
+
+    const serializedCanvas = serializeCanvas(newCanvas);
 
     const docRef = doc(collection(db, 'userCanvases', userId, 'canvases'), newCanvas.id);
-    await setDoc(docRef, newCanvas);
+    await setDoc(docRef, serializedCanvas);
+    await addCanvasToFolder(userId, data.folderId, {id: newCanvas.id, name: newCanvas.name, canvasTypeId: newCanvas.canvasType.id});
 
     return newCanvas.id;
   }

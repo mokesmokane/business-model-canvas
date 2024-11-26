@@ -2,9 +2,18 @@ import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { AIAgent } from "@/types/canvas";
 import { db } from "../lib/firebase";
 import { CanvasType } from "@/types/canvas-sections";
+import { aiAgentCreatorService } from "./aiAgentCreatorService";
 
 
 export class AIAgentService {
+
+  userId?: string;
+
+
+  initialize(userId: string) {
+    this.userId = userId;
+  }
+  
 
   async getAIAgent(agentId: string, userId?: string): Promise<AIAgent | null> {
     try {
@@ -37,20 +46,30 @@ export class AIAgentService {
     }
   }
 
-  async getAiAgents(userId?: string): Promise<Record<string, AIAgent>> {
+  async createandSaveAIAgent(canvasType: CanvasType): Promise<AIAgent | null> {
+    const agent= await aiAgentCreatorService.createAIAgent(canvasType);
+    if (agent && this.userId) {
+      await this.saveCustomAIAgent(canvasType.id, agent, this.userId);
+    }
+    return agent;
+  }
+
+  async getAiAgents(): Promise<Record<string, AIAgent>> {
     try {
       // Get standard agents
       const standardAgents = await this.getStandardAiAgents();
       
       // If no userId, return only standard agents
-      if (!userId) {
+      if (!this.userId) {
         return standardAgents;
       }
 
       // Get custom agents
-      const customAgents = await this.getCustomAiAgents(userId);
-      
+      const customAgents = await this.getCustomAiAgents(this.userId);
+
       // Merge both collections, with custom agents overriding standard ones if same ID
+      console.log('standardAgents', standardAgents)
+      console.log('customAgents', customAgents)
       return {
         ...standardAgents,
         ...customAgents
@@ -100,3 +119,5 @@ export class AIAgentService {
     }
   }
 } 
+
+export const aiAgentService = new AIAgentService();

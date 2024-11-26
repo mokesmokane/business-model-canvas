@@ -37,8 +37,8 @@ export function MainContent() {
         >
           <Providers>
             <CanvasFoldersProvider>
+            <AIAgentProvider>
               <CanvasProvider>
-              <AIAgentProvider>
                 {isMobile ? (
                   <>
                     <MobileHeader />
@@ -52,8 +52,8 @@ export function MainContent() {
                     </div>
                   </div>
                 )}
-              </AIAgentProvider>
             </CanvasProvider>
+            </AIAgentProvider>
           </CanvasFoldersProvider>
           </Providers>
         </ThemeProvider>

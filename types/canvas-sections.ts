@@ -90,7 +90,7 @@ export const BUSINESS_MODEL_LAYOUT: CanvasLayoutDetails = {
   }
 
 
-export const BUSINESS_MODEL_CANVAS: CanvasType =  {
+export const BUSINESS_MODEL_CANVAS_TYPE: CanvasType =  {
     id: "business-model",
     icon: Building2.displayName!,
     name: "Business Model Canvas",

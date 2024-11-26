@@ -1,7 +1,10 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { AIAgent } from '@/types/canvas';
 import { AIAgentService } from '@/services/aiAgentService';
 import { useAuth } from './AuthContext';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import { aiAgentService } from '@/services/aiAgentService';
 
 interface AIAgentContextType {
   getAIAgents: () => Promise<Record<string, AIAgent>>;
@@ -9,6 +12,7 @@ interface AIAgentContextType {
   saveCustomAIAgent: (id: string, aiAgent: AIAgent) => Promise<void>;
   getStandardAIAgents: () => Promise<Record<string, AIAgent>>;
   getCustomAIAgents: () => Promise<Record<string, AIAgent>>;
+  agentCache: Record<string, AIAgent>;
   isLoading: boolean;
 }
 
@@ -18,7 +22,57 @@ export function AIAgentProvider({ children }: { children: React.ReactNode }) {
   const [agentCache, setAgentCache] = useState<Record<string, AIAgent>>({});
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
-  const aiAgentService = new AIAgentService();
+
+  // Add real-time listener for standard AI agents
+  useEffect(() => {
+    const standardAgentsRef = collection(db, "aiAgents");
+    
+    const unsubscribe = onSnapshot(standardAgentsRef, (snapshot) => {
+      const updates: Record<string, AIAgent> = {};
+      
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added' || change.type === 'modified') {
+          updates[change.doc.id] = change.doc.data() as AIAgent;
+        } else if (change.type === 'removed') {
+          delete updates[change.doc.id];
+        }
+      });
+
+      setAgentCache(prev => ({
+        ...prev,
+        ...updates
+      }));
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Add real-time listener for user's custom AI agents
+  useEffect(() => {
+    if (!user?.uid) return;
+
+
+    const customAgentsRef = collection(db, 'userAIAgents', user.uid, 'aiAgents');
+    
+    const unsubscribe = onSnapshot(customAgentsRef, (snapshot) => {
+      const updates: Record<string, AIAgent> = {};
+      
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added' || change.type === 'modified') {
+          updates[change.doc.id] = change.doc.data() as AIAgent;
+        } else if (change.type === 'removed') {
+          delete updates[change.doc.id];
+        }
+      });
+
+      setAgentCache(prev => ({
+        ...prev,
+        ...updates
+      }));
+    });
+
+    return () => unsubscribe();
+  }, [user?.uid]);
 
   const getAIAgents = useCallback(async () => {
     if (Object.keys(agentCache).length > 0) {
@@ -27,9 +81,15 @@ export function AIAgentProvider({ children }: { children: React.ReactNode }) {
 
     setIsLoading(true);
     try {
-      const agents = await aiAgentService.getAiAgents(user?.uid);
-      setAgentCache(agents);
-      return agents;
+      if (!aiAgentService.userId && user?.uid) {
+        aiAgentService.initialize(user.uid);
+      }
+      if (aiAgentService.userId) {
+        const agents = await aiAgentService.getAiAgents();
+        setAgentCache(agents);
+        return agents;
+      }
+      return {};
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +113,7 @@ export function AIAgentProvider({ children }: { children: React.ReactNode }) {
 
   const getCustomAIAgents = useCallback(async () => {
     if (!user?.uid) return {};
-    const agents = await aiAgentService.getAiAgents(user.uid);
+    const agents = await aiAgentService.getAiAgents();
     return agents;
   }, [user?.uid]);
 
@@ -70,6 +130,7 @@ export function AIAgentProvider({ children }: { children: React.ReactNode }) {
       saveCustomAIAgent, 
       getStandardAIAgents,
       getCustomAIAgents,
+      agentCache,
       isLoading 
     }}>
       {children}

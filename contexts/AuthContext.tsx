@@ -13,6 +13,9 @@ import {
 import { auth } from '@/lib/firebase';
 import { db } from '@/lib/firebase';
 import { collection, query, where, onSnapshot, DocumentData, doc, addDoc, setDoc, getDoc } from 'firebase/firestore';
+import { useCanvas } from './CanvasContext';
+import { canvasService } from '@/services/canvasService';
+import { aiAgentService } from '@/services/aiAgentService';
 
 interface AuthContextType {
   user: User | null;
@@ -69,6 +72,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             subscriptionPlan: 'free'
           });
         }
+
+        aiAgentService.initialize(user.uid);
+        canvasService.initialize(user.uid);
 
         unsubscribeUser = onSnapshot(userDocRef, (snapshot) => {
           const userData = snapshot.data();

@@ -1,7 +1,8 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import { Message, MessageEnvelope } from '@/contexts/ChatContext'
+import { CanvasTypeSuggestionMessage, Message, MessageEnvelope } from '@/contexts/ChatContext'
+import { CanvasTypeSuggestion } from '@/types/canvas-sections'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -359,10 +360,20 @@ EXAMPLE: {
 `
       tool_call = 'required'
     } 
-
+    console.log('messageEnvelope', messageEnvelope)
+    const messages = messageEnvelope.messageHistory.map((m: Message) => {
+      const { role, content, ...otherFields } = m;
+      return {
+        role,
+        content: content + (Object.keys(otherFields).length > 0 
+          ? `\n ${JSON.stringify(otherFields)}`
+          : '')
+      }
+    })
+    console.log('messages', messages)
     let messages_list = [
       systemPrompt,
-      ...messageEnvelope.messageHistory,
+      ...messages,
       messageEnvelope.newMessage
     ]
 

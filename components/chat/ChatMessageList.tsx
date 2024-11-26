@@ -21,7 +21,7 @@ interface ChatMessageListProps {
   activeSection: string | null
   activeTool: string | null
   onSectionSelect: (section: string | null) => void
-  onActionSelect: (action: { message: string, section: string, action: string }) => void
+  onActionSelect: (action: { tool: string, section: string, message: string }) => void
   messagesEndRef: React.RefObject<HTMLDivElement>
   onAdminToolSelect: (tool: string | null) => void
 }
@@ -64,8 +64,7 @@ export function ChatMessageList({
   }
   
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const [showAdminTool, setShowAdminTool] = useState(false)
-  const { isLoading, loadingMessage, setInteraction } = useChat()
+  const { isLoading, loadingMessage, setInteraction, interaction } = useChat()
   const { currentCanvas } = useCanvas()
 
   
@@ -134,7 +133,7 @@ export function ChatMessageList({
   const Icon = options[selectedCategory as keyof typeof options]?.icon
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {isEmptyChat && !showAdminTool ? (
+      {isEmptyChat && interaction?.interaction !== 'admin' ? (
         <div className="h-full flex flex-col justify-center">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center justify-center gap-2">
@@ -185,7 +184,7 @@ export function ChatMessageList({
                             onActionSelect({
                               message: getMessage(suggestion.action, suggestion.section.name),
                               section: suggestion.section.key,
-                              action: suggestion.action
+                              tool: suggestion.action
                             })
                           }}
                         >
@@ -267,7 +266,7 @@ export function ChatMessageList({
                         bg-gray-50 dark:bg-gray-900 
                         hover:bg-gray-100 dark:hover:bg-gray-800"
                       onClick={() => {
-                        setShowAdminTool(true)
+                        setInteraction({interaction: 'admin', label: 'Admin'})
                         setSelectedCategory(null)
                       }}
                     >
@@ -303,11 +302,11 @@ export function ChatMessageList({
     </div>
   </ScrollArea>
   <div className="flex-shrink-0 flex flex-col">
-    {showAdminTool ? (
+    {interaction?.interaction === 'admin' ? (
       <AdminButtonBar activeTool={activeTool} onToolSelect={(tool) => {
         onAdminToolSelect(tool)
         if(!tool) {
-          setShowAdminTool(false)
+          setInteraction(null)
         }
       }} />
     ) : (
@@ -327,7 +326,7 @@ export function ChatMessageList({
                 onActionSelect({
                   message: getMessage(action, sectionsMap[activeSection as keyof typeof sectionsMap].name),
                   section: activeSection,
-                  action: action
+                  tool: action
                 })
               }
             }}

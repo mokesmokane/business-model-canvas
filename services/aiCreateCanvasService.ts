@@ -5,6 +5,7 @@ import { CanvasTypeService } from './canvasTypeService';
 import { CanvasType } from '@/types/canvas-sections';
 import { canvasService } from './canvasService';
 import { canvasTypeService } from './canvasTypeService';
+import { aiAgentService } from './aiAgentService';
 
 interface ChatRequest {
   messages: Message[]
@@ -73,38 +74,69 @@ export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvel
     role: 'thinking',
     content: "Saving new canvas type...",
   }
-  const suggestion = newCanvasTypeResponse.canvasTypeSuggestions[0]
+  console.log('newCanvasTypeResponse', newCanvasTypeResponse)
+  if(newCanvasTypeResponse.canvasTypeSuggestions && newCanvasTypeResponse.canvasTypeSuggestions.length > 0) {
+    const suggestion = newCanvasTypeResponse.canvasTypeSuggestions[0]
 
-  const canvasTypeId = uuidv4()
-  const canvasType: CanvasType = {
-    id: canvasTypeId, // This will be set by Firestore
-    name: suggestion.name,
-    description: suggestion.description,
-    icon: suggestion.icon,
-    sections: suggestion.sections || [],
-    defaultLayout: suggestion.defaultLayout
-  };
-  
-  await canvasTypeService.saveCanvasType(canvasType);
+    const canvasTypeId = uuidv4()
+    const canvasType: CanvasType = {
+      id: canvasTypeId, // This will be set by Firestore
+      name: suggestion.name,
+      description: suggestion.description,
+      icon: suggestion.icon,
+      sections: suggestion.sections || [],
+      defaultLayout: suggestion.defaultLayout
+    };
+    
+    await canvasTypeService.saveUserCanvasType(canvasType);
 
-  // const lastMessage = messages[messages.length - 1] as CreateCanvasTypeMessage
-  yield {
-    role: 'thinking',
-    content: `Creating canvas...`,
+    yield {
+      role: 'thinking',
+      content: `Creating canvas`,
+    }
+
+    const nameDescription = await sendNameDescriptionRequest(messageEnvelope)
+
+    const canvasId = await canvasService.createNewCanvas({
+      name: nameDescription.name,
+      description: nameDescription.description,
+      canvasType: canvasType,
+      folderId: "root"
+    });
+
+    yield {
+      role: 'thinking',
+      content: `Creating AI agent for canvas`,
+    }
+
+    const aiAgent = await aiAgentService.createandSaveAIAgent(canvasType)
+
+    yield {
+      role: 'assistant',
+      content: `Canvas created successfully! ID: ${canvasId}`,
+      canvasId
+    };
+  } else {
+    yield {
+      role: 'assistant',
+      content: newCanvasTypeResponse.content
+    }
   }
+}
 
-  const canvasId = await canvasService.createNewCanvas({
-    name: suggestion.name,
-    description: suggestion.description,
-    canvasType: canvasType,
-    folderId: "root"
-  });
+export async function sendNameDescriptionRequest(messageEnvelope: MessageEnvelope) {
+  const response = await fetch('/api/ai-name-description', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ messageEnvelope }),
+ 
+  })
 
-  yield {
-    role: 'assistant',
-    content: `Canvas created successfully! ID: ${canvasId}`,
-    canvasId
-  };
+  let data = await response.json()
+
+  return data
 }
 
 export async function sendAdminChatRequest(messageEnvelope: MessageEnvelope) {

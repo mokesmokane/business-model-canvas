@@ -8,7 +8,7 @@ import { InteractionRouter } from '@/services/interaction-routers/interface';
 import { defaultInteractionRouter } from '@/services/interaction-routers/default';
 import { AIAgent } from '@/types/canvas';
 import { useAuth } from './AuthContext';
-import { sendChatRequest } from '@/services/aiService';
+import { sendChatRequest, sendContextlessChatRequest } from '@/services/aiService';
 import { sendAdminChatRequest } from '@/services/aiService';
 
 export interface Message {
@@ -151,14 +151,15 @@ interface ChatContextType {
   interaction: Interaction | null;
   activeSection: string | null;
   activeTool: string | null;
+  isContextEnabled: boolean;
   setActiveSection: (section: string|null) => void;
   setInput: (input: string) => void;
-  setIsLoading: (loading: boolean) => void;
   setLoadingMessage: (message: string) => void;
   clearMessages: () => void;
-  sendMessage: (message: Message) => void;
+  sendMessage: (message: Message, action?: string) => void;
   setInteraction: (interaction: Interaction|null) => void;
   setActiveTool: (tool: string|null) => void;
+  setIsContextEnabled: (enabled: boolean) => void;
 }
 
 const ChatContext = createContext<ChatContextType>({
@@ -169,9 +170,10 @@ const ChatContext = createContext<ChatContextType>({
   interaction: null,
   activeSection: null,
   activeTool: null,
+  isContextEnabled: false,
+  setIsContextEnabled: () => {},
   setActiveSection: () => {},
   setInput: () => {},
-  setIsLoading: () => {},
   setLoadingMessage: () => {},
   clearMessages: () => {},
   sendMessage: () => {},
@@ -189,10 +191,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const { updateSection, updateQuestionAnswer, formData, aiAgent } = useCanvas()
   const [activeTool, setActiveTool] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
-
+  const [isContextEnabled, setIsContextEnabled] = useState(false)
   const addMessage = (message: Message) => {
-    const newMessages = [...messages, message];
-    setMessages(newMessages);
+    setMessages(prevMessages => {
+      const newMessages = [...prevMessages, message];
+      console.log('newMessages', newMessages);
+      return newMessages;
+    });
   };
 
 
@@ -221,7 +226,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     return interactionRouter.getRoute(messageEnvelope, formData, aiAgent)
   }
 
-  const sendMessage = async (userMessage: Message) => {
+  const sendMessage = async (userMessage: Message, action?: string, section?: string) => {
     console.log('isInTrialPeriod', isInTrialPeriod)
     console.log('userData', userData)
     const currentMessages = [...messages.filter((m: Message) => 
@@ -234,7 +239,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
-    if(activeTool) {
+    if(interaction?.interaction === 'admin') {
       if(userMessage.content.trim()) {
         setInput('')
         setIsLoading(true)
@@ -243,7 +248,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           const aiResponse = await sendAdminChatRequest({
             messageHistory: currentMessages,
             newMessage: userMessage,
-            action: activeTool  
+            action: action || activeTool || undefined
           })
           const formattedResponse: AdminMessage = {
             role: 'assistant',
@@ -288,10 +293,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       try {
         const envelope: MessageEnvelope = {
           messageHistory: currentMessages,
-          newMessage: userMessage
+          newMessage: userMessage,
+          action: action || activeTool || undefined
         }
-        const send = interaction ? routeInteraction(envelope) : sendChatRequest
-      
+        console.log('envelope', envelope)
+        console.log('interaction', interaction)
+        const send = 
+          interaction ? routeInteraction(envelope)
+          : formData && isContextEnabled ? sendChatRequest
+          : sendContextlessChatRequest
         const aiResponse = send(envelope, formData, aiAgent)
         for await (const message of aiResponse) {
           if(message.role === 'thinking') {
@@ -313,6 +323,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       } finally {
         setIsLoading(false)
       }
+    } else {
+      addMessage({ role: 'error', content: 'Please select a canvas type to continue.' })
     }
   }
 
@@ -325,8 +337,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       interaction,
       activeSection,
       activeTool,
+      isContextEnabled,
+      setIsContextEnabled,
       setInput,
-      setIsLoading,
       setLoadingMessage,
       clearMessages,
       sendMessage,

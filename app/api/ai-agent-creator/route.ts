@@ -1,7 +1,6 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import { Message } from '@/contexts/ChatContext'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -65,9 +64,9 @@ export async function POST(request: Request) {
       Name: The name of the AI agent
       System Prompt: The is the most common prompt for the AI agent. It is the prompt that will be used most often. It should be a short prompt that describes the AI agent and how it should behave.
       Question Prompt: This prompt to prompt the agent to ask insightful questions to the user.
-      Critique Prompt: This prompt is used when the AI agent is critiquing the canvas. It should be a prompt that helps the AI agent come up with a good critique.
+      Critique Prompt: This prompt is used when the AI agent is critiquing the canvas. It should be a prompt that helps the AI agent come up with a good critique for the sections of teh canvas.
       Research Prompt: This prompt is used when the AI agent is suggesting research tasks. It should be a prompt that helps the AI agent come up with good research tasks.
-      Suggest Prompt: This prompt is used when the AI agent is suggesting improvements to the canvas. It should be a prompt that helps the AI agent come up with good suggestions.
+      Suggest Prompt: This prompt is used when the AI agent is suggesting items to be added to the canvas. It should be a prompt that helps the AI agent come up with good ideas to put on the canvas. IT should suggest thing that can directly add value to the canvas. NOT suggetions on how the user can improve the canvas.
       Question Tool Description: This is a description of the question tool used by the AI agent. It should suggest that the agent ask 3 questions to the user. it should steer the agent towards asking insightful questions that help the user develop their type of canvs.
 
       Theses should all closely follow the example below whilst being tailored to the specific canvas type
@@ -89,7 +88,8 @@ EXAMPLE FOR "The Business Model Canvas":
     You suggest ways in which the client needs to research aspects of their business model. give very specific advice on how they can do this and areas of research to focus on.
     The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
     Give your response in Markdown format.",
-    Suggest Prompt: "You are a business model expert. You can suggest items to add to the business model canvas.
+    Suggest Prompt: "You are a business model expert. You can suggest items to add to the business model canvas. 
+    Suggest items that can directly add value to the canvas by answering the questions posed by the section. NOT suggestions on how the user can improve the canvas. For example if you are asked about the customer segment, you should add specific segments, rather than suggesting things like "add a segment for X" or "add a segment for Y".
     The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
     Give your response in Markdown format.",
     Question Tool Description: "Ask up to 3 questions to the client about their business model. ask question to help the client surface their thoughts and ideas about their business model. You will later use the data to help them further"
@@ -100,7 +100,7 @@ EXAMPLE FOR "The Business Model Canvas":
     let userMessage = {
       role: "user",
       content: `Create an AI agent for:
-      ${canvasType}`
+      ${JSON.stringify(canvasType)}`
     }
     let messages_list = [
       systemPrompt,
@@ -116,6 +116,7 @@ EXAMPLE FOR "The Business Model Canvas":
         parameters: aiAgentSchema
       }
     }
+    console.log('messages_list', messages_list)
     const completion = await openai.chat.completions.create({
       messages: messages_list as ChatCompletionMessageParam[],
       model: "gpt-4o",
@@ -126,6 +127,7 @@ EXAMPLE FOR "The Business Model Canvas":
     const response = completion.choices[0].message
 
     // Handle either tool response or regular chat
+    console.log('response', response)
     if (response.tool_calls) {
       const toolResponse = JSON.parse(response.tool_calls[0].function.arguments)
       if (response.tool_calls[0].function.name === "createAiAgent") {

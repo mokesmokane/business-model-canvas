@@ -9,6 +9,9 @@ interface CanvasContentProps {
 
 export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
   const { formData, canvasTheme, updateSection } = useCanvas();
+  if(!formData) {
+    return null
+  }
   let canvasType = formData.canvasType;
 
 

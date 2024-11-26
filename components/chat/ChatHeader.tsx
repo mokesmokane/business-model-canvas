@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { useCanvas } from '@/contexts/CanvasContext'
 import DynamicIcon from '../Util/DynamicIcon'
 import { Info } from 'lucide-react'
+import { useAIAgents } from '@/contexts/AIAgentContext'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,13 +29,14 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose, isContextEnabled, onToggleContext }: ChatHeaderProps) {
   const { currentCanvas } = useCanvas()
-
+  const { agentCache } = useAIAgents()
+  const aiAgent = currentCanvas?.canvasType.id ? agentCache[currentCanvas.canvasType.id] : null
   return (
     <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />
-          <h3 className="text-sm font-semibold">AI Assistant</h3>
+          <h3 className="text-sm font-semibold">{isContextEnabled ? aiAgent?.name || 'AI Assistant' : 'AI Assistant'}</h3>
         </div>
         {currentCanvas && (
           <div className="flex items-center gap-2">

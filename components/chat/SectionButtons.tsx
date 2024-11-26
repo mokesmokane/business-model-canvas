@@ -15,7 +15,9 @@ interface SectionButtonsProps {
 
 export function SectionButtons({ activeSection, onSectionSelect }: SectionButtonsProps) {
   let {formData} = useCanvas();
-// Type the Map entries and conversion
+  if(!formData) {
+    return null
+  }
   const sections = Array.from(
     formData.canvasType.sections.entries()
   ).map(([i,section]) => ({

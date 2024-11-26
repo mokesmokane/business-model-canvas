@@ -10,7 +10,6 @@ interface ChatInputProps {
   onInputChange: (value: string) => void
   onSend: () => void
   onSectionSelect: (section: string | null) => void
-  onActionSelect: (action: string) => void
   selectedInteraction: Interaction | null
   setSelectedInteraction: (interaction: Interaction | null) => void
 }

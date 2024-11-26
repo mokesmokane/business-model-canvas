@@ -38,12 +38,12 @@ export function MessageRenderer({ message, messageIndex}: MessageRendererProps) 
       return <CanvasTypeSuggestionMessageDetails message={message} />
     }
 
-    if (message instanceof SuggestionMessage && message.suggestions) {
-      return <SuggestionMessageDetails message={message} messageIndex={messageIndex} />
+    if (message instanceof SuggestionMessage && message.suggestions || (message as SuggestionMessage).suggestions) {
+      return <SuggestionMessageDetails message={(message as SuggestionMessage)} messageIndex={messageIndex} />
     }
-    
-    if (message instanceof QuestionMessage && message.questions) {
-      return <QuestionMessageDetails message={message} />
+
+    if ((message instanceof QuestionMessage && message.questions) || (message as QuestionMessage).questions) {
+      return <QuestionMessageDetails message={(message as QuestionMessage)} />
     }
 
     return null
@@ -95,6 +95,9 @@ export function SuggestionMessageDetails({ message, messageIndex }: { message: S
     const { sendMessage, activeSection, setActiveSection, setActiveTool } = useChat()
 
     const handleAddSuggestion = (section: string, suggestion: string, rationale: string, suggestionId: string) => {
+        if(!formData) {
+            return
+        }
         const sectionData = formData.sections.get(section) as Section
         const currentItems = sectionData?.items || []
         const newItems = [...currentItems, `${suggestion}\n\n${rationale}`]

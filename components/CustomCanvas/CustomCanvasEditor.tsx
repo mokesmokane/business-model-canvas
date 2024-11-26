@@ -18,6 +18,8 @@ import { TAG_INFO } from '@/src/constants/tags';
 import { TagSuggesterService } from '@/services/tagSuggesterService';
 import DynamicIcon from '../Util/DynamicIcon';
 import { Pencil, XIcon } from 'lucide-react';
+import { aiAgentCreatorService } from '@/services/aiAgentCreatorService';
+
 function isValidGridTemplate(template: string): boolean {
   const validPattern = /^(\d+fr|\d+px|auto)(\s+(\d+fr|\d+px|auto))*$/;
   return validPattern.test(template);
@@ -91,21 +93,9 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onCon
   const fetchSuggestedAIAgent = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/ai-agent-creator', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ canvasType }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch AI agent');
-      }
-
-      const data = await response.json();
-      if (data.aiAgent) {
-        setAiAgent(data.aiAgent);
+      const newAiAgent = await aiAgentCreatorService.createAIAgent(canvasType!);
+      if (newAiAgent) {
+        setAiAgent(newAiAgent);
       } else {
         setError('No AI agent data received');
       }

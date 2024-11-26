@@ -36,7 +36,7 @@ export function AIItemAssistButton({
   onExpandSidebar,
   onDropdownStateChange 
 }: AIItemAssistButtonProps) {
-  const { setIsLoading, addMessages, isLoading, messages } = useChat()
+  const { sendMessage, isLoading, messages } = useChat()
   const { formData, canvasTheme, aiAgent } = useCanvas()
 
   const handleAction = async (action: string) => {
@@ -52,50 +52,9 @@ export function AIItemAssistButton({
     const message = {
       role: 'user',
       content: actionMessage,
-      action: action
     } as Message
 
-    const currentMessages = [...messages.filter((m: Message) => m.role == 'system' || m.role == 'user' || m.role == 'assistant')]
-    const updatedMessages = [...currentMessages, message]
-    
-    await addMessages(updatedMessages)
-    setIsLoading(true)
-    try {
-      if(!aiAgent) {
-        throw new Error('No AI agent found')
-      }
-      const aiResponse = await sendChatRequest(updatedMessages, formData, aiAgent)
-      const formattedResponse: Message = {
-        role: 'assistant',
-        content: aiResponse.content || '',
-        suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
-          id: suggestion.id,
-          section: suggestion.section || sectionKey,
-          suggestion: suggestion.suggestion,
-          rationale: suggestion.rationale
-        })),
-        questions: aiResponse.questions?.map((question: any) => ({
-          id: question.id,
-          section: sectionKey,
-          question: question.question,
-          type: question.type || 'open',
-          options: question.options || [],
-          scale: question.scale || null
-        }))
-      }
-      addMessages([...updatedMessages, formattedResponse])
-    } catch (error) {
-      const errorMessage = error instanceof Error 
-        ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
-        : String(error)
-      
-      addMessages([...updatedMessages, { 
-        role: 'error', 
-        content: `An error occurred:\n\n${errorMessage}` 
-      }])
-    } finally {
-      setIsLoading(false)
-    }
+    await sendMessage(message, action)
   }
 
   return (

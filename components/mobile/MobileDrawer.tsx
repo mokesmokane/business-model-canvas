@@ -7,7 +7,6 @@ import { useCanvas } from "@/contexts/CanvasContext"
 import { NewCanvasDialog } from "@/components/NewCanvasDialog"
 import { DeleteCanvasDialog } from "@/components/DeleteCanvasDialog"
 import { useState } from "react"
-import { BUSINESS_MODEL_CANVAS } from "@/types/canvas-sections"
 
 export function MobileDrawer({ onClose }: { onClose: () => void }) {
   const { logout } = useAuth()
@@ -63,7 +62,7 @@ export function MobileDrawer({ onClose }: { onClose: () => void }) {
             <NewCanvasDialog
               open={dialogOpen}
               onOpenChange={setDialogOpen}
-              canvasType={currentCanvas?.canvasType || BUSINESS_MODEL_CANVAS}
+              canvasType={currentCanvas?.canvasType}
             />
           </div>
           {userCanvases.map((item) => (

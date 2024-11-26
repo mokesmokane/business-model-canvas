@@ -2,7 +2,7 @@ import { AIAgent } from "@/types/canvas"
 import { sendChatRequest } from "../aiService"
 import { InteractionRouter } from "./interface"
 import { sendCanvasSelectorRequest, sendCreateCanvasTypeRequest } from "../aiCreateCanvasService"
-import { Message, MessageEnvelope } from "@/contexts/ChatContext"
+import { CreateCanvasTypeMessage, Message, MessageEnvelope } from "@/contexts/ChatContext"
 
 export const createCanvasInteractionRouter: InteractionRouter = {
     getRoute: (messageEnvelope: MessageEnvelope, formData: any|null, aiAgent: AIAgent | null) => {
@@ -13,7 +13,7 @@ export const createCanvasInteractionRouter: InteractionRouter = {
             console.log('sending canvas selector request')
             interaction = (messageEnvelope: MessageEnvelope) => sendCanvasSelectorRequest(messageEnvelope) as AsyncGenerator<Message, void, unknown>
         }
-        else if (messageEnvelope.action === 'createCanvasType') {
+        else if (messageEnvelope.newMessage instanceof CreateCanvasTypeMessage) {
             console.log('sending create canvas type request')
             interaction = (messageEnvelope: MessageEnvelope) => sendCreateCanvasTypeRequest(messageEnvelope) as AsyncGenerator<Message, void, unknown>
         }

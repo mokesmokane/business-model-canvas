@@ -43,7 +43,8 @@ export class CanvasTypeService {
     
     async saveUserCanvasType(canvasType: CanvasType): Promise<void> {
         try {
-            await addDoc(this.collectionRef, canvasType);
+            const docRef = doc(collection(db, 'userCanvasTypes', this.getUserId(), 'canvasTypes'), canvasType.id);
+            await setDoc(docRef, canvasType);
             console.log("CanvasType saved successfully");
         } catch (error) {
             console.error("Error saving canvasType: ", error);

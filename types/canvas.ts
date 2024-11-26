@@ -1,4 +1,4 @@
-import { CanvasLayout, CanvasLayoutDetails } from "./canvas-sections";
+import { BUSINESS_MODEL_LAYOUT, CanvasLayout, CanvasLayoutDetails, CanvasSection } from "./canvas-sections";
 
 import { CanvasType } from "./canvas-sections";
 
@@ -62,7 +62,7 @@ export interface SerializedSections {
 }
 
 export interface Canvas {
-  id?: string;
+  id: string;
   name: string;
   description: string;
   designedFor: string;
@@ -70,16 +70,44 @@ export interface Canvas {
   date: string;
   version: string;
   sections: Map<string, Section>;
+  canvasType: CanvasType;
+  canvasLayout: CanvasLayout;
   userId?: string;
   createdAt?: Date;
   updatedAt?: Date;
   theme?: 'light' | 'dark';
-  canvasType: CanvasType;
-  canvasLayout: CanvasLayout;
+}
+
+export const createNewCanvas = (id: string, name: string, description: string, canvasType: CanvasType): Canvas => {
+  const sectionsMap = new Map(
+    canvasType.sections.map((s: CanvasSection): [string, Section] => [
+      s.name,
+      {
+        name: s.name,
+        gridIndex: s.gridIndex,
+        items: [],
+        qAndAs: []
+      }
+    ])
+  );
+  return {
+    id,
+    name,
+    description,
+    designedFor: '',
+    designedBy: '',
+    date: new Date().toISOString(),
+    version: '1.0',
+    canvasType,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    canvasLayout: canvasType.defaultLayout ? canvasType.defaultLayout.layout : BUSINESS_MODEL_LAYOUT.layout,
+    sections: sectionsMap,
+  }
 }
 
 export interface SerializedCanvas {
-  id?: string;
+  id: string;
   name: string;
   description: string;
   designedFor: string;
@@ -88,10 +116,10 @@ export interface SerializedCanvas {
   version: string;
   sections: SerializedSections;
   canvasLayout: CanvasLayout;
+  canvasType: CanvasType;
   userId?: string;
   createdAt?: string;
   updatedAt?: string;
-  canvasType: CanvasType;
 }
 
 export interface CanvasState {

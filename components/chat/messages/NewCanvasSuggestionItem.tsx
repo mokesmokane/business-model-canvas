@@ -13,8 +13,7 @@ interface NewCanvasSuggestionItemProps {
 }
 
 function NewCanvasSuggestionItem({ newCanvasSuggestion }: NewCanvasSuggestionItemProps) {
-  // const [isSubmitted, setIsSubmitted] = useState(false)
-  const {messages, sendMessage, setIsLoading, interaction, setInteraction} = useChat()
+  const { sendMessage } = useChat()
   const handleSubmit = () => {
     sendMessage(new CreateCanvasTypeMessage(newCanvasSuggestion))
   }
@@ -40,7 +39,6 @@ function NewCanvasSuggestionItem({ newCanvasSuggestion }: NewCanvasSuggestionIte
           </div>
           <Button 
             onClick={handleSubmit} 
-            // disabled={isSubmitted}
             className="w-full"
           >
             {'Use This Canvas'}

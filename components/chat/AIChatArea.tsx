@@ -20,7 +20,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
-  const [isContextEnabled, setIsContextEnabled] = useState(true)
+  const { isContextEnabled, setIsContextEnabled } = useChat()
   const { getAIAgent } = useAIAgents()
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -41,15 +41,17 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     setActiveTool(tool || '')
   }
 
-  const handleActionMessage = async (action: any) => {
-    const actionMessage = typeof action === 'string' 
-        ? action 
-        : action.message;
+  const handleActionMessage = async (action: {
+    tool: string;
+    section: string;
+    message: string;
+  }) => {
+    console.log('action', action)
     setActiveTool(action.tool)
     setActiveSection(action.section)
     const userMessage = { 
         role: 'user', 
-        content: actionMessage,
+        content: action.message,
     } as Message;
     sendMessage(userMessage)
   };
@@ -83,7 +85,6 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
               input={input}
               isExpanded={isExpanded}
               onSectionSelect={setActiveSection}
-              onActionSelect={handleActionMessage}
               onInputChange={setInput}
               onSend={handleSend}
               selectedInteraction={interaction}

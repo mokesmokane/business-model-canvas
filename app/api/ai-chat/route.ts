@@ -101,7 +101,7 @@ export async function POST(request: Request) {
     const sections = Object.keys(currentContent?.sections || {})
 
     const canvasName = currentContent?.canvasType?.name || ''
-    const messages = messageEnvelope.messageHistory
+    const messages = [...messageEnvelope.messageHistory, messageEnvelope.newMessage]
     const expanded_messages = messages.flatMap((msg: Message) => {
       if (msg instanceof SuggestionMessage) {
         return msg.suggestions.map((suggestion) => ({
@@ -116,13 +116,14 @@ export async function POST(request: Request) {
     })
     //if the last message is an action, chaneg the system prompt accordingly
     const action = messageEnvelope.action
-    
-    let spromt = aiAgent.systemPrompt
+    console.log('action', action)
+    let spromt = aiAgent.systemPrompt 
     let questionPrompt = aiAgent.questionPrompt
     let critiquePrompt = aiAgent.critiquePrompt
     let researchPrompt = aiAgent.researchPrompt
     let suggestPrompt = aiAgent.suggestPrompt
     let questionToolDescription = aiAgent.questionToolDescription
+    let canvasType = currentContent?.canvasType || ''
 
     
     let canvasInfo = `The Canvas currently looks like this:
@@ -132,6 +133,7 @@ export async function POST(request: Request) {
 
       ${Object.entries(currentContent?.sections || {}).map(([key, section]: [string, any]) => `
       ${section.name}:
+      (${canvasType.sections[section.gridIndex].placeholder})
       Items: ${section.items?.join('\n') ?? ''}
       Q&A: ${section.qAndAs?.map((qa: { question: string; answer?: string | number; type: string; scale?: { max: number; label: string } }) => {
         let formattedAnswer = 'Unanswered';
@@ -204,6 +206,8 @@ export async function POST(request: Request) {
         parameters: suggestionsToolSchema(sections, canvasName)
       }
     }
+
+    console.log('messages_list', messages_list)
 
     const completion = await openai.chat.completions.create({
       messages: messages_list as ChatCompletionMessageParam[],

@@ -7,11 +7,13 @@ import { useAuth } from './AuthContext';
 import debounce from 'lodash/debounce';
 import { AIAgent, AIQuestion, Canvas, CanvasItem, SerializedCanvas, SerializedSections } from '@/types/canvas';
 import { deleteDoc } from 'firebase/firestore';
-import { BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT, CanvasLayout, CanvasLayoutDetails, CanvasType, getInitialCanvasState } from '@/types/canvas-sections';
+import { BUSINESS_MODEL_LAYOUT, CanvasLayout, CanvasLayoutDetails, CanvasType, getInitialCanvasState } from '@/types/canvas-sections';
 import { AIAgentService } from '@/services/aiAgentService';
 import { useCanvasFolders } from './CanvasFoldersContext';
 import { v4 as uuidv4 } from 'uuid';
 import { canvasService } from '@/services/canvasService';
+import { deserializeCanvas, serializeCanvas, deserializeSections, serializeSections } from '@/services/canvasService';
+import { useAIAgents } from './AIAgentContext';
 
 interface Section {
   name: string;
@@ -20,9 +22,8 @@ interface Section {
 }
 
 interface CanvasState {
-  currentCanvas: Canvas | null;
-  formData: Canvas;
-  aiAgent: AIAgent | null;
+  currentCanvas: Canvas ;
+  formData: Canvas ;
   status: 'idle' | 'loading' | 'saving' | 'error';
   error: string | null;
 }
@@ -30,14 +31,14 @@ interface CanvasState {
 
 interface CanvasContextType {
   currentCanvas: Canvas | null;
-  formData: Canvas;
+  formData: Canvas | null;
   status: 'idle' | 'loading' | 'saving' | 'error';
   error: string | null;
   userCanvases: DocumentData[];
   canvasTheme: 'light' | 'dark';
   aiAgent: AIAgent | null;
-  canvasType: CanvasType;
-  canvasLayout: CanvasLayout;
+  canvasType: CanvasType | null;
+  canvasLayout: CanvasLayout | null;
   updateField: (field: keyof Canvas, value: string) => void;
   updateLayout: (layout: string[], canvasLayout: CanvasLayout) => void;
   updateSection: (sectionKey: string, items: string[]) => void;
@@ -53,14 +54,14 @@ interface CanvasContextType {
 
 export const CanvasContext = createContext<CanvasContextType>({
   currentCanvas: null,
-  formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
+  formData: null,
   status: 'idle',
   error: null,
   userCanvases: [],
   canvasTheme: 'light',
   aiAgent: null,
-  canvasType: BUSINESS_MODEL_CANVAS,
-  canvasLayout: BUSINESS_MODEL_LAYOUT.layout,
+  canvasType: null,
+  canvasLayout: null,
   updateLayout: () => { },
   updateField: () => { },
   updateSection: () => { },
@@ -74,48 +75,13 @@ export const CanvasContext = createContext<CanvasContextType>({
   setCanvasTheme: () => { },
 });
 
-const AUTOSAVE_DELAY = 1000;
-
-// Add this helper function at the top of the file
-const serializeCanvas = (canvas: Canvas): SerializedCanvas => {
-  return {
-    ...canvas,
-    sections: serializeSections(canvas.sections),
-    createdAt: canvas.createdAt?.toISOString(),
-    updatedAt: canvas.updatedAt?.toISOString(),
-  };
-};
-
-// Add this helper function to deserialize data from Firestore
-const deserializeCanvas = (data: SerializedCanvas): Canvas => {
-  return {
-    ...data,
-    sections: deserializeSections(data.sections),
-
-    createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
-    updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
-  };
-};
-
-// Helper functions for Map <-> Object conversion
-const serializeSections = (sections: Map<string, Section>): SerializedSections => {
-  return Object.fromEntries(sections);
-};
-
-const deserializeSections = (sections: SerializedSections): Map<string, Section> => {
-  return new Map(Object.entries(sections));
-};
-
-export function CanvasProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = React.useState<CanvasState>({
-    currentCanvas: null,
-    formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
-    aiAgent: null,
-    status: 'idle',
-    error: null
-  });
+  const AUTOSAVE_DELAY = 1000;
+  export function CanvasProvider({ children }: { children: React.ReactNode }) {
+  const [state, setState] = React.useState<CanvasState | null>(null);
   const { onCanvasCreated, rootFolderId } = useCanvasFolders()
   const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
+  const { agentCache } = useAIAgents();
+  const [aiAgent, setAiAgent] = useState<AIAgent | null>(null);
 
   const { user } = useAuth();
 
@@ -127,7 +93,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
       canvasService.reset();
     }
   }, [user?.uid]);
-  
+
   if (!user) {
     return null;
   }
@@ -135,7 +101,12 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   stateRef.current = state;
 
   const setStatus = useCallback((status: CanvasState['status'], error: string | null = null) => {
-    setState(prev => ({ ...prev, status, error }));
+    setState(prev => {
+      if(!prev) {
+        return null
+      }
+      return { ...prev, status, error }
+    });
   }, []);
 
   const saveToFirebase = useCallback(async (data: Canvas) => {
@@ -156,6 +127,9 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
   const updateField = useCallback((field: keyof Canvas, value: string) => {
     setState(prev => {
+      if(!prev) {
+        return null
+      }
       const updatedData = {
         ...prev.formData,
         [field]: value,
@@ -171,6 +145,9 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
   const updateSection = useCallback((sectionKey: string, items: string[]) => {
     setState(prev => {
+      if(!prev) {
+        return null
+      }
       const sections = prev.formData.sections;
       if (!sections.has(sectionKey)) return prev;
 
@@ -219,14 +196,25 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
       const canvasData = deserializeCanvas({ ...canvasDoc.data(), id: canvasDoc.id } as SerializedCanvas);
 
-      setState(prev => ({
-        ...prev,
-        currentCanvas: canvasData,
-        formData: canvasData,
-        status: 'idle',
-        error: null,
-      }));
-
+      setState(prev => {
+        if(!prev) {
+          const aiAgent = agentCache[canvasData.canvasType.id]
+          return {
+            currentCanvas: canvasData,
+            formData: canvasData,
+            status: 'idle',
+            error: null,
+            aiAgent: aiAgent
+          }
+        }
+        return {
+          ...prev,
+          currentCanvas: canvasData,
+          formData: canvasData,
+          status: 'idle',
+          error: null,
+        }
+      });
       localStorage.setItem('lastCanvasId', id);
     } catch (err) {
       console.error('Error loading canvas:', err);
@@ -244,6 +232,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     if (!user) return;
 
     try {
+
       setStatus('saving');
       const canvasId = await canvasService.createNewCanvas(data);
       await loadCanvas(canvasId);
@@ -258,6 +247,9 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const updateQuestionAnswer = useCallback((question: AIQuestion) => {
     
     setState(prev => {
+      if(!prev) {
+        return null
+      }
       const sections = prev.formData.sections;
       const section = sections.get(question.section);
       if (!section) return prev;
@@ -290,12 +282,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   }, [saveToFirebase]);
 
   const resetForm = useCallback(() => {
-    setState(prev => ({
-      ...prev,
-      formData: prev.currentCanvas || getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
-      status: 'idle',
-      error: null
-    }));
+    setState(null);
   }, []);
 
   const deleteCanvas = useCallback(async (id: string) => {
@@ -306,14 +293,8 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
       await deleteDoc(doc(db, 'userCanvases', user.uid, 'canvases', id));
 
       // If we're deleting the current canvas, reset the state
-      if (state.currentCanvas?.id === id) {
-        setState(prev => ({
-          ...prev,
-          currentCanvas: null,
-          formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
-          status: 'idle',
-          error: null
-        }));
+      if (state?.currentCanvas?.id === id) {
+        setState(null);
       } else {
         setStatus('idle');
       }
@@ -321,21 +302,18 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
       console.error('Error deleting canvas:', err);
       setStatus('error', err instanceof Error ? err.message : 'Failed to delete canvas');
     } 
-  }, [user, setStatus, state.currentCanvas?.id]);
+  }, [user, setStatus, state?.currentCanvas?.id]);
 
   const clearState = useCallback(() => {
-    setState({
-      currentCanvas: null,
-      formData: getInitialCanvasState(BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT.layout),
-      aiAgent: null,
-      status: 'idle',
-      error: null
-    });
+    setState(null);
     localStorage.removeItem('lastCanvasId');
   }, []);
 
   const updateQuestions = useCallback((sectionKey: string, questions: any[]) => {
     setState(prev => {
+      if(!prev) {
+        return null
+      }
       const updatedSections = new Map(prev.formData.sections);
       const section = updatedSections.get(sectionKey);
       if (section) {
@@ -362,6 +340,9 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
   const setCanvasTheme = useCallback((theme: 'light' | 'dark') => {
     setState(prev => {
+      if(!prev) {
+        return null
+      }
       const updatedData = {
         ...prev.formData,
         theme,
@@ -387,18 +368,19 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
     if (user) {
       const canvasesQuery = query(
-        collection(db, 'userCanvases', user.uid, 'canvases'),
-        where('userId', '==', user.uid)
+        collection(db, 'userCanvases', user.uid, 'canvases')
       );
 
       unsubscribeCanvases = onSnapshot(canvasesQuery, async (snapshot: DocumentData) => {
         const canvases = snapshot.docs.map((doc: DocumentData) => {
+          console.log('doc', doc)
           const data = deserializeCanvas({ ...doc.data(), id: doc.id } as SerializedCanvas);
           return {
-            id: doc.id,
-            ...data
+            ...data,
+            id: doc.id
           };
         });
+        console.log('canvases', canvases)
         setUserCanvases(canvases);
 
         // Check for canvases without folders and add them to root
@@ -441,6 +423,9 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
   const updateLayout = useCallback((layout: string[], canvasLayout: CanvasLayout) => {
     setState(prev => {
+      if(!prev) {
+        return null
+      }
       //layout is the new order of the sections
 
       const sections = new Map(prev.formData.sections);
@@ -472,18 +457,23 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
 
   const setNewCanvas = useCallback(() => {
     clearState();
-    setState(prev => ({
+    setState(prev => {
+      if(!prev) {
+        return null
+      }
+      return {
       ...prev,
-      newCanvas: true
-    }));
+        newCanvas: true
+      }
+    });
   }, []);
 
-  const canvasType = state.formData.canvasType
-  const canvasLayout = state.formData.canvasLayout
+  const canvasType = state?.formData?.canvasType
+  const canvasLayout = state?.formData?.canvasLayout
 
   // Add new effect to subscribe to AI agent updates
   useEffect(() => {
-    if (!state.formData?.canvasType?.id) return;
+    if (!state?.formData?.canvasType?.id) return;
 
     // Create reference to AI agent document
     const aiAgentRef = doc(db, "aiAgents", state.formData.canvasType.id);
@@ -491,30 +481,42 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     // Subscribe to real-time updates
     const unsubscribe = onSnapshot(aiAgentRef, (snapshot) => {
       if (snapshot.exists()) {
-        setState(prev => ({
-          ...prev,
-          aiAgent: { ...snapshot.data() } as AIAgent
-        }));
+        setState(prev => {
+          if(!prev) {
+            return null
+          }
+          return {
+            ...prev,
+            aiAgent: { ...snapshot.data() } as AIAgent
+          }
+        });
       }
     });
 
     // Cleanup subscription
     return () => unsubscribe();
-  }, [state.formData?.canvasType?.id]);
+  }, [state?.formData?.canvasType?.id]);
 
+  // Add effect to sync aiAgent with agentCache
+  useEffect(() => {
+    if (state?.formData?.canvasType?.id) {
+      const agent = agentCache[state.formData.canvasType.id];
+      setAiAgent(agent || null);
+    }
+  }, [agentCache, state?.formData?.canvasType?.id]);
 
   return (
     <CanvasContext.Provider
       value={{
-        currentCanvas: state.currentCanvas,
-        formData: state.formData,
-        status: state.status,
-        error: state.error,
+        currentCanvas: state?.currentCanvas || null,
+        formData: state?.formData || null,
+        status: state?.status || 'idle',
+        error: state?.error || null,
         userCanvases,
-        canvasTheme: state.formData.theme || 'light',
-        aiAgent: state.aiAgent,
-        canvasType,
-        canvasLayout,
+        canvasTheme: state?.formData?.theme || 'light',
+        aiAgent: aiAgent,
+        canvasType: state?.formData?.canvasType || null,
+        canvasLayout: state?.formData?.canvasLayout || null,
         updateField,
         updateLayout,
         updateSection,
