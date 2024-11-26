@@ -37,6 +37,7 @@ const ThemeToggleButton = () => {
 export function Header() {
   const { canvasTheme, formData, updateField } = useCanvas();
   const [showLayoutEditor, setShowLayoutEditor] = useState(false);
+  if (!formData) return null;
 
 
   useEffect(() => {
@@ -56,18 +57,18 @@ export function Header() {
         <h1 className={`text-3xl font-bold tracking-tight ${
           canvasTheme === 'light' ? 'text-black' : 'text-white'
         }`}>
-          {formData.canvasType.name}
+          {formData?.canvasType?.name || ''}
         </h1>
         <div className="flex items-center gap-2">
           <Input 
             canvasTheme={canvasTheme}
-            value={formData.name}
+            value={formData?.name || ''}
             className={`max-w-[200px] ${
               canvasTheme === 'light' ? 'text-black' : 'text-white'
             }`}
             readOnly
           />
-          <div className={`${!formData.name || !formData.description ? 
+          <div className={`${!formData?.name || !formData?.description ? 
             'animate-pulse ring-2 ring-blue-500 rounded-md ring-opacity-75 shadow-lg shadow-blue-500/50' : ''}`}>
             <CompanyEditDialog/>
           </div>
@@ -83,7 +84,7 @@ export function Header() {
           }`}
           type="text"
           placeholder="Designed For"
-          value={formData.designedFor}
+          value={formData?.designedFor || ''}
           onChange={onInputChange}
         />
         <Input
@@ -94,7 +95,7 @@ export function Header() {
           }`}
           type="text"
           placeholder="Designed By"
-          value={formData.designedBy}
+          value={formData?.designedBy || ''}
           onChange={onInputChange}
         />
         <Input
@@ -105,7 +106,7 @@ export function Header() {
           }`}
           type="date"
           placeholder="Date"
-          value={formData.date}
+          value={formData?.date || ''}
           onChange={onInputChange}
         />
         <Input
@@ -116,7 +117,7 @@ export function Header() {
           }`}
           type="text"
           placeholder="Version"
-          value={formData.version}
+          value={formData?.version || ''}
           onChange={onInputChange}
         />
         <Button

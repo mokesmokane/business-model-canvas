@@ -70,11 +70,12 @@ interface LayoutEditorProps {
 
 export default function LayoutEditor({ open, onOpenChange }: LayoutEditorProps) {
   const { formData, canvasTheme, updateLayout } = useCanvas();
+  if (!formData) return null;
   const currentLayout = formData.canvasLayout;
   const canvasType = formData.canvasType;
   
   const [layoutItems, setLayoutItems] = useState<LayoutItem[]>(() => {
-    const sortedSections = Array.from(formData.sections.entries())
+    const sortedSections = Array.from(formData?.sections.entries() || [])
       .map(([key, section], index) => ({
         key,
         section,
