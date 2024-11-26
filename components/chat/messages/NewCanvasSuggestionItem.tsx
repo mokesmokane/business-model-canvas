@@ -1,11 +1,9 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { CreateCanvasTypeMessage, useChat } from '@/contexts/ChatContext'
-import { routeInteraction } from '@/services/interactionRouter'
-import { useInteraction } from '@/contexts/InteractionCOntext'
 interface NewCanvasSuggestionItemProps {
   newCanvasSuggestion: {
     canvasType: string;
@@ -16,13 +14,9 @@ interface NewCanvasSuggestionItemProps {
 
 function NewCanvasSuggestionItem({ newCanvasSuggestion }: NewCanvasSuggestionItemProps) {
   // const [isSubmitted, setIsSubmitted] = useState(false)
-  const {messages, addMessage, setIsLoading} = useChat()
-  const {interaction, setInteraction} = useInteraction()
+  const {messages, sendMessage, setIsLoading, interaction, setInteraction} = useChat()
   const handleSubmit = () => {
-    addMessage(new CreateCanvasTypeMessage(newCanvasSuggestion))
-    setIsLoading(true)
-    const router = routeInteraction(interaction, [...messages, new CreateCanvasTypeMessage(newCanvasSuggestion)], null, null)
-    router([...messages, new CreateCanvasTypeMessage(newCanvasSuggestion)])
+    sendMessage(new CreateCanvasTypeMessage(newCanvasSuggestion))
   }
 
   console.log('newCanvasSuggestion', newCanvasSuggestion)

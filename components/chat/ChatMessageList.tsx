@@ -1,12 +1,9 @@
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Bot, User, AlertTriangle, Users, Heart, Truck, Users2, Coins, Receipt, Building2, Workflow, Gift, Shield } from 'lucide-react'
+import { Bot, Shield } from 'lucide-react'
 import { Message, AdminMessage, useChat } from '@/contexts/ChatContext'
 import { AIThinkingIndicator } from '@/components/ui/ai-thinking'
-import ReactMarkdown from 'react-markdown'
 import { motion, AnimatePresence } from 'framer-motion'
-import AISuggestionItem from './AISuggestionItem'
-import AIQuestionItem from './AIQuestionItem'
 import { SectionButtons } from './SectionButtons'
 import { ActionButtons } from './ActionButtons'
 import { useState } from 'react'
@@ -14,27 +11,19 @@ import { Button } from '@/components/ui/button'
 import { Search, HelpCircle, Zap, MessageCircle, Lightbulb } from 'lucide-react'
 import { AdminButtonBar } from './AdminButtonBar'
 import DynamicIcon from '../Util/DynamicIcon'
-import { CanvasTypeService } from '@/services/canvasTypeService'
-import { CanvasLayoutDetails, CanvasSection, CanvasType } from '@/types/canvas-sections'
+import { CanvasLayoutDetails, CanvasSection } from '@/types/canvas-sections'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { AIQuestion } from '@/types/canvas'
-import { getMessageRenderer } from './messages/messageRendererFactory'
+import { MessageRenderer } from './messages/MessageRenderer'
 
 interface ChatMessageListProps {
   messages: Message[]
   useCanvasContext: boolean,
-  onSuggestionAdd: (messageIndex: number, section: string, suggestion: string, rationale: string, id: string) => void
-  onSuggestionDismiss: (messageIndex: number, id: string) => void
-  onSuggestionExpand: (suggestion: { suggestion: string }) => void
-  onQuestionSubmit: (question: AIQuestion) => void
   activeSection: string | null
   activeTool: string | null
   onSectionSelect: (section: string | null) => void
   onActionSelect: (action: { message: string, section: string, action: string }) => void
   messagesEndRef: React.RefObject<HTMLDivElement>
   onAdminToolSelect: (tool: string | null) => void
-  selectedInteraction: string | null
-  setSelectedInteraction: (interaction: string | null) => void
 }
 
 interface CanvasTypeSuggestion {
@@ -49,21 +38,14 @@ interface CanvasTypeSuggestion {
 export function ChatMessageList({
   messages,
   useCanvasContext,
-  onSuggestionAdd,
-  onSuggestionDismiss,
-  onSuggestionExpand,
-  onQuestionSubmit,
   activeSection,
   activeTool,
   onSectionSelect,
   onActionSelect,
   messagesEndRef,
   onAdminToolSelect,
-  selectedInteraction,
-  setSelectedInteraction
 }: ChatMessageListProps) {
 
-  const messageRenderer = getMessageRenderer( selectedInteraction, onSuggestionAdd, onSuggestionDismiss, onSuggestionExpand, onQuestionSubmit)
 
   const isEmptyChat = messages.length === 0
   const getMessage = (action: string, section: string) => {
@@ -83,8 +65,10 @@ export function ChatMessageList({
   
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [showAdminTool, setShowAdminTool] = useState(false)
-  const { isLoading, loadingMessage } = useChat()
-  const { formData, currentCanvas } = useCanvas()
+  const { isLoading, loadingMessage, setInteraction } = useChat()
+  const { currentCanvas } = useCanvas()
+
+  
   const sectionsMap = currentCanvas?.canvasType?.sections.reduce((acc: any, section: CanvasSection) => {
     acc[section.name] = {
       name: section.name,
@@ -224,7 +208,7 @@ export function ChatMessageList({
                           className="w-full mt-2 text-muted-foreground"
                           onClick={() => {
                             setSelectedCategory(null)
-                            setSelectedInteraction(interaction.interaction)
+                            setInteraction(interaction)
                           }}
                         >
                           {interaction.label}
@@ -300,11 +284,14 @@ export function ChatMessageList({
         <>
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-4">
-            {messageRenderer.render(
-              messages
-            )}
+            {messages.map((message, index) => (
+              <MessageRenderer
+                key={index}
+                message={message} 
+                messageIndex={index}/>
+              ))}
               
-      {isLoading && (
+              {isLoading && (
         <div className="flex gap-2">
           <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
             <Bot className="w-4 h-4 text-muted-foreground" />

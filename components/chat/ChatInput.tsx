@@ -2,9 +2,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Send, X } from 'lucide-react'
-import { SectionButtons } from './SectionButtons'
-import { ActionButtons } from './ActionButtons'
-import { useChat } from '@/contexts/ChatContext'
+import { Interaction, useChat } from '@/contexts/ChatContext'
 
 interface ChatInputProps {
   input: string
@@ -13,8 +11,8 @@ interface ChatInputProps {
   onSend: () => void
   onSectionSelect: (section: string | null) => void
   onActionSelect: (action: string) => void
-  selectedInteraction: string | null
-  setSelectedInteraction: (interaction: string | null) => void
+  selectedInteraction: Interaction | null
+  setSelectedInteraction: (interaction: Interaction | null) => void
 }
 
 export function ChatInput({ 
@@ -39,7 +37,7 @@ export function ChatInput({
         <form onSubmit={handleSubmit} className="flex gap-2">
           {selectedInteraction && (
             <Button variant="ghost" onClick={() => setSelectedInteraction(null)}>
-              {selectedInteraction}
+              {selectedInteraction.label}
               <X className="h-4 w-4" />
             </Button>
           )}

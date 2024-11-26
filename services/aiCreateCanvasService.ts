@@ -1,4 +1,4 @@
-import { CanvasTypeSuggestionMessage, CreateCanvasTypeMessage, Message } from '@/contexts/ChatContext'
+import { CanvasTypeSuggestionMessage, CreateCanvasTypeMessage, Message, MessageEnvelope } from '@/contexts/ChatContext'
 import { AIAgent } from '@/types/canvas';
 import { v4 as uuidv4 } from 'uuid'
 import { CanvasTypeService } from './canvasTypeService';
@@ -12,14 +12,14 @@ interface ChatRequest {
 }
 
 
-export async function* sendCanvasSelectorRequest(messages: Message[]) {
+export async function* sendCanvasSelectorRequest(messageEnvelope: MessageEnvelope) {
   const response = await fetch('/api/ai-canvas-selector', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      messages
+      messageEnvelope
     }),
   })
 
@@ -42,13 +42,14 @@ export async function* sendCanvasSelectorRequest(messages: Message[]) {
       role: 'thinking',
       content: 'Creating new canvas type...',
     }
-    const newCanvasTypeResponse = await sendAdminChatRequest([
-      ...messages,
-      {
+    const newCanvasTypeResponse = await sendAdminChatRequest({
+      messageHistory: messageEnvelope.messageHistory,
+      action: 'suggestCanvasTypes',
+      newMessage: {
         role: 'user',
         content: data.newCanvasType,
-        action: 'suggestCanvasTypes'
-      }])
+      }
+    })
     yield {
       role: 'assistant',
       content: data.message,
@@ -62,12 +63,12 @@ export async function* sendCanvasSelectorRequest(messages: Message[]) {
   }
 }
 
-export async function* sendCreateCanvasTypeRequest(messages: Message[]) {
+export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvelope) {
   yield {
     role: 'thinking',
     content: 'Creating new canvas type...',
   }
-  const newCanvasTypeResponse = await sendAdminChatRequest(messages)
+  const newCanvasTypeResponse = await sendAdminChatRequest(messageEnvelope)
   yield {
     role: 'thinking',
     content: "Saving new canvas type...",
@@ -86,10 +87,10 @@ export async function* sendCreateCanvasTypeRequest(messages: Message[]) {
   
   await canvasTypeService.saveCanvasType(canvasType);
 
-  const lastMessage = messages[messages.length - 1] as CreateCanvasTypeMessage
+  // const lastMessage = messages[messages.length - 1] as CreateCanvasTypeMessage
   yield {
     role: 'thinking',
-    content: `Creating canvas ${lastMessage.newCanvasType.canvasType}...`,
+    content: `Creating canvas...`,
   }
 
   const canvasId = await canvasService.createNewCanvas({
@@ -106,14 +107,14 @@ export async function* sendCreateCanvasTypeRequest(messages: Message[]) {
   };
 }
 
-export async function sendAdminChatRequest(messages: Message[]) {
+export async function sendAdminChatRequest(messageEnvelope: MessageEnvelope) {
   
   const response = await fetch('/api/ai-admin-chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messageEnvelope }),
   })
 
   if (!response.ok) {

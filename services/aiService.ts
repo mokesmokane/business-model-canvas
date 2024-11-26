@@ -1,4 +1,4 @@
-import { Message } from '@/contexts/ChatContext'
+import { Message, MessageEnvelope } from '@/contexts/ChatContext'
 import { AIAgent } from '@/types/canvas';
 import { v4 as uuidv4 } from 'uuid'
 
@@ -7,7 +7,7 @@ interface ChatRequest {
   currentContent: any
 }
 
-export async function* sendChatRequest(messages: Message[], currentContent: any, aiAgent: AIAgent | null) {
+export async function* sendChatRequest(envelope: MessageEnvelope, currentContent: any, aiAgent: AIAgent | null) {
   const serializedContent = {
     ...currentContent,
     sections: Object.fromEntries(currentContent.sections || new Map())
@@ -19,7 +19,7 @@ export async function* sendChatRequest(messages: Message[], currentContent: any,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      messages,
+      messages: envelope.messageHistory,
       currentContent: serializedContent,
       aiAgent
     }),
@@ -48,14 +48,14 @@ export async function* sendChatRequest(messages: Message[], currentContent: any,
   yield res  
 } 
 
-export async function sendAdminChatRequest(messages: Message[]) {
+export async function sendAdminChatRequest(messageEnvelope: MessageEnvelope) {
   
   const response = await fetch('/api/ai-admin-chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messageEnvelope }),
   })
 
   if (!response.ok) {

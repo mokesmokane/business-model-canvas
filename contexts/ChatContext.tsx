@@ -3,10 +3,22 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { useCanvas } from './CanvasContext';
 import { CanvasLayoutSuggestion, CanvasType, CanvasTypeSuggestion } from '@/types/canvas-sections';
+import { createCanvasInteractionRouter } from '@/services/interaction-routers/createCanvasRouter';
+import { InteractionRouter } from '@/services/interaction-routers/interface';
+import { defaultInteractionRouter } from '@/services/interaction-routers/default';
+import { AIAgent } from '@/types/canvas';
+import { useAuth } from './AuthContext';
+import { sendChatRequest } from '@/services/aiService';
+import { sendAdminChatRequest } from '@/services/aiService';
 
 export interface Message {
   role: 'user' | 'assistant' | 'error' | 'system' | 'thinking';
   content: string;
+}
+
+export interface MessageEnvelope {
+  messageHistory: Message[];
+  newMessage: Message;
   action?: string;
 }
 
@@ -107,6 +119,11 @@ export class CanvasTypeSuggestionMessage implements Message {
   }
 }
 
+export interface Interaction {
+  interaction: string
+  label: string
+}
+
 export interface NewCanvasTypeMessage extends Message {
   newCanvasType: string
 }
@@ -124,30 +141,42 @@ export class AdminMessage implements Message {
   }
 }
 
+
+
 interface ChatContextType {
   messages: Message[];
   input: string;
   isLoading: boolean;
   loadingMessage: string;
+  interaction: Interaction | null;
+  activeSection: string | null;
+  activeTool: string | null;
+  setActiveSection: (section: string|null) => void;
   setInput: (input: string) => void;
   setIsLoading: (loading: boolean) => void;
   setLoadingMessage: (message: string) => void;
-  addMessage: (message: Message) => void;
-  addMessages: (messages: Message[]) => void;
   clearMessages: () => void;
+  sendMessage: (message: Message) => void;
+  setInteraction: (interaction: Interaction|null) => void;
+  setActiveTool: (tool: string|null) => void;
 }
 
 const ChatContext = createContext<ChatContextType>({
   messages: [],
   input: '',
   isLoading: false,
-  loadingMessage: '',
+  loadingMessage: '', 
+  interaction: null,
+  activeSection: null,
+  activeTool: null,
+  setActiveSection: () => {},
   setInput: () => {},
   setIsLoading: () => {},
   setLoadingMessage: () => {},
-  addMessage: () => {},
-  addMessages: () => {},
   clearMessages: () => {},
+  sendMessage: () => {},
+  setInteraction: () => {},
+  setActiveTool: () => {},
 });
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
@@ -155,20 +184,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoadingPrivate] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
+  const [interaction, setInteraction] = useState<Interaction | null>(null);
+  const { isInTrialPeriod, userData } = useAuth()
+  const { updateSection, updateQuestionAnswer, formData, aiAgent } = useCanvas()
+  const [activeTool, setActiveTool] = useState<string | null>(null)
+  const [activeSection, setActiveSection] = useState<string | null>(null)
 
   const addMessage = (message: Message) => {
     const newMessages = [...messages, message];
     setMessages(newMessages);
   };
 
-  const sendMessage = async (content: string) => {
-    const userMessage = { role: 'user', content } as Message;
-    await addMessage(userMessage);
-  };
-
-  const addMessages = (newMessages: Message[]) => {
-    setMessages(newMessages);
-  };
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -181,18 +207,132 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setIsLoadingPrivate(loading);
   }
 
+  const routeInteraction = (messageEnvelope: MessageEnvelope) => {
+    let interactionRouter:InteractionRouter = defaultInteractionRouter
+    switch(interaction?.interaction) {
+      case 'createCanvas':
+          console.log('routing to createNewCanvas')
+          interactionRouter = createCanvasInteractionRouter
+          break
+      default:
+        console.log('routing to default')
+        interactionRouter = defaultInteractionRouter
+    }
+    return interactionRouter.getRoute(messageEnvelope, formData, aiAgent)
+  }
+
+  const sendMessage = async (userMessage: Message) => {
+    console.log('isInTrialPeriod', isInTrialPeriod)
+    console.log('userData', userData)
+    const currentMessages = [...messages.filter((m: Message) => 
+      m.role == 'system' || m.role == 'user' || m.role == 'assistant'
+    )]
+    addMessage(userMessage)
+
+    if (!isInTrialPeriod && (!userData?.subscriptionStatus || userData?.subscriptionPlan === 'free')) {
+      addMessage({ role: 'assistant', content: 'Your trial period has ended. Please upgrade to continue using AI features.' })
+      return
+    }
+
+    if(activeTool) {
+      if(userMessage.content.trim()) {
+        setInput('')
+        setIsLoading(true)
+
+        try {
+          const aiResponse = await sendAdminChatRequest({
+            messageHistory: currentMessages,
+            newMessage: userMessage,
+            action: activeTool  
+          })
+          const formattedResponse: AdminMessage = {
+            role: 'assistant',
+            content: aiResponse.content || '',
+            canvasTypeSuggestions: aiResponse.canvasTypeSuggestions?.map((suggestion: any) => ({
+              id: suggestion.id,
+              name: suggestion.name,
+              icon: suggestion.icon,
+              description: suggestion.description,
+              defaultLayout: suggestion.defaultLayout,
+              sections: suggestion.sections,
+              rationale: suggestion.rationale
+            } as CanvasTypeSuggestion)),
+            canvasLayoutSuggestions: aiResponse.canvasLayoutSuggestions?.map((suggestion: any) => ({
+              gridTemplate: {
+                columns: suggestion.gridTemplate.columns,
+                rows: suggestion.gridTemplate.rows
+              },
+              areas: suggestion.areas,
+              rationale: suggestion.rationale
+            } as CanvasLayoutSuggestion))
+          }
+          addMessage(formattedResponse)
+        } catch (error) {
+          const errorMessage = error instanceof Error 
+            ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
+            : String(error)
+          
+          addMessage({ 
+            role: 'error', 
+            content: `An error occurred:\n\n${errorMessage}` 
+          })
+        } finally {
+          setIsLoading(false)
+        }
+      }
+    }
+    else if (userMessage.content.trim()) {
+      setInput('')
+      setIsLoading(true)
+
+      try {
+        const envelope: MessageEnvelope = {
+          messageHistory: currentMessages,
+          newMessage: userMessage
+        }
+        const send = interaction ? routeInteraction(envelope) : sendChatRequest
+      
+        const aiResponse = send(envelope, formData, aiAgent)
+        for await (const message of aiResponse) {
+          if(message.role === 'thinking') {
+            setLoadingMessage(message.content)
+          }
+          else {
+            addMessage(message)
+          }
+        }
+      } catch (error) {
+        const errorMessage = error instanceof Error 
+          ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
+          : String(error)
+        
+        addMessage({ 
+          role: 'error', 
+          content: `An error occurred:\n\n${errorMessage}` 
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+  }
+
   return (
     <ChatContext.Provider value={{
       messages,
       input,
       isLoading,
       loadingMessage,
+      interaction,
+      activeSection,
+      activeTool,
       setInput,
       setIsLoading,
       setLoadingMessage,
-      addMessage,
-      addMessages,
       clearMessages,
+      sendMessage,
+      setInteraction,
+      setActiveTool,
+      setActiveSection
     }}>
       {children}
     </ChatContext.Provider>

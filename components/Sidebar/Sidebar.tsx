@@ -9,7 +9,6 @@ import { useExpanded } from '@/contexts/ExpandedContext'
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
 import { ChatProvider } from '@/contexts/ChatContext'
 import { CanvasNavigation } from './CanvasNavigation'
-import { InteractionProvider } from '@/contexts/InteractionCOntext'
 
 interface SidebarProps {
   setShowAuthDialog: (show: boolean) => void
@@ -19,11 +18,9 @@ function Providers({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
       <SubscriptionProvider>
-        <InteractionProvider>
           <ChatProvider>
             {children}
           </ChatProvider>
-        </InteractionProvider>
       </SubscriptionProvider>
     </TooltipProvider>
   )
