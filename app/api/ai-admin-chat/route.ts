@@ -1,7 +1,7 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import { Message } from '@/contexts/ChatContext'
+import { Message, MessageEnvelope } from '@/contexts/ChatContext'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -137,9 +137,9 @@ export async function POST(request: Request) {
 
   
   try {
-    const { messages } = await request.json()
+    const { messageEnvelope }: { messageEnvelope: MessageEnvelope } = await request.json()
     //if the last message is an action, chaneg the system prompt accordingly
-    const action = messages[messages.length - 1].action
+    const action = messageEnvelope.action
 
     let systemPrompt = {
       role: "system",
@@ -362,7 +362,8 @@ EXAMPLE: {
 
     let messages_list = [
       systemPrompt,
-      ...messages
+      ...messageEnvelope.messageHistory,
+      messageEnvelope.newMessage
     ]
 
     let suggestCanvasTypesTool = {

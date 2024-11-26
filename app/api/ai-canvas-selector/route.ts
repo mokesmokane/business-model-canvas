@@ -1,7 +1,7 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import { Message } from '@/contexts/ChatContext'
+import { Message, MessageEnvelope } from '@/contexts/ChatContext'
 import { CanvasSection, CanvasType } from '@/types/canvas-sections'
 import { db } from '@/lib/firebase-admin'
 import { CanvasTypeAdminService } from '@/services/canvasTypeAdminService'
@@ -209,7 +209,7 @@ export async function POST(request: Request) {
 
   
   try {
-    const { messages } = await request.json()
+    const { messageEnvelope }: { messageEnvelope: MessageEnvelope } = await request.json()
     //we should get the canvas types from firestore
     const canvasTypes = await getCanvasTypes()
     //i need to create a Record<int, CanvasType> of index to canvastype
@@ -249,7 +249,8 @@ The canvas types you have to choose from are:
 
     let messages_list = [
       systemPrompt,
-      ...messages
+      ...messageEnvelope.messageHistory,
+      messageEnvelope.newMessage
     ]
 
     let suggestCanvasTypesTool = {

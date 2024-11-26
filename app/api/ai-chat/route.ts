@@ -1,7 +1,8 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import { Message } from '@/contexts/ChatContext'
+import { Message, MessageEnvelope, QuestionMessage, SuggestionMessage } from '@/contexts/ChatContext'
+import { AIAgent, Canvas } from '@/types/canvas'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -96,21 +97,25 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { currentContent, messages, aiAgent } = await request.json()
+    const { currentContent, messageEnvelope, aiAgent }: { currentContent: Canvas, messageEnvelope: MessageEnvelope, aiAgent: AIAgent } = await request.json()
     const sections = Object.keys(currentContent?.sections || {})
+
     const canvasName = currentContent?.canvasType?.name || ''
-    // Expand any messages that contain suggestions into individual messages
+    const messages = messageEnvelope.messageHistory
     const expanded_messages = messages.flatMap((msg: Message) => {
-      if (msg.suggestions) {
+      if (msg instanceof SuggestionMessage) {
         return msg.suggestions.map((suggestion) => ({
           role: "assistant",
           content: `Suggestion for ${suggestion.section}:\n${suggestion.suggestion}\n\nRationale: ${suggestion.rationale}`
         }))
-      }
+      } else if (msg instanceof QuestionMessage) {
+        return [msg]
+      } 
+
       return [msg]
     })
     //if the last message is an action, chaneg the system prompt accordingly
-    const action = messages[messages.length - 1].action
+    const action = messageEnvelope.action
     
     let spromt = aiAgent.systemPrompt
     let questionPrompt = aiAgent.questionPrompt
