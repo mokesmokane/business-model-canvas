@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { CanvasType, CanvasLayoutDetails } from '@/types/canvas-sections';
-import { CanvasTypeService } from '@/services/canvasTypeService';
+import { canvasTypeService, CanvasTypeService } from '@/services/canvasTypeService';
 import { Trash2, Pencil, Bot, PlusCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import DynamicIcon from '@/components/Util/DynamicIcon';
@@ -29,7 +29,6 @@ export default function AdminPage() {
   const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({});
   const [layouts, setLayouts] = useState<Record<string, CanvasLayoutDetails>>({});
   const [error, setError] = useState<string | null>(null);
-  const canvasTypeService = new CanvasTypeService();
   const [activeTab, setActiveTab] = useState<'types' | 'layouts'>('types');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogType, setDialogType] = useState<'type' | 'layout' | null>(null);

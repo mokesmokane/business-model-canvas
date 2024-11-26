@@ -1,7 +1,7 @@
 'use client'
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { CanvasLayoutDetails } from '@/types/canvas-sections';
-import { CanvasTypeService } from '@/services/canvasTypeService';
+import { canvasTypeService, CanvasTypeService } from '@/services/canvasTypeService';
 
 interface LayoutContextType {
   getLayoutsForSectionCount: (sectionCount: number) => Promise<CanvasLayoutDetails[]>;
@@ -23,7 +23,6 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setIsLoading(true);
-      const canvasTypeService = new CanvasTypeService();
       const layouts = await canvasTypeService.getLayoutsByType(sectionCount);
       setLayoutCache(prev => ({
         ...prev,
@@ -43,7 +42,6 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
 
     try {   
       setIsLoading(true);
-      const canvasTypeService = new CanvasTypeService();
       const layouts = await canvasTypeService.getCanvasLayouts();
       setLayouts(layouts)
       return layouts

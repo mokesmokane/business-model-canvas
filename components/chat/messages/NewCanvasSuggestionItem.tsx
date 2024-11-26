@@ -24,7 +24,6 @@ function NewCanvasSuggestionItem({ newCanvasSuggestion }: NewCanvasSuggestionIte
     <Card className="w-full mb-4 hover:shadow-md transition-shadow">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          {/* <DynamicIcon name={newCanvasSuggestion.canvasType.toLowerCase()} className="w-5 h-5" /> */}
           {newCanvasSuggestion.canvasType}
         </CardTitle>
         <CardDescription>{newCanvasSuggestion.purpose}</CardDescription>
