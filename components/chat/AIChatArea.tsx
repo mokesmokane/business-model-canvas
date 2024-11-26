@@ -13,19 +13,22 @@ import { ChatMessageList } from './ChatMessageList'
 import { useAuth } from '@/contexts/AuthContext'
 import { CanvasTypeSuggestion, CanvasLayoutSuggestion } from '@/types/canvas-sections'
 import { useAIAgents } from '@/contexts/AIAgentContext'
+import { routeInteraction } from '@/services/interactionRouter'
+import { useInteraction } from '@/contexts/InteractionCOntext'
 
 
 export function AIChatArea({ onClose }: { onClose?: () => void }) {
 
   const { updateSection, updateQuestionAnswer, formData, aiAgent } = useCanvas()
-  const { messages, addMessage, addMessages, input, setInput, isLoading, setIsLoading, clearMessages } = useChat()
+  const { messages, addMessage, addMessages, input, setInput, isLoading, setIsLoading, setLoadingMessage, clearMessages } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
   const { isInTrialPeriod, userData } = useAuth()
   const [activeTool, setActiveTool] = useState<string | null>(null)
+  const [isContextEnabled, setIsContextEnabled] = useState(true)
   const { getAIAgent } = useAIAgents()
-
+  const {interaction, setInteraction} = useInteraction()
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading])
@@ -34,6 +37,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     const sectionData = formData.sections.get(section) as Section
     const currentItems = sectionData?.items || []
     const newItems = [...currentItems, `${suggestion}\n\n${rationale}`]
+    
     updateSection(section, newItems)
     // handleRemoveSuggestion(index, suggestionId)
   }
@@ -105,29 +109,17 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
         const currentMessages = [...updatedMessages.filter((m: Message) => 
           m.role == 'system' || m.role == 'user' || m.role == 'assistant'
         )]
-        if(!aiAgent) {
-          throw new Error('No AI agent found')
+        const send = interaction ? routeInteraction(interaction, currentMessages, formData, aiAgent) : sendChatRequest
+      
+        const aiResponse = send([...currentMessages], formData, aiAgent)
+        for await (const message of aiResponse) {
+          if(message.role === 'thinking') {
+            setLoadingMessage(message.content)
+          }
+          else {
+            addMessages([...updatedMessages, message])
+          }
         }
-        const aiResponse = await sendChatRequest([...currentMessages], formData, aiAgent)
-        const formattedResponse: Message = {
-          role: 'assistant',
-          content: aiResponse.content || '',
-          suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
-            id: suggestion.id,
-            section: suggestion.section || activeSection,
-            suggestion: suggestion.suggestion,
-            rationale: suggestion.rationale
-          })),
-          questions: aiResponse.questions?.map((question: any) => ({
-            id: question.id,
-            question: question.question,
-            section: question.section || activeSection,
-            type: question.type || 'open',
-            options: question.options || [],
-            scale: question.scale || null
-          }))
-        }
-        addMessages([...updatedMessages, formattedResponse])
       } catch (error) {
         const errorMessage = error instanceof Error 
           ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
@@ -159,26 +151,10 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
       if(!aiAgent) {
         throw new Error('No AI agent found')
       }
-      const aiResponse = await sendChatRequest([...currentMessages, { role: 'user', content: expandMessage }], formData, aiAgent)
-      const formattedResponse: Message = {
-        role: 'assistant',
-        content: aiResponse.content || '',
-        suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
-          id: suggestion.id,
-          section: suggestion.section || activeSection,
-          suggestion: suggestion.suggestion,
-          rationale: suggestion.rationale
-        })),
-        questions: aiResponse.questions?.map((question: any) => ({
-          id: question.id,
-          question: question.question,
-          section: question.section || activeSection,
-          type: question.type || 'open',
-          options: question.options || [],
-          scale: question.scale || null
-        }))
+      const aiResponse = sendChatRequest([...currentMessages, { role: 'user', content: expandMessage }], formData, aiAgent)
+      for await (const message of aiResponse) {
+        addMessages([...messages, message])
       }
-      addMessages([...messages, formattedResponse])
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
@@ -229,25 +205,9 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
         throw new Error('No AI agent found')
       }
       const aiResponse = await sendChatRequest(updatedMessages, formData, aiAgent);
-      const formattedResponse: Message = {
-        role: 'assistant',
-        content: aiResponse.content || '',
-        suggestions: aiResponse.suggestions?.map((suggestion: any) => ({
-          id: suggestion.id,
-          section: suggestion.section || action.section,
-          suggestion: suggestion.suggestion,
-          rationale: suggestion.rationale
-        })),
-        questions: aiResponse.questions?.map((question: any) => ({
-          id: question.id,
-          question: question.question,
-          section: question.section || activeSection,
-          type: question.type || 'open',
-          options: question.options || [],
-          scale: question.scale || null
-        }))
-      };
-      addMessages([...updatedMessages, formattedResponse]);
+      for await (const message of aiResponse) {
+        addMessages([...updatedMessages, message]);
+      }
     } catch (error) {
       const errorMessage = error instanceof Error 
         ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
@@ -274,6 +234,8 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     <>
           <div className="flex-shrink-0">
             <ChatHeader 
+              isContextEnabled={isContextEnabled}
+              onToggleContext={() => setIsContextEnabled(!isContextEnabled)}
               isWide={isWide}
               onClearChat={handleClearChat}
               onToggleWidth={()=>setIsWide(!isWide)}
@@ -282,11 +244,13 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
           </div>
           <div className="flex-1 overflow-hidden flex flex-col">
             <ChatMessageList
+              useCanvasContext={isContextEnabled}
               activeSection={activeSection}
               onSectionSelect={setActiveSection}
               onActionSelect={handleActionMessage}
+              selectedInteraction={interaction}
+              setSelectedInteraction={setInteraction}
               messages={messages}
-              isLoading={isLoading}
               onSuggestionAdd={handleAddSuggestion}
               onSuggestionDismiss={handleDismiss}
               onSuggestionExpand={handleExpand}
@@ -299,12 +263,13 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
           <div className="flex-shrink-0">
             <ChatInput
               input={input}
-              isLoading={isLoading}
               isExpanded={isExpanded}
               onSectionSelect={setActiveSection}
               onActionSelect={handleActionMessage}
               onInputChange={setInput}
               onSend={handleSend}
+              selectedInteraction={interaction}
+              setSelectedInteraction={setInteraction}
             />
           </div>
         </>

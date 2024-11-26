@@ -1,67 +1,32 @@
-import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc, setDoc } from "firebase/firestore"; 
+import { getFirestore } from 'firebase-admin/firestore';
 import { CanvasLayout, CanvasType, CanvasLayoutDetails } from "../types/canvas-sections";
-import { db } from "../lib/firebase";
+import { db } from '@/lib/firebase-admin';
 
-export class CanvasTypeService {
-    private static instance: CanvasTypeService;
-    private currentUserId: string | null = null;
-    private collectionRef = collection(db, "canvasTypes");
-    private layoutCollectionRef = collection(db, "canvasLayouts");
-
-    private constructor() {}
-
-    public static getInstance(): CanvasTypeService {
-        if (!CanvasTypeService.instance) {
-            CanvasTypeService.instance = new CanvasTypeService();
-        }
-        return CanvasTypeService.instance;
-    }
-
-    public initialize(userId: string) {
-        this.currentUserId = userId;
-    }
-
-    public reset() {
-        this.currentUserId = null;
-    }
-
-    private getUserId(): string {
-        if (!this.currentUserId) {
-            throw new Error('UserId not set. Call initialize first.');
-        }
-        return this.currentUserId;
-    }
+export class CanvasTypeAdminService {
+    private collectionRef = db.collection("canvasTypes");
+    private layoutCollectionRef = db.collection("canvasLayouts");
 
     async saveCanvasType(canvasType: CanvasType): Promise<void> {
         try {
-            await addDoc(this.collectionRef, canvasType);
-            console.log("CanvasType saved successfully");
-        } catch (error) {
-            console.error("Error saving canvasType: ", error);
-        }
-    }
-    
-    async saveUserCanvasType(canvasType: CanvasType): Promise<void> {
-        try {
-            await addDoc(this.collectionRef, canvasType);
+            await this.collectionRef.add(canvasType);
             console.log("CanvasType saved successfully");
         } catch (error) {
             console.error("Error saving canvasType: ", error);
         }
     }
 
-    async getCanvasTypes(): Promise<Record<string, CanvasType>> {
+    async getCanvasTypes(userId?: string): Promise<Record<string, CanvasType>> {
         try {
             // Get standard types
             const standardTypes = await this.getStandardCanvasTypes();
             
             // If no userId, return only standard types
-            if (!this.currentUserId) {
+            if (!userId) {
                 return standardTypes;
             }
 
             // Get custom types
-            const customTypes = await this.getCustomCanvasTypes();
+            const customTypes = await this.getCustomCanvasTypes(userId);
             
             // Merge both collections, with custom types overriding standard ones if same ID
             return {
@@ -75,8 +40,8 @@ export class CanvasTypeService {
     }
 
     async getStandardCanvasTypes(): Promise<Record<string, CanvasType>> {
-        const querySnapshot = await getDocs(collection(db, "canvasTypes"));
-        return querySnapshot.docs.reduce((acc, doc) => {
+        const snapshot = await this.collectionRef.get();
+        return snapshot.docs.reduce((acc, doc) => {
             acc[doc.id] = { 
                 ...doc.data(),
                 defaultLayout: doc.data().defaultLayout ? {
@@ -88,10 +53,13 @@ export class CanvasTypeService {
         }, {} as Record<string, CanvasType>);
     }
 
-    async getCustomCanvasTypes(): Promise<Record<string, CanvasType>> {
-        const userId = this.getUserId();
-        const querySnapshot = await getDocs(collection(db, 'userCanvasTypes', userId, 'canvasTypes'));
-        return querySnapshot.docs.reduce((acc, doc) => {
+    async getCustomCanvasTypes(userId: string): Promise<Record<string, CanvasType>> {
+        const snapshot = await db.collection('userCanvasTypes')
+            .doc(userId)
+            .collection('canvasTypes')
+            .get();
+
+        return snapshot.docs.reduce((acc, doc) => {
             acc[doc.id] = { 
                 ...doc.data(),
                 defaultLayout: doc.data().defaultLayout ? {
@@ -106,8 +74,8 @@ export class CanvasTypeService {
 
     async getCanvasLayouts(): Promise<Record<string, CanvasLayoutDetails>> {
         try {
-            const querySnapshot = await getDocs(this.layoutCollectionRef);
-            let canvasLayouts = querySnapshot.docs.map(doc => ({
+            const snapshot = await this.layoutCollectionRef.get();
+            let canvasLayouts = snapshot.docs.map(doc => ({
                 ...doc.data(),
                 id: doc.id
             } as CanvasLayoutDetails));
@@ -123,12 +91,11 @@ export class CanvasTypeService {
 
     async getLayoutsByType(sectionCount: number): Promise<CanvasLayoutDetails[]> {
         try {
-            const q = query(
-                this.layoutCollectionRef, 
-                where("sectionCount", "==", sectionCount)
-            );
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.docs.map(doc => ({
+            const snapshot = await this.layoutCollectionRef
+                .where("sectionCount", "==", sectionCount)
+                .get();
+            
+            return snapshot.docs.map(doc => ({
                 ...doc.data(),
                 id: doc.id
             }) as CanvasLayoutDetails);
@@ -140,7 +107,7 @@ export class CanvasTypeService {
 
     async saveLayout(layout: CanvasLayoutDetails): Promise<void> {
         try {
-            await addDoc(this.layoutCollectionRef, layout);
+            await this.layoutCollectionRef.add(layout);
         } catch (error) {
             console.error("Error saving layout: ", error);
         }
@@ -148,7 +115,7 @@ export class CanvasTypeService {
 
     async deleteCanvasType(typeId: string): Promise<void> {
         try {
-            await deleteDoc(doc(this.collectionRef, typeId));
+            await this.collectionRef.doc(typeId).delete();
         } catch (error) {
             console.error("Error deleting canvasType: ", error);
             throw error;
@@ -157,33 +124,34 @@ export class CanvasTypeService {
 
     async deleteCanvasLayout(layoutId: string): Promise<void> {
         try {
-            await deleteDoc(doc(this.layoutCollectionRef, layoutId));
+            await this.layoutCollectionRef.doc(layoutId).delete();
         } catch (error) {
             console.error("Error deleting layout: ", error);
             throw error;
         }
     }
 
-    async getCanvasType(typeId: string): Promise<CanvasType | null> {
+    async getCanvasType(typeId: string, userId?: string): Promise<CanvasType | null> {
         try {
             // First check standard types
-            const standardDocRef = doc(db, "canvasTypes", typeId);
-            const standardDocSnap = await getDoc(standardDocRef);
+            const standardDoc = await this.collectionRef.doc(typeId).get();
 
-            if (standardDocSnap.exists()) {
-                const canvasType = {...standardDocSnap.data(),  id: typeId } as CanvasType;
-                console.log("canvasType", canvasType)
+            if (standardDoc.exists) {
+                const canvasType = {...standardDoc.data(), id: typeId } as CanvasType;
                 return canvasType;
             }
 
-
             // If not found and userId provided, check custom types
-            if (this.currentUserId) {
-                const customDocRef = doc(collection(db, 'userCanvasTypes', this.currentUserId, 'canvasTypes'), typeId);
-                const customDocSnap = await getDoc(customDocRef);
+            if (userId) {
+                const customDoc = await db
+                    .collection('userCanvasTypes')
+                    .doc(userId)
+                    .collection('canvasTypes')
+                    .doc(typeId)
+                    .get();
                 
-                if (customDocSnap.exists()) {
-                    return { id: typeId, ...customDocSnap.data() } as CanvasType;
+                if (customDoc.exists) {
+                    return { id: typeId, ...customDoc.data() } as CanvasType;
                 }
             }
 
@@ -196,20 +164,22 @@ export class CanvasTypeService {
 
     async updateCanvasType(id: string, canvasType: CanvasType): Promise<void> {
         try {
-            const { id: _, ...updateData } = canvasType;  // Remove id field from update data
-            const docRef = doc(this.collectionRef, id);
-            await updateDoc(docRef, updateData);
+            const { id: _, ...updateData } = canvasType;
+            await this.collectionRef.doc(id).update(updateData);
         } catch (error) {
             console.error("Error updating canvas type: ", error);
             throw error;
         }
     }
 
-    async saveCustomCanvasType(id: string, canvasType: CanvasType): Promise<void> {
-        const userId = this.getUserId();
+    async saveCustomCanvasType(id: string, canvasType: CanvasType, userId: string): Promise<void> {
         try {
-            const canvasRef = doc(collection(db, 'userCanvasTypes', userId, 'canvasTypes'), id);
-            await setDoc(canvasRef, canvasType);
+            await db
+                .collection('userCanvasTypes')
+                .doc(userId)
+                .collection('canvasTypes')
+                .doc(id)
+                .set(canvasType);
         } catch (error) {
             console.error("Error saving custom canvas type: ", error);
             throw error;
@@ -218,15 +188,11 @@ export class CanvasTypeService {
 
     async updateCanvasLayout(id: string, layout: CanvasLayoutDetails): Promise<void> {
         try {
-            const { id: _, ...updateData } = layout;  // Remove id field from update data
-            const docRef = doc(this.layoutCollectionRef, id);
-            await updateDoc(docRef, updateData);
+            const { id: _, ...updateData } = layout;
+            await this.layoutCollectionRef.doc(id).update(updateData);
         } catch (error) {
             console.error("Error updating canvas layout: ", error);
             throw error;
         }
     }
-}
-
-// Export singleton instance
-export const canvasTypeService = CanvasTypeService.getInstance();
+} 

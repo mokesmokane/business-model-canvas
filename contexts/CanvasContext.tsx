@@ -11,6 +11,8 @@ import { BUSINESS_MODEL_CANVAS, BUSINESS_MODEL_LAYOUT, CanvasLayout, CanvasLayou
 import { AIAgentService } from '@/services/aiAgentService';
 import { useCanvasFolders } from './CanvasFoldersContext';
 import { v4 as uuidv4 } from 'uuid';
+import { canvasService } from '@/services/canvasService';
+
 interface Section {
   name: string;
   items: string[];
@@ -116,6 +118,16 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
   const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
 
   const { user } = useAuth();
+
+  // Initialize canvasService when user changes
+  useEffect(() => {
+    if (user?.uid) {
+      canvasService.initialize(user.uid);
+    } else {
+      canvasService.reset();
+    }
+  }, [user?.uid]);
+  
   if (!user) {
     return null;
   }
@@ -222,55 +234,26 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     }
   }, [setStatus, user?.uid]);
 
-  const createNewCanvas = async (data: { name: string, description: string, canvasType: CanvasType, layout?: CanvasLayout, folderId: string }) => {
+  // Update createNewCanvas to use the singleton
+  const createNewCanvas = async (data: { 
+    name: string, 
+    description: string, 
+    canvasType: CanvasType, 
+    folderId: string 
+  }) => {
     if (!user) return;
 
     try {
       setStatus('saving');
-
-      const now = new Date();
-      const newCanvas = serializeCanvas({
-        ...getInitialCanvasState(data.canvasType, data.layout),
-        id: uuidv4(),
-        userId: user.uid,
-        name: data.name,
-        description: data.description,
-        createdAt: now,
-        updatedAt: now
-      }); 
-
-      const canvasItem = {
-        id: newCanvas.id,
-        name: newCanvas.name,
-        canvasTypeId: newCanvas.canvasType.id
-      } as CanvasItem;
-
-      const docRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), newCanvas.id);
-      await setDoc(docRef, newCanvas);
-      onCanvasCreated(canvasItem, data.folderId);
-
-      // Deserialize the canvas before setting state
-      const canvasWithId = deserializeCanvas({
-        ...newCanvas,
-        id: docRef.id
-      });
-
-      setState(prev => ({
-        ...prev,
-        currentCanvas: canvasWithId,
-        formData: canvasWithId,
-        status: 'idle',
-        error: null
-      }));
-
-      return docRef.id;
+      const canvasId = await canvasService.createNewCanvas(data);
+      await loadCanvas(canvasId);
+      return canvasId;
     } catch (error) {
       console.error('Error creating new canvas:', error);
       setStatus('error', error instanceof Error ? error.message : 'Failed to create canvas');
       throw error;
     }
   };
-
 
   const updateQuestionAnswer = useCallback((question: AIQuestion) => {
     
@@ -518,6 +501,7 @@ export function CanvasProvider({ children }: { children: React.ReactNode }) {
     // Cleanup subscription
     return () => unsubscribe();
   }, [state.formData?.canvasType?.id]);
+
 
   return (
     <CanvasContext.Provider

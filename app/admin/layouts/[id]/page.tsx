@@ -10,6 +10,7 @@ import { Grid2x2, Plus } from 'lucide-react'
 import { CanvasTypeService } from '@/services/canvasTypeService'
 import { CanvasLayoutDetails } from '@/types/canvas-sections'
 import { VisualGridEditor } from '@/components/LayoutGrid/VisualGridEditor'
+import { canvasTypeService } from '@/services/canvasTypeService';
 const COLORS = [
   'bg-red-200',
   'bg-blue-200',
@@ -27,7 +28,6 @@ export default function EditLayoutPage() {
   const [layout, setLayout] = useState<CanvasLayoutDetails | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [gridItems, setGridItems] = useState<any[]>([])
-  const canvasTypeService = new CanvasTypeService()
   const[areas, setAreas] = useState<string[]|null>(null)
   const[cols, setCols] = useState<string|null>(null)
   const[rows, setRows] = useState<string|null>(null)

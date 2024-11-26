@@ -81,7 +81,6 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, customizedAiAg
       <Button
           variant="default"
           className="mt-4"
-          disabled={!canvasType}
         >
           Create Canvas
         </Button>
@@ -102,7 +101,6 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, customizedAiAg
                 setTempName(e.target.value)
               }}
               className={!isValid ? 'border-red-500' : ''}
-              disabled={!canvasType}
             />
             {!isValid && (
               <p className="text-sm text-red-500 mt-1">Name cannot be empty</p>
@@ -116,11 +114,10 @@ The more detail you provide, the better the AI can understand your situation and
             value={tempDescription}
             onChange={(e) => setTempDescription(e.target.value)}
             className="min-h-[200px]"
-            disabled={!canvasType}
           />
           <DialogFooter>
             <DialogClose asChild>
-              <Button onClick={handleSave} disabled={!canvasType}>
+              <Button onClick={handleSave}>
                 Create Canvas
               </Button>
             </DialogClose>

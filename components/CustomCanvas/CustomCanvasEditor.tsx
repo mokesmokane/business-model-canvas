@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,10 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CanvasTypeService } from '@/services/canvasTypeService';
-import { CanvasType, CanvasSection, cloneCanvasType } from '@/types/canvas-sections';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Grip, Plus, Trash2, Pencil, XIcon } from 'lucide-react';
+import { CanvasType, cloneCanvasType } from '@/types/canvas-sections';
 import IconSelector from '@/app/components/IconSelector';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { VisualGridEditor } from '@/components/LayoutGrid/VisualGridEditor';
@@ -21,6 +17,7 @@ import { AIAgentService } from '@/services/aiAgentService';
 import { TAG_INFO } from '@/src/constants/tags';
 import { TagSuggesterService } from '@/services/tagSuggesterService';
 import DynamicIcon from '../Util/DynamicIcon';
+import { Pencil, XIcon } from 'lucide-react';
 function isValidGridTemplate(template: string): boolean {
   const validPattern = /^(\d+fr|\d+px|auto)(\s+(\d+fr|\d+px|auto))*$/;
   return validPattern.test(template);
@@ -36,7 +33,6 @@ interface CustomCanvasEditorProps {
 export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onConfirm, admin = false }: CustomCanvasEditorProps) {
   const [error, setError] = useState<string | null>(null);
   
-  const canvasTypeService = new CanvasTypeService();
   const [canvasType, setCanvasType] = useState<CanvasType | null>(null);
   const [defaultAreas, setDefaultAreas] = useState<string[]>([]);
   const [defaultCols, setDefaultCols] = useState<string>('');

@@ -20,6 +20,8 @@ import { AIAgent } from '@/types/canvas';
 import { AIAgentService } from '@/services/aiAgentService';
 import { TAG_INFO } from '@/src/constants/tags';
 import { TagSuggesterService } from '@/services/tagSuggesterService';
+import { canvasTypeService } from '@/services/canvasTypeService';
+import { db } from '@/lib/firebase';
 
 function isValidGridTemplate(template: string): boolean {
   const validPattern = /^(\d+fr|\d+px|auto)(\s+(\d+fr|\d+px|auto))*$/;
@@ -32,7 +34,6 @@ export default function TabbedEditCanvasTypePage() {
   const params = useParams();
   const [error, setError] = useState<string | null>(null);
   const [canvasType, setCanvasType] = useState<CanvasType | null>(null);
-  const canvasTypeService = new CanvasTypeService();
   const [defaultAreas, setDefaultAreas] = useState<string[]>([]);
   const [defaultCols, setDefaultCols] = useState<string>('');
   const [defaultRows, setDefaultRows] = useState<string>('');
