@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import { Message, MessageEnvelope } from '@/contexts/ChatContext'
 import { CanvasSection, CanvasType } from '@/types/canvas-sections'
-import { db } from '@/lib/firebase-admin'
 import { CanvasTypeAdminService } from '@/services/canvasTypeAdminService'
 
 const openai = new OpenAI({
