@@ -27,8 +27,8 @@ export function ExistingCanvases({ userCanvases, onCanvasSelect }: ExistingCanva
   return (
     <div>
       <h2 className="text-3xl font-bold tracking-tight mb-4">Your Canvases</h2>
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex gap-6 pb-4">
+      <div className="overflow-hidden py-2" ref={emblaRef}>
+        <div className="flex gap-6">
           {userCanvases.map((canvas) => (
             <motion.div
               key={canvas.id}
@@ -36,7 +36,7 @@ export function ExistingCanvases({ userCanvases, onCanvasSelect }: ExistingCanva
               animate={{ opacity: 1, x: 0 }}
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
-              className="w-[400px] flex-shrink-0"
+              className="w-[400px] flex-shrink-0 p-0.5"
             >
               <Card 
                 className="cursor-pointer hover:shadow-lg transition-shadow h-full flex flex-col"
@@ -73,21 +73,10 @@ export function ExistingCanvases({ userCanvases, onCanvasSelect }: ExistingCanva
                       </div>
                     </div>
                   </div>
-                  <TooltipProvider delayDuration={300}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
                         <CardDescription className="text-sm leading-relaxed line-clamp-4">
                           {canvas.description}
                         </CardDescription>
-                      </TooltipTrigger>
-                      <TooltipContent 
-                        side="bottom" 
-                        className="max-w-[300px] text-sm"
-                      >
-                        {canvas.description}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                    
                 </CardHeader>
                 <CardContent className="mt-auto pt-0">
                   <div className="text-xs text-muted-foreground border-t pt-4">

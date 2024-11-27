@@ -8,8 +8,8 @@ import { TAG_INFO } from "@/src/constants/tags"
 import useEmblaCarousel from 'embla-carousel-react'
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { CanvasTypeSelector } from "./CanvasTypeSelector"
-import { ExistingCanvases } from "./canvas/ExistingCanvases"
-import { CanvasTypeCard } from "./canvas/CanvasTypeCard"
+import { ExistingCanvases } from "./Canvas/ExistingCanvases"
+import { CanvasTypeCard } from "./Canvas/CanvasTypeCard"
 
 export function UserCanvasSelector() {
   const { userCanvases, loadCanvas } = useCanvas()
