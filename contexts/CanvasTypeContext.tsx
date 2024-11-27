@@ -63,7 +63,8 @@ export function CanvasTypeProvider({ children }: { children: React.ReactNode }) 
               ...acc,
               [doc.id]: {
                 id: doc.id,
-                ...data
+                ...data,
+                isCustom: true
               }
             };
           }, {} as Record<string, CanvasType>);

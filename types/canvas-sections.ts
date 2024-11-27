@@ -43,6 +43,7 @@ export interface CanvasType {
   defaultLayout?: CanvasLayoutDetails
   sections: CanvasSection[]
   tags?: string[]
+  isCustom?: boolean;
 }
 
 export function cloneCanvasType(canvasType: CanvasType): CanvasType {

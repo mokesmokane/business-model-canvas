@@ -23,6 +23,10 @@ export function UserCanvasSelector() {
     dragFree: true,
     containScroll: "trimSnaps"
   })
+  const [customCanvasRef] = useEmblaCarousel({
+    dragFree: true,
+    containScroll: "trimSnaps"
+  })
 
   const tagCarousels = TAG_INFO.reduce((acc, tag) => {
     const [ref] = useEmblaCarousel({
@@ -68,22 +72,7 @@ export function UserCanvasSelector() {
             onCanvasSelect={handleCanvasSelect}
           />
 
-          {getCustomCanvasTypes().length > 0 && (
-            <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-4">Custom Canvas Types</h2>
-              <div className="overflow-hidden">
-                <div className="flex gap-6 pl-6">
-                  {getCustomCanvasTypes().map(([key, type]) => (
-                    <CanvasTypeCard
-                      key={key}
-                      type={type}
-                      onClick={handleNewCanvasSelect}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
+          
 
           <div>
             <div className="flex items-center mb-4">
@@ -108,6 +97,23 @@ export function UserCanvasSelector() {
               </div>
             </div>
           </div>
+
+          {getCustomCanvasTypes().length > 0 && (
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight mb-4">Custom Canvas Types</h2>
+              <div className="overflow-hidden" ref={customCanvasRef}>
+                <div className="flex gap-6 pl-6">
+                  {getCustomCanvasTypes().map(([key, type]) => (
+                    <CanvasTypeCard
+                      key={key}
+                      type={type}
+                      onClick={handleNewCanvasSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {TAG_INFO.map(tag => {
             const canvasTypesForTag = getCanvasTypesByTag(tag.name);
