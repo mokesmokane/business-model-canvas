@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 
 try {
     console.log('Starting Firebase initialization...');
-    // console.log('FIREBASE_SERVICE_ACCOUNT:', process.env.FIREBASE_SERVICE_ACCOUNT);
+    console.log('FIREBASE_SERVICE_ACCOUNT:', process.env.FIREBASE_SERVICE_ACCOUNT);
     // console.log('OPENAI_API_KEY:', process.env.OPENAI_API_KEY);
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
 
