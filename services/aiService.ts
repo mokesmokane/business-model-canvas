@@ -51,11 +51,6 @@ export async function* sendChatRequest(envelope: MessageEnvelope, currentContent
 
 
 export async function* sendContextlessChatRequest(envelope: MessageEnvelope, currentContent: any, aiAgent: AIAgent | null) {
-  const serializedContent = {
-    ...currentContent,
-    sections: Object.fromEntries(currentContent.sections || new Map())
-  };
-
   const response = await fetch('/api/ai-contextless-chat', {
     method: 'POST',
     headers: {
@@ -63,8 +58,6 @@ export async function* sendContextlessChatRequest(envelope: MessageEnvelope, cur
     },
     body: JSON.stringify({
       messageEnvelope: envelope,
-      currentContent: serializedContent,
-      aiAgent
     }),
   })
 

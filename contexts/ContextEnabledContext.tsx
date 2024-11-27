@@ -12,7 +12,7 @@ const CanvasContext = createContext<CanvasContextType>({
   setIsContextEnabled: () => {},
 });
 
-export function ContextProvider({ children }: { children: React.ReactNode }) {
+export function CanvasContextProvider({ children }: { children: React.ReactNode }) {
   const [isContextEnabled, setIsContextEnabledState] = useState(false);
 
   const setIsContextEnabled = (enabled: boolean) => {

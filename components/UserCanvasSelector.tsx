@@ -79,7 +79,7 @@ export function UserCanvasSelector() {
 
           <div>
             <div className="flex items-center mb-4">
-              <h2 className="text-3xl font-bold tracking-tight mr-4">Create New Canvas</h2>
+              <h2 className="text-3xl font-bold tracking-tight mr-4">Create New Canvas</h2> 
               <input
                 type="text"
                 placeholder="Search canvas types..."

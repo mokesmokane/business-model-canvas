@@ -95,6 +95,7 @@ export class CanvasTypeService {
         return querySnapshot.docs.reduce((acc, doc) => {
             acc[doc.id] = { 
                 ...doc.data(),
+                isCustom: true,
                 defaultLayout: doc.data().defaultLayout ? {
                     ...doc.data().defaultLayout,
                     id: doc.id

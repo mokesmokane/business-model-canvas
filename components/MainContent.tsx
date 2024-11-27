@@ -12,6 +12,7 @@ import { CanvasProvider } from "@/contexts/CanvasContext"
 import { AIAgentProvider } from "@/contexts/AIAgentContext"
 import { Providers } from "./providers/Providers"
 import { CanvasFoldersProvider } from "@/contexts/CanvasFoldersContext"
+import { CanvasContextProvider } from "@/contexts/ContextEnabledContext"
 export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
@@ -37,6 +38,7 @@ export function MainContent() {
         >
           <Providers>
             <CanvasFoldersProvider>
+            <CanvasContextProvider>
             <AIAgentProvider>
               <CanvasProvider>
                 {isMobile ? (
@@ -52,9 +54,10 @@ export function MainContent() {
                     </div>
                   </div>
                 )}
-            </CanvasProvider>
-            </AIAgentProvider>
-          </CanvasFoldersProvider>
+                </CanvasProvider>
+              </AIAgentProvider>    
+              </CanvasContextProvider>
+            </CanvasFoldersProvider>
           </Providers>
         </ThemeProvider>
       ) : (

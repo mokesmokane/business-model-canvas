@@ -1,6 +1,6 @@
 import React from 'react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Bot, Shield } from 'lucide-react'
+import { Bot, Shield, Clock } from 'lucide-react'
 import { Message, AdminMessage, useChat } from '@/contexts/ChatContext'
 import { AIThinkingIndicator } from '@/components/ui/ai-thinking'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -14,6 +14,7 @@ import DynamicIcon from '../Util/DynamicIcon'
 import { CanvasLayoutDetails, CanvasSection } from '@/types/canvas-sections'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { MessageRenderer } from './messages/MessageRenderer'
+import { ChatHistoryList } from './ChatHistoryList'
 
 interface ChatMessageListProps {
   messages: Message[]
@@ -64,7 +65,7 @@ export function ChatMessageList({
   }
   
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
-  const { isLoading, loadingMessage, setInteraction, interaction } = useChat()
+  const { isLoading, loadingMessage, setInteraction, interaction, loadChat } = useChat()
   const { currentCanvas } = useCanvas()
 
   
@@ -116,7 +117,7 @@ export function ChatMessageList({
     },
     create: {
       icon: Zap,
-      iconClassName: 'text-muted-foreground',
+      iconClassName: 'text-yellow-500 dark:text-yellow-400',
       label: 'Create',
       action: 'create',
       requiresContext: false,
@@ -130,6 +131,21 @@ export function ChatMessageList({
     }
   }
 
+  const getHistoryButton = (setSelectedCategory: (category: string | null) => void) => (
+    <Button
+      variant="outline"
+      size="sm"
+      className="flex items-center gap-2 text-muted-foreground hover:text-foreground
+        border-gray-200 dark:border-gray-700 
+        bg-gray-50 dark:bg-gray-900 
+        hover:bg-gray-100 dark:hover:bg-gray-800"
+      onClick={() => setSelectedCategory('history')}
+    >
+      <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+      Chat History
+    </Button>
+  )
+
   const Icon = options[selectedCategory as keyof typeof options]?.icon
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -137,9 +153,14 @@ export function ChatMessageList({
         <div className="h-full flex flex-col justify-center">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center justify-center gap-2">
-              {selectedCategory ? (
+              {selectedCategory === 'history' ? (
                 <>
-                  {Icon && <Icon className="h-5 w-5" />}
+                  <Clock className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                  Chat History
+                </>
+              ) : selectedCategory ? (
+                <>
+                  {Icon && <Icon className={`h-5 w-5 ${options[selectedCategory as keyof typeof options].iconClassName}`} />}
                   {`${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} Ideas`}
                 </>
               ) : (
@@ -154,7 +175,23 @@ export function ChatMessageList({
               className="flex justify-center"
             >
               <AnimatePresence mode="wait">
-                {selectedCategory ? (
+                {selectedCategory === 'history' ? (
+                  <motion.div
+                    key="history"
+                    initial={{ opacity: 0, height: "48px" }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: "48px" }}
+                    className="flex flex-col gap-4 max-w-sm mx-auto"
+                  >
+                    <ChatHistoryList
+                      onSelect={(chatId) => {
+                        loadChat(chatId)
+                        setSelectedCategory(null)
+                      }}
+                      onBack={() => setSelectedCategory(null)}
+                    />
+                  </motion.div>
+                ) : selectedCategory ? (
                   <motion.div
                     key="suggestions"
                     initial={{ opacity: 0, height: "48px", marginBottom: "0.5rem" }}
@@ -240,40 +277,31 @@ export function ChatMessageList({
                       height: { duration: 0.3, ease: "easeOut" },
                       opacity: { duration: 0.2 }
                     }}
-                    className="flex flex-wrap justify-center gap-2"
-                    style={{ minHeight: "48px" }}
+                    className="flex flex-col gap-4"
                   >
-                    {Object.values(options).filter((option) => (useCanvasContext && option.requiresContext && currentCanvas) || ((!useCanvasContext && !option.requiresContext) ||(!currentCanvas && !option.requiresContext))).map((option) => (
-                      <Button
-                        key={option.action}
-                        variant="outline"
-                        size="sm"
-                        className="flex items-center gap-2 text-muted-foreground hover:text-foreground
-                          border-gray-200 dark:border-gray-700 
-                          bg-gray-50 dark:bg-gray-900 
-                          hover:bg-gray-100 dark:hover:bg-gray-800"
-                        onClick={() => setSelectedCategory(option.action)}
-                      >
-                        {option.icon && <option.icon className={`w-4 h-4 ${option.iconClassName}`} />}
-                        {option.label}
-                      </Button>
-                    ))}
-                    <Button
-                      key="admin"
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-2 text-muted-foreground hover:text-foreground
-                        border-gray-200 dark:border-gray-700 
-                        bg-gray-50 dark:bg-gray-900 
-                        hover:bg-gray-100 dark:hover:bg-gray-800"
-                      onClick={() => {
-                        setInteraction({interaction: 'admin', label: 'Admin'})
-                        setSelectedCategory(null)
-                      }}
-                    >
-                      <Shield className="w-4 h-4 text-muted-foreground" />
-                      Admin
-                    </Button>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {Object.values(options)
+                        .filter((option) => (useCanvasContext && option.requiresContext && currentCanvas) || 
+                          ((!useCanvasContext && !option.requiresContext) ||(!currentCanvas && !option.requiresContext)))
+                        .map((option) => (
+                          <Button
+                            key={option.action}
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-2 text-muted-foreground hover:text-foreground
+                              border-gray-200 dark:border-gray-700 
+                              bg-gray-50 dark:bg-gray-900 
+                              hover:bg-gray-100 dark:hover:bg-gray-800"
+                            onClick={() => setSelectedCategory(option.action)}
+                          >
+                            {option.icon && <option.icon className={`w-4 h-4 ${option.iconClassName}`} />}
+                            {option.label}
+                          </Button>
+                        ))}
+                    </div>
+                    <div className="flex justify-center">
+                      {getHistoryButton(setSelectedCategory)}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

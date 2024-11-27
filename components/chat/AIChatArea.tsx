@@ -12,7 +12,7 @@ import { useCanvasContext } from '@/contexts/ContextEnabledContext'
 
 export function AIChatArea({ onClose }: { onClose?: () => void }) {
 
-  const { messages, sendMessage, input, setInput, isLoading, clearMessages, interaction, setInteraction, setActiveTool, activeTool } = useChat()
+  const { messages, sendMessage, input, setInput, isLoading, createNewChat, interaction, setInteraction, setActiveTool, activeTool } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
@@ -29,8 +29,8 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     })
   }
 
-    const handleClearChat = () => {
-    clearMessages()
+  const handleNewChat = () => {
+    createNewChat()
   }
 
   const handleAdminToolSelect = async (tool: string | null) => {
@@ -57,7 +57,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
           <div className="flex-shrink-0">
             <ChatHeader 
               isWide={isWide}
-              onClearChat={handleClearChat}
+              onNewChat={handleNewChat}
               onToggleWidth={()=>setIsWide(!isWide)}
               onClose={onClose}
             />

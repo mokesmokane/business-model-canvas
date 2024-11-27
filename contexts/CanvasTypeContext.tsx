@@ -44,6 +44,7 @@ export function CanvasTypeProvider({ children }: { children: React.ReactNode }) 
           // Get custom types
           canvasTypeService.initialize(user.uid);
           const customTypes = await canvasTypeService.getCustomCanvasTypes();
+          
           setTypeCache({ ...standardTypes, ...customTypes });
         } else {
           setTypeCache(standardTypes);
@@ -107,7 +108,6 @@ export function CanvasTypeProvider({ children }: { children: React.ReactNode }) 
   const getCustomCanvasTypes = useCallback(async () => {
     const customTypes = await canvasTypeService.getCustomCanvasTypes();
     return customTypes;
-    return {};
   }, [user?.uid]);
 
   const getCanvasTypes = useCallback(async () => {

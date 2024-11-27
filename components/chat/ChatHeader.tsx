@@ -21,12 +21,12 @@ import {
 
 interface ChatHeaderProps {
   isWide: boolean
-  onClearChat: () => void
+  onNewChat: () => void
   onToggleWidth: () => void
   onClose?: () => void
 }
 
-export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose }: ChatHeaderProps) {
+export function ChatHeader({ isWide, onNewChat, onToggleWidth, onClose }: ChatHeaderProps) {
   const { currentCanvas } = useCanvas()
   const { agentCache } = useAIAgents()
   const { isContextEnabled, setIsContextEnabled } = useCanvasContext()
@@ -50,6 +50,7 @@ export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose }: Chat
                         !isContextEnabled ? 'text-muted-foreground' : ''
                       }`}
                       onClick={() => {
+                        console.log('toggling context enabled')
                         setIsContextEnabled(!isContextEnabled)
                       }}
                     >
@@ -101,7 +102,7 @@ export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose }: Chat
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onClearChat}>
+            <DropdownMenuItem onClick={onNewChat}>
               <Bot className="h-4 w-4 mr-2" />
               New Chat
             </DropdownMenuItem>
