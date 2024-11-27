@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { canvasService } from '@/services/canvasService';
 import { deserializeCanvas, serializeCanvas, deserializeSections, serializeSections } from '@/services/canvasService';
 import { useAIAgents } from './AIAgentContext';
+import { useChat } from './ChatContext';
 
 interface Section {
   name: string;
@@ -82,6 +83,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
   const { agentCache } = useAIAgents();
   const [aiAgent, setAiAgent] = useState<AIAgent | null>(null);
+  const { isContextEnabled, setIsContextEnabled } = useChat()
 
   const { user } = useAuth();
 
@@ -184,7 +186,8 @@ export const CanvasContext = createContext<CanvasContextType>({
   const loadCanvas = useCallback(async (id: string) => {
     
     if (!user?.uid || !id) return;
-
+    console.log('loadCanvas', id)
+    setIsContextEnabled(true)
     try {
       setStatus('loading');
       const canvasRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), id);

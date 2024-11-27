@@ -8,7 +8,7 @@ try {
     // we have a bad charater at 187 of the service account so lets print out the characters from 170 to 200
     console.log('Service account characters 170 to 200:', process.env.FIREBASE_SERVICE_ACCOUNT?.replace(/\\n/g, '\n')?.substring(170, 200));
     const serviceAccount = JSON.parse(
-        (process.env.FIREBASE_SERVICE_ACCOUNT?.replace(/\\n/g, '\n')?.replace(/\n/g, '\n')) || '{}'
+        (process.env.FIREBASE_SERVICE_ACCOUNT?.replace(/\\n/g, '\n')?.replace(/\n/g, '\n').replace('\n', '')) || '{}'
     );
 
     console.log('Service account parsed:', {

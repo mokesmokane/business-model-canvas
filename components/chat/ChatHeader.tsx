@@ -5,7 +5,7 @@ import { useCanvas } from '@/contexts/CanvasContext'
 import DynamicIcon from '../Util/DynamicIcon'
 import { Info } from 'lucide-react'
 import { useAIAgents } from '@/contexts/AIAgentContext'
-
+import { useChat } from '@/contexts/ChatContext'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,13 +23,12 @@ interface ChatHeaderProps {
   onClearChat: () => void
   onToggleWidth: () => void
   onClose?: () => void
-  isContextEnabled: boolean
-  onToggleContext: () => void
 }
 
-export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose, isContextEnabled, onToggleContext }: ChatHeaderProps) {
+export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose }: ChatHeaderProps) {
   const { currentCanvas } = useCanvas()
   const { agentCache } = useAIAgents()
+  const { isContextEnabled, setIsContextEnabled } = useChat()
   const aiAgent = currentCanvas?.canvasType.id ? agentCache[currentCanvas.canvasType.id] : null
   return (
     <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -49,8 +48,7 @@ export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose, isCont
                         !isContextEnabled ? 'text-muted-foreground' : ''
                       }`}
                       onClick={() => {
-                        console.log('Current context state:', isContextEnabled)
-                        onToggleContext()
+                        setIsContextEnabled(!isContextEnabled)
                       }}
                     >
                       <DynamicIcon name={currentCanvas.canvasType.icon} className="h-4 w-4 mr-1" />
