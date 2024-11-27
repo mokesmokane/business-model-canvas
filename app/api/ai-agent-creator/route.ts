@@ -66,8 +66,7 @@ export async function POST(request: Request) {
       Question Prompt: This prompt to prompt the agent to ask insightful questions to the user.
       Critique Prompt: This prompt is used when the AI agent is critiquing the canvas. It should be a prompt that helps the AI agent come up with a good critique for the sections of teh canvas.
       Research Prompt: This prompt is used when the AI agent is suggesting research tasks. It should be a prompt that helps the AI agent come up with good research tasks.
-      Suggest Prompt: This prompt is used when the AI agent is suggesting items to be added to the canvas. It should be a prompt that helps the AI agent come up with good ideas to put on the canvas. IT should suggest thing that can directly add value to the canvas. NOT suggetions on how the user can improve the canvas.
-      Question Tool Description: This is a description of the question tool used by the AI agent. It should suggest that the agent ask 3 questions to the user. it should steer the agent towards asking insightful questions that help the user develop their type of canvs.
+      Suggest Prompt: This prompt is used when the AI agent is suggesting items to be added to the canvas. The aim of the prompt is to help the AI agent come up with good suggestions for the canvas that answer the questions posed by the sections.
 
       Theses should all closely follow the example below whilst being tailored to the specific canvas type
 
@@ -92,7 +91,6 @@ EXAMPLE FOR "The Business Model Canvas":
     Suggest items that can directly add value to the canvas by answering the questions posed by the section. NOT suggestions on how the user can improve the canvas. For example if you are asked about the customer segment, you should add specific segments, rather than suggesting things like "add a segment for X" or "add a segment for Y".
     The current canvas is below, and may include questions and answers from the client for each section which you can use to help you understand the client's business model.
     Give your response in Markdown format.",
-    Question Tool Description: "Ask up to 3 questions to the client about their business model. ask question to help the client surface their thoughts and ideas about their business model. You will later use the data to help them further"
 
   }
 `
