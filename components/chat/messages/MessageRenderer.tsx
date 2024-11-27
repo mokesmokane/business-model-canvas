@@ -1,4 +1,4 @@
-import { Message, CanvasTypeSuggestionMessage, SuggestionMessage, QuestionMessage, AdminMessage, useChat } from "@/contexts/ChatContext"
+import { Message, CanvasTypeSuggestionMessage, SuggestionMessage, QuestionMessage, AdminMessage, useChat, TrailPeroidEndedMessage } from "@/contexts/ChatContext"
 import { Bot, User, AlertTriangle } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { motion, AnimatePresence } from "framer-motion"
@@ -8,6 +8,7 @@ import CanvasSuggestionItem from "./CanvasSuggestionItem"
 import NewCanvasSuggestionItem from "./NewCanvasSuggestionItem"
 import { Section } from "@/types/canvas"
 import { useCanvas } from "@/contexts/CanvasContext"
+import { Button } from "@/components/ui/button"
 
 interface MessageRendererProps {
   message: Message
@@ -46,10 +47,15 @@ export function MessageRenderer({ message, messageIndex}: MessageRendererProps) 
       return <QuestionMessageDetails message={(message as QuestionMessage)} />
     }
 
+    if (message instanceof TrailPeroidEndedMessage) {
+      return <TrailPeroidEndedMessageDetails message={message} />
+    }
+
     return null
   }
 
   return (
+    console.log('message', message),
     <div className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
       {message.role === 'assistant' && (
         <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
@@ -151,5 +157,15 @@ export function QuestionMessageDetails({ message }: { message: QuestionMessage})
             <AIQuestionItem key={index} question={question} onSubmit={updateQuestionAnswer} />
         ))}
         </div>
+    )
+}
+
+export function TrailPeroidEndedMessageDetails({ message }: { message: TrailPeroidEndedMessage }) {
+    return (
+      <div className="mt-2">
+        <Button variant="outline" onClick={() => {
+          window.location.href = '/pricing'
+        }}>Upgrade</Button>
+      </div>
     )
 }

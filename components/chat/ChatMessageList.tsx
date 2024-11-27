@@ -186,6 +186,7 @@ export function ChatMessageList({
                               section: suggestion.section.key,
                               tool: suggestion.action
                             })
+                            setSelectedCategory(null)
                           }}
                         >
                           <div className="flex items-center gap-2">

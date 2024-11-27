@@ -120,6 +120,11 @@ export class CanvasTypeSuggestionMessage implements Message {
   }
 }
 
+export class TrailPeroidEndedMessage implements Message {
+  role: 'assistant' = 'assistant'
+  content: string = 'Your trial period has ended. Please upgrade your subscription to continue.'
+}
+
 export interface Interaction {
   interaction: string
   label: string
@@ -232,7 +237,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     addMessage(userMessage)
 
     if (!isInTrialPeriod && (!userData?.subscriptionStatus || userData?.subscriptionPlan === 'free')) {
-      addMessage({ role: 'assistant', content: 'Your trial period has ended. Please upgrade to continue using AI features.' })
+      addMessage(new TrailPeroidEndedMessage())
       return
     }
 
