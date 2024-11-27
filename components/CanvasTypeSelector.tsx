@@ -17,7 +17,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { TAG_INFO } from "@/src/constants/tags"
 import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
-import CustomCanvasEditor from "@/components/CustomCanvas/CustomCanvasEditor"
+import CustomCanvasManager from '@/components/CustomCanvas/CustomCanvasManager';
+import CustomCanvasEditor from "@/components/CustomCanvas/CustomCanvasEditor";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { AIAgent } from "@/types/canvas"
 
@@ -39,6 +40,7 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { currentFolder  } = useCanvasFolders()
   const [showCustomEditor, setShowCustomEditor] = useState(false);
+  const [showCustomiser, setShowCustomiser] = useState(false);
   const [customizedType, setCustomizedType] = useState<CanvasType | null>(null);
   const [customizedAiAgent, setCustomizedAiAgent] = useState<AIAgent | null>(null);
   useEffect(() => {
@@ -154,7 +156,7 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
   return (
     <div className="flex flex-col h-[80vh] overflow-hidden rounded-md">
       <AnimatePresence mode="wait">
-        {!showCustomEditor ? (
+        {!showCustomEditor && !showCustomiser ? (
           <motion.div
             key="selector"
             initial={{ opacity: 0, x: -20 }}
@@ -232,17 +234,32 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
                               Choose Different Type
                             </Button>
                             {selectedTypeLocal && (
-                              <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => {
-                                  if (selectedTypeLocal) {
-                                    setShowCustomEditor(true);
-                                  }
-                                }}
-                              >
-                                Customize
-                              </Button>
+                              <>
+                                {selectedTypeLocal.isCustom && (
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      onClick={() => {
+                                        setShowCustomEditor(true);
+                                        setShowCustomiser(false);
+                                      }}
+                                    >
+                                      Edit
+                                    </Button>
+                                )}
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => {
+                                    if (selectedTypeLocal) {
+                                      setShowCustomiser(true);
+                                      setShowCustomEditor(false);
+                                    }
+                                  }}
+                                >
+                                  Customize
+                                </Button>
+                              </>
                             )}
                           </div>
                         </div>
@@ -390,26 +407,53 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
               />
             </div>
           </motion.div>
-        ) : (
-          <motion.div
-            key="editor"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="h-full"
-          >
-            <div className="p-8 flex flex-col items-center">
-              {selectedTypeLocal && (
-                <div className="h-[calc(100%-4rem)] overflow-auto w-full mt-8">
-                  <CustomCanvasEditor
-                    canvasTypeTemplate={selectedTypeLocal}
-                    onCancel={() => setShowCustomEditor(false)}
-                    onConfirm={handleCustomization}
-                  />
+        ) : showCustomiser ? (
+          <AnimatePresence mode="wait">
+            {showCustomiser ? (
+              <motion.div
+                key="editor"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="h-full"
+              >
+                <div className="p-8 flex flex-col items-center">
+                  {selectedTypeLocal && (
+                    <div className="h-[calc(100%-4rem)] overflow-auto w-full mt-8">
+                      <CustomCanvasEditor
+                        canvasTypeTemplate={selectedTypeLocal}
+                        onCancel={() => setShowCustomiser(false)}
+                        onConfirm={handleCustomization}
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </motion.div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        ) : (
+          <AnimatePresence mode="wait">
+            {showCustomEditor && selectedTypeLocal?.isCustom ? (
+              <motion.div
+                key="editor"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full"
+            >
+              <div className="p-8 flex flex-col items-center">
+                {selectedTypeLocal && (
+                  <div className="h-[calc(100%-4rem)] overflow-auto w-full mt-8">
+                    <CustomCanvasManager
+                      canvasTypeId={selectedTypeLocal.id}
+                      onClose={() => setShowCustomEditor(false)}
+                    />
+                  </div>
+                )}
+                </div>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         )}
       </AnimatePresence>
     </div>

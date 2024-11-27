@@ -30,6 +30,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useExpanded } from '@/contexts/ExpandedContext';
 import { DragEvent } from 'react'
 import { MoveCanvasDialog } from "@/components/modals/MoveCanvasDialog"
+import DynamicIcon from '../Util/DynamicIcon'
+import { useCanvasTypes } from '@/contexts/CanvasTypeContext'
 
 function findFolderInTree(folders: NestedCanvasFolder[], folderId: string): NestedCanvasFolder | null {
   for (const folder of folders) {
@@ -64,6 +66,7 @@ function countCanvasesInFolder(folder: NestedCanvasFolder): number {
 export function CanvasNavigation() {
   const { folders, rootFolder, onCanvasDeleted, onFolderRename, onFolderDelete, onCanvasMoved } = useCanvasFolders()
   const { loadCanvas, currentCanvas, deleteCanvas, clearState } = useCanvas()
+  const { canvasTypes } = useCanvasTypes()
   const [currentPath, setCurrentPath] = React.useState<NestedCanvasFolder[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [canvasToDelete, setCanvasToDelete] = React.useState<{ id: string, name: string } | null>(null)
@@ -266,7 +269,7 @@ export function CanvasNavigation() {
         )}
         onClick={() => loadCanvas(canvas.id)}
       >
-        <File className="mr-2 h-4 w-4" />
+        <DynamicIcon name={canvasTypes[canvas.canvasTypeId]?.icon} className="mr-2 h-4 w-4" />
         <span className="flex-1 truncate">{canvas.name}</span>
       </Button>
       <Button

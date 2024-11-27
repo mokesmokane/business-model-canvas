@@ -14,6 +14,7 @@ interface CanvasTypeContextType {
   saveCustomCanvasType: (id: string, canvasType: CanvasType) => Promise<void>;
   getStandardCanvasTypes: () => Promise<Record<string, CanvasType>>;
   getCustomCanvasTypes: () => Promise<Record<string, CanvasType>>;
+  canvasTypes: Record<string, CanvasType>;
   isLoading: boolean;
 }
 
@@ -44,7 +45,7 @@ export function CanvasTypeProvider({ children }: { children: React.ReactNode }) 
           // Get custom types
           canvasTypeService.initialize(user.uid);
           const customTypes = await canvasTypeService.getCustomCanvasTypes();
-          
+
           setTypeCache({ ...standardTypes, ...customTypes });
         } else {
           setTypeCache(standardTypes);
@@ -132,6 +133,7 @@ export function CanvasTypeProvider({ children }: { children: React.ReactNode }) 
       saveCustomCanvasType, 
       getStandardCanvasTypes,
       getCustomCanvasTypes,
+      canvasTypes: typeCache || {},
       isLoading,
     }}>
       {children}

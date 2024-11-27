@@ -159,8 +159,8 @@ export interface ChatHistory {
   canvasInfo?: {
     id: string;
     type: string;
-    icon: string;
     name: string;
+    icon: string;
   };
 }
 

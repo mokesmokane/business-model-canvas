@@ -8,17 +8,17 @@ import { SectionButtons } from './SectionButtons'
 import { ActionButtons } from './ActionButtons'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Search, HelpCircle, Zap, MessageCircle, Lightbulb } from 'lucide-react'
+import { Search, HelpCircle, Zap, MessageCircle, Lightbulb, LayoutDashboard } from 'lucide-react'
 import { AdminButtonBar } from './AdminButtonBar'
 import DynamicIcon from '../Util/DynamicIcon'
 import { CanvasLayoutDetails, CanvasSection } from '@/types/canvas-sections'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { MessageRenderer } from './messages/MessageRenderer'
 import { ChatHistoryList } from './ChatHistoryList'
+import { useCanvasContext } from "@/contexts/ContextEnabledContext"
 
 interface ChatMessageListProps {
   messages: Message[]
-  useCanvasContext: boolean,
   activeSection: string | null
   activeTool: string | null
   onSectionSelect: (section: string | null) => void
@@ -38,7 +38,6 @@ interface CanvasTypeSuggestion {
 
 export function ChatMessageList({
   messages,
-  useCanvasContext,
   activeSection,
   activeTool,
   onSectionSelect,
@@ -66,7 +65,8 @@ export function ChatMessageList({
   
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const { isLoading, loadingMessage, setInteraction, interaction, loadChat } = useChat()
-  const { currentCanvas } = useCanvas()
+  const { currentCanvas, loadCanvas } = useCanvas()
+  const { setIsContextEnabled, isContextEnabled } = useCanvasContext()
 
   
   const sectionsMap = currentCanvas?.canvasType?.sections.reduce((acc: any, section: CanvasSection) => {
@@ -131,19 +131,36 @@ export function ChatMessageList({
     }
   }
 
-  const getHistoryButton = (setSelectedCategory: (category: string | null) => void) => (
-    <Button
-      variant="outline"
-      size="sm"
-      className="flex items-center gap-2 text-muted-foreground hover:text-foreground
-        border-gray-200 dark:border-gray-700 
-        bg-gray-50 dark:bg-gray-900 
-        hover:bg-gray-100 dark:hover:bg-gray-800"
-      onClick={() => setSelectedCategory('history')}
-    >
-      <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-      Chat History
-    </Button>
+  const getHistoryButtons = (setSelectedCategory: (category: string | null) => void) => (
+    <div className="flex gap-2 justify-center">
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-2 text-muted-foreground hover:text-foreground
+          border-gray-200 dark:border-gray-700 
+          bg-gray-50 dark:bg-gray-900 
+          hover:bg-gray-100 dark:hover:bg-gray-800"
+        onClick={() => setSelectedCategory('history')}
+      >
+        <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+        Chat History
+      </Button>
+      {currentCanvas && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground
+            border-gray-200 dark:border-gray-700 
+            bg-gray-50 dark:bg-gray-900 
+            hover:bg-gray-100 dark:hover:bg-gray-800"
+          onClick={() => setSelectedCategory('canvasHistory')}
+        >
+          <LayoutDashboard className="w-4 h-4 " />
+          Canvas Chats
+        </Button>
+
+      )}
+    </div>
   )
 
   const Icon = options[selectedCategory as keyof typeof options]?.icon
@@ -157,6 +174,12 @@ export function ChatMessageList({
                 <>
                   <Clock className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                   Chat History
+                </>
+              ) :
+              selectedCategory === 'canvasHistory' ? (
+                <>
+                  <LayoutDashboard className="h-5 w-5" />
+                  Canvas Chats
                 </>
               ) : selectedCategory ? (
                 <>
@@ -175,7 +198,7 @@ export function ChatMessageList({
               className="flex justify-center"
             >
               <AnimatePresence mode="wait">
-                {selectedCategory === 'history' ? (
+                {selectedCategory === 'history' || selectedCategory === 'canvasHistory' ? (
                   <motion.div
                     key="history"
                     initial={{ opacity: 0, height: "48px" }}
@@ -184,11 +207,18 @@ export function ChatMessageList({
                     className="flex flex-col gap-4 max-w-sm mx-auto"
                   >
                     <ChatHistoryList
-                      onSelect={(chatId) => {
+                      onSelect={async (chatId, canvasId) => {
                         loadChat(chatId)
+                        
+                        if(canvasId) {
+                          await loadCanvas(canvasId)
+                          setIsContextEnabled(true)
+                          localStorage.setItem('lastCanvasId', canvasId)
+                        }
                         setSelectedCategory(null)
                       }}
                       onBack={() => setSelectedCategory(null)}
+                      canvasId={selectedCategory === 'canvasHistory' ? currentCanvas?.id : undefined}
                     />
                   </motion.div>
                 ) : selectedCategory ? (
@@ -281,8 +311,8 @@ export function ChatMessageList({
                   >
                     <div className="flex flex-wrap justify-center gap-2">
                       {Object.values(options)
-                        .filter((option) => (useCanvasContext && option.requiresContext && currentCanvas) || 
-                          ((!useCanvasContext && !option.requiresContext) ||(!currentCanvas && !option.requiresContext)))
+                        .filter((option) => (isContextEnabled && option.requiresContext && currentCanvas) || 
+                          ((!isContextEnabled && !option.requiresContext) ||(!currentCanvas && !option.requiresContext)))
                         .map((option) => (
                           <Button
                             key={option.action}
@@ -300,7 +330,7 @@ export function ChatMessageList({
                         ))}
                     </div>
                     <div className="flex justify-center">
-                      {getHistoryButton(setSelectedCategory)}
+                      {getHistoryButtons(setSelectedCategory)}
                     </div>
                   </motion.div>
                 )}

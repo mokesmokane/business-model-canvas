@@ -1,4 +1,4 @@
-import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc, setDoc } from "firebase/firestore"; 
+import { getFirestore, collection, addDoc, getDocs, query, where, deleteDoc, doc, updateDoc, getDoc, setDoc, serverTimestamp, DocumentData } from "firebase/firestore"; 
 import { CanvasLayout, CanvasType, CanvasLayoutDetails } from "../types/canvas-sections";
 import { db } from "../lib/firebase";
 
@@ -196,7 +196,23 @@ export class CanvasTypeService {
         }
     }
 
+    async getUser(): Promise<DocumentData | null> {
+        if (!this.currentUserId) {
+            return null;
+        }
+        const userDocRef = doc(db, 'users', this.currentUserId);
+
+        // Check if user document exists
+        const userDoc = await getDoc(userDocRef);
+        return userDoc.data() || null;
+    }
+
     async updateCanvasType(id: string, canvasType: CanvasType): Promise<void> {
+        //must check if user is admin
+        const user = await this.getUser();
+        if (!user?.isAdmin) {
+            throw new Error('User is not admin');
+        }
         try {
             const { id: _, ...updateData } = canvasType;  // Remove id field from update data
             const docRef = doc(this.collectionRef, id);
@@ -227,6 +243,18 @@ export class CanvasTypeService {
             console.error("Error updating canvas layout: ", error);
             throw error;
         }
+    }
+
+    async updateCustomCanvasType(canvasType: CanvasType): Promise<void> {
+        if (!canvasType.id) throw new Error('Canvas type ID is required');
+        
+        const userId = this.getUserId();
+        const canvasTypeRef = doc(collection(db, 'userCanvasTypes', userId, 'canvasTypes'), canvasType.id);
+        
+        await setDoc(canvasTypeRef, {
+            ...canvasType,
+            updatedAt: serverTimestamp(),
+        });
     }
 }
 

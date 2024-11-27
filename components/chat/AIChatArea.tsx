@@ -64,7 +64,6 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
           </div>
           <div className="flex-1 overflow-hidden flex flex-col">
             <ChatMessageList
-              useCanvasContext={isContextEnabled}
               activeSection={activeSection}
               onSectionSelect={setActiveSection}
               onActionSelect={handleActionMessage}
