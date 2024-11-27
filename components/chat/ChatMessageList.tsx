@@ -25,6 +25,8 @@ interface ChatMessageListProps {
   onActionSelect: (action: { tool: string, section: string, message: string }) => void
   messagesEndRef: React.RefObject<HTMLDivElement>
   onAdminToolSelect: (tool: string | null) => void
+  selectedCategory: string | null
+  setSelectedCategory: (category: string | null) => void
 }
 
 interface CanvasTypeSuggestion {
@@ -40,10 +42,12 @@ export function ChatMessageList({
   messages,
   activeSection,
   activeTool,
-  onSectionSelect,
+  onSectionSelect,  
   onActionSelect,
   messagesEndRef,
   onAdminToolSelect,
+  selectedCategory,
+  setSelectedCategory,
 }: ChatMessageListProps) {
 
 
@@ -63,7 +67,6 @@ export function ChatMessageList({
     }
   }
   
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const { isLoading, loadingMessage, setInteraction, interaction, loadChat } = useChat()
   const { currentCanvas, loadCanvas } = useCanvas()
   const { setIsContextEnabled, isContextEnabled } = useCanvasContext()
@@ -200,27 +203,27 @@ export function ChatMessageList({
               <AnimatePresence mode="wait">
                 {selectedCategory === 'history' || selectedCategory === 'canvasHistory' ? (
                   <motion.div
-                    key="history"
-                    initial={{ opacity: 0, height: "48px" }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: "48px" }}
-                    className="flex flex-col gap-4 max-w-sm mx-auto"
-                  >
-                    <ChatHistoryList
-                      onSelect={async (chatId, canvasId) => {
-                        loadChat(chatId)
-                        
-                        if(canvasId) {
-                          await loadCanvas(canvasId)
-                          setIsContextEnabled(true)
-                          localStorage.setItem('lastCanvasId', canvasId)
-                        }
-                        setSelectedCategory(null)
-                      }}
-                      onBack={() => setSelectedCategory(null)}
-                      canvasId={selectedCategory === 'canvasHistory' ? currentCanvas?.id : undefined}
-                    />
-                  </motion.div>
+                  key="history"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex-1 flex flex-col h-full"
+                >
+                  <ChatHistoryList
+                    onSelect={async (chatId, canvasId) => {
+                      loadChat(chatId)
+                      
+                      if(canvasId) {
+                        await loadCanvas(canvasId)
+                        setIsContextEnabled(true)
+                        localStorage.setItem('lastCanvasId', canvasId)
+                      }
+                      setSelectedCategory(null)
+                    }}
+                    onBack={() => setSelectedCategory(null)}
+                    canvasId={selectedCategory === 'canvasHistory' ? currentCanvas?.id : undefined}
+                  />
+                </motion.div>
                 ) : selectedCategory ? (
                   <motion.div
                     key="suggestions"

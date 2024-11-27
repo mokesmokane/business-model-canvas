@@ -17,6 +17,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
   const { isContextEnabled, setIsContextEnabled } = useCanvasContext()
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const { getAIAgent } = useAIAgents()
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -30,6 +31,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   }
 
   const handleNewChat = () => {
+    setSelectedCategory(null)
     createNewChat()
   }
 
@@ -58,12 +60,15 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
             <ChatHeader 
               isWide={isWide}
               onNewChat={handleNewChat}
+              onChatHistory={() => setSelectedCategory('history')}
               onToggleWidth={()=>setIsWide(!isWide)}
               onClose={onClose}
             />
           </div>
           <div className="flex-1 overflow-hidden flex flex-col">
             <ChatMessageList
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
               activeSection={activeSection}
               onSectionSelect={setActiveSection}
               onActionSelect={handleActionMessage}

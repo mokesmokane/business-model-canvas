@@ -3,7 +3,7 @@ import { Bot, Shrink, Expand, MoreVertical, ChevronDown, Layers, X, Check } from
 import { Button } from '@/components/ui/button'
 import { useCanvas } from '@/contexts/CanvasContext'
 import DynamicIcon from '../Util/DynamicIcon'
-import { Info } from 'lucide-react'
+import { Info, History } from 'lucide-react'
 import { useAIAgents } from '@/contexts/AIAgentContext'
 import { useCanvasContext } from '@/contexts/ContextEnabledContext'
 
@@ -24,9 +24,10 @@ interface ChatHeaderProps {
   onNewChat: () => void
   onToggleWidth: () => void
   onClose?: () => void
+  onChatHistory?: () => void
 }
 
-export function ChatHeader({ isWide, onNewChat, onToggleWidth, onClose }: ChatHeaderProps) {
+export function ChatHeader({ isWide, onNewChat, onChatHistory, onToggleWidth, onClose }: ChatHeaderProps) {
   const { currentCanvas } = useCanvas()
   const { agentCache } = useAIAgents()
   const { isContextEnabled, setIsContextEnabled } = useCanvasContext()
@@ -105,6 +106,10 @@ export function ChatHeader({ isWide, onNewChat, onToggleWidth, onClose }: ChatHe
             <DropdownMenuItem onClick={onNewChat}>
               <Bot className="h-4 w-4 mr-2" />
               New Chat
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onChatHistory}>
+              <History className="h-4 w-4 mr-2" />
+              Chat History
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
