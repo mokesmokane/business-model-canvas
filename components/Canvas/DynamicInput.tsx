@@ -5,10 +5,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-react'
 import { useCanvas } from '@/contexts/CanvasContext'
+import { Section } from '@/types/canvas'
 
 interface DynamicInputProps {
     onSubmit: (value: string) => void
     onCancel?: () => void
+    section: Section
     placeholder?: string
     initialValue?: string
     isEditing?: boolean
@@ -19,7 +21,8 @@ interface DynamicInputProps {
     onSubmit, 
     onCancel, 
     initialValue = '', 
-    isEditing = false 
+    isEditing = false,
+    section
   }: DynamicInputProps) {
     const [inputValue, setInputValue] = useState(initialValue)
     const [suggestions, setSuggestions] = useState<string[]>([])
@@ -30,9 +33,8 @@ interface DynamicInputProps {
     const [isFocused, setIsFocused] = useState(false)
     const [showButton, setShowButton] = useState(false)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
-    const { canvasTheme } = useCanvas()
+    const { canvasTheme, formData } = useCanvas()
     const promptTimeoutRef = useRef<NodeJS.Timeout>()
-  
     const currentSuggestion = suggestions[currentSuggestionIndex] || ''
     
     const handleSubmit = () => {
@@ -56,7 +58,7 @@ interface DynamicInputProps {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ text, count: 3 })
+          body: JSON.stringify({ text, canvas: formData, section: section, count: 3 })
         })
   
         if (!response.ok) throw new Error('Failed to get suggestions')
