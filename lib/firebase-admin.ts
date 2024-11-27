@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 
 try {
     console.log('Starting Firebase initialization...');
-    const serviceAccountJSON = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64 || '', 'base64').toString('utf8');
+    const serviceAccountJSON = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT || '', 'base64').toString('utf8');
     console.log('Service account JSON:', serviceAccountJSON);
     const serviceAccount = JSON.parse(serviceAccountJSON);
 

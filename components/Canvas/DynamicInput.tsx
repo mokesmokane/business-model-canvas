@@ -58,38 +58,13 @@ interface DynamicInputProps {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ text, canvas: formData, section: section, count: 3 })
+          body: JSON.stringify({ text, canvas: formData, section: section })
         })
   
         if (!response.ok) throw new Error('Failed to get suggestions')
         
-        const reader = response.body?.getReader()
-        if (!reader) throw new Error('No reader available')
-  
-        let accumulatedSuggestions: string[] = []
-        let currentSuggestion = ''
-        
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          
-          const chunk = new TextDecoder().decode(value)
-          
-          // Split on newlines to separate suggestions
-          const parts = (currentSuggestion + chunk).split('\n')
-          currentSuggestion = parts.pop() || '' // Keep incomplete suggestion for next chunk
-          
-          if (parts.length > 0) {
-            accumulatedSuggestions = [...accumulatedSuggestions, ...parts].slice(0, 3)
-            setSuggestions(accumulatedSuggestions)
-          }
-        }
-        
-        // Add any remaining suggestion
-        if (currentSuggestion) {
-          accumulatedSuggestions = [...accumulatedSuggestions, currentSuggestion].slice(0, 3)
-          setSuggestions(accumulatedSuggestions)
-        }
+        const data = await response.json()
+        setSuggestions(data.completions)
       } catch (error) {
         console.error('Error getting suggestions:', error)
         setSuggestions([])
@@ -104,6 +79,7 @@ interface DynamicInputProps {
       setIsExpanded(true)
       setSuggestions([])
       setCurrentSuggestionIndex(0)
+      setShowButton(true)
   
       if (promptTimeoutRef.current) {
         clearTimeout(promptTimeoutRef.current)
@@ -127,14 +103,18 @@ interface DynamicInputProps {
         } else if (suggestions.length > 0) {
           setCurrentSuggestionIndex((prev) => (prev + 1) % suggestions.length)
         }
-      } else if (e.key === 'Enter' && suggestions.length > 0 && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault()
-        setInputValue(prev => prev + currentSuggestion)
-        setSuggestions([])
-        setCurrentSuggestionIndex(0)
-      } else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault()
-        handleSubmit()
+      } else if (e.key === 'Enter') {
+        if (suggestions.length > 0) {
+          e.preventDefault()
+          setInputValue(prev => prev + currentSuggestion)
+          setSuggestions([])
+          setCurrentSuggestionIndex(0)
+        } else if (e.shiftKey) {
+          return
+        } else {
+          e.preventDefault()
+          handleSubmit()
+        }
       } else if (e.key === 'Escape' && onCancel) {
         e.preventDefault()
         handleCancel()
@@ -174,11 +154,13 @@ interface DynamicInputProps {
               onFocus={() => {
                 setIsExpanded(true)
                 setIsFocused(true)
+                setShowButton(true)
               }}
               onBlur={() => {
                 setIsFocused(false)
                 if (!inputValue) {
                   setIsExpanded(false)
+                  setShowButton(false)
                 }
               }}
             />

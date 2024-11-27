@@ -1,12 +1,32 @@
-import { createOpenAI } from '@ai-sdk/openai'
-import { streamText } from 'ai'
+import { OpenAI } from 'openai'
+import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import { CanvasSection, CanvasType } from '@/types/canvas-sections'
 import { Canvas, Section } from '@/types/canvas'
 
-const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  compatibility: 'strict'
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || ''
 })
+
+// Define the function schema
+const completionFunction = {
+  name: 'provide_completions',
+  description: 'Provides three different completions for the given text',
+  parameters: {
+    type: 'object',
+    properties: {
+      completions: {
+        type: 'array',
+        description: 'Array of three different completion suggestions',
+        items: {
+          type: 'string'
+        },
+        minItems: 3,
+        maxItems: 3
+      }
+    },
+    required: ['completions']
+  }
+}
 
 export const runtime = 'edge'
 
@@ -22,45 +42,55 @@ export async function POST(req: Request) {
     const canvasWithoutType = { ...canvas, canvasType: undefined }
     const systemPrompt = `You are a ${canvasType.name} assistant helping complete sentences for the "${section.name}" section. 
     Consider the context of ${section.name} when providing completions.
-    Provide exactly 3 different natural completions, each on a new line.
-    Keep completions concise, business-focused, and varied.
+    Provide exactly 3 different natural completions that are concise, business-focused, and varied.
     Only provide the completions, no explanations or numbering.
-    
+    They should be wildly different from each other in tone and style, or length or seriousness.
+
     For reference: 
     ${canvas.canvasType.sections
       .map((s) => `- ${s.name}: ${s.placeholder}`)
       .join('\n')}
     `
-
-    const result = await streamText({
-      model: openai('gpt-3.5-turbo'),
-      messages: [
+    const msgs = [
         {
-          role: "system",
-          content: systemPrompt
+            role: "system",
+            content: systemPrompt
         },
         {
-          role: "user",
-          content: `The current state of the canvas is: ${JSON.stringify(canvasWithoutType)}`
+            role: "user",
+            content: `The current state of the canvas is: ${JSON.stringify(canvasWithoutType)}`
         },
         {
-          role: "user",
-          content: `The current state of the section that the user is editing is: ${JSON.stringify(section)}`
+            role: "user",
+            content: `The current state of the section that the user is editing is: ${JSON.stringify(section)}`
         },
         {
-          role: "user",
-          content: `Complete this sentence for the ${section.name} section: "${text}"`
+            role: "user",
+            content: `Complete this sentence for the ${section.name} section: "${text}"`
         }
-      ],
-      maxTokens: 100,
+    ] as ChatCompletionMessageParam[]
+
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-3.5-turbo',
+      messages: msgs,
+      functions: [completionFunction],
+      function_call: { name: 'provide_completions' },
       temperature: 0.7
     })
 
-    return new Response(result.textStream, {
+    const functionResponse = completion.choices[0].message.function_call?.arguments
+    if (!functionResponse) {
+      throw new Error('No completion generated')
+    }
+
+    const { completions } = JSON.parse(functionResponse)
+    
+    return new Response(JSON.stringify({ completions }), {
       headers: {
-        'Content-Type': 'text/plain; charset=utf-8'
+        'Content-Type': 'application/json'
       }
     })
+
   } catch (error) {
     console.error('Error in completion:', error)
     return new Response('Error in completion', { status: 500 })
