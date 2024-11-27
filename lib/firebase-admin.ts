@@ -5,7 +5,7 @@ try {
     console.log('Starting Firebase initialization...');
 
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT?.replace(/\\n/g, '\n') || '{}');
-    console.log('Service account:', serviceAccount);
+    console.log('Service account:', process.env.FIREBASE_SERVICE_ACCOUNT?.replace(/\\n/g, '\n'));
 
     console.log('Service account parsed:', {
         hasProjectId: !!serviceAccount.project_id,
