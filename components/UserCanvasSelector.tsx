@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { CanvasTypeSelector } from "./CanvasTypeSelector"
 import { ExistingCanvases } from "./Canvas/ExistingCanvases"
 import { CanvasTypeCard } from "./Canvas/CanvasTypeCard"
+import { Canvas } from "@/types/canvas"
 
 export function UserCanvasSelector() {
   const { userCanvases, loadCanvas } = useCanvas()
@@ -59,7 +60,7 @@ export function UserCanvasSelector() {
       <div className="flex flex-col w-full h-screen overflow-y-auto bg-background">
         <div className="p-8 space-y-12">
           <ExistingCanvases 
-            userCanvases={userCanvases}
+            userCanvases={userCanvases as Canvas[]}
             onCanvasSelect={handleCanvasSelect}
           />
 
