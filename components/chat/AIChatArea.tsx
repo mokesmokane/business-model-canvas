@@ -60,8 +60,6 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
     <>
           <div className="flex-shrink-0">
             <ChatHeader 
-              isContextEnabled={isContextEnabled}
-              onToggleContext={() => setIsContextEnabled(!isContextEnabled)}
               isWide={isWide}
               onClearChat={handleClearChat}
               onToggleWidth={()=>setIsWide(!isWide)}
