@@ -10,6 +10,7 @@ import { AIAgent } from '@/types/canvas';
 import { useAuth } from './AuthContext';
 import { sendChatRequest, sendContextlessChatRequest } from '@/services/aiService';
 import { sendAdminChatRequest } from '@/services/aiService';
+import { useCanvasContext } from './ContextEnabledContext';
 
 export interface Message {
   role: 'user' | 'assistant' | 'error' | 'system' | 'thinking';
@@ -151,7 +152,6 @@ interface ChatContextType {
   interaction: Interaction | null;
   activeSection: string | null;
   activeTool: string | null;
-  isContextEnabled: boolean;
   setActiveSection: (section: string|null) => void;
   setInput: (input: string) => void;
   setLoadingMessage: (message: string) => void;
@@ -159,7 +159,6 @@ interface ChatContextType {
   sendMessage: (message: Message, action?: string) => void;
   setInteraction: (interaction: Interaction|null) => void;
   setActiveTool: (tool: string|null) => void;
-  setIsContextEnabled: (enabled: boolean) => void;
 }
 
 const ChatContext = createContext<ChatContextType>({
@@ -170,8 +169,6 @@ const ChatContext = createContext<ChatContextType>({
   interaction: null,
   activeSection: null,
   activeTool: null,
-  isContextEnabled: false,
-  setIsContextEnabled: () => {},
   setActiveSection: () => {},
   setInput: () => {},
   setLoadingMessage: () => {},
@@ -191,7 +188,8 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const { updateSection, updateQuestionAnswer, formData, aiAgent } = useCanvas()
   const [activeTool, setActiveTool] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
-  const [isContextEnabled, setIsContextEnabled] = useState(false)
+  const { isContextEnabled } = useCanvasContext();
+
   const addMessage = (message: Message) => {
     setMessages(prevMessages => {
       const newMessages = [...prevMessages, message];
@@ -199,7 +197,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       return newMessages;
     });
   };
-
 
   const clearMessages = useCallback(() => {
     setMessages([]);
@@ -337,8 +334,6 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       interaction,
       activeSection,
       activeTool,
-      isContextEnabled,
-      setIsContextEnabled,
       setInput,
       setLoadingMessage,
       clearMessages,

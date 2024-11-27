@@ -1,18 +1,14 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useCanvas } from '@/contexts/CanvasContext'
 import { useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
-import { sendChatRequest } from '@/services/aiService'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { ChatHeader } from './ChatHeader'
-import { Section } from '@/types/canvas'
 import { ChatInput } from './ChatInput'
 import { ChatMessageList } from './ChatMessageList'
-import { useAuth } from '@/contexts/AuthContext'
 import { useAIAgents } from '@/contexts/AIAgentContext'
-
+import { useCanvasContext } from '@/contexts/ContextEnabledContext'
 
 export function AIChatArea({ onClose }: { onClose?: () => void }) {
 
@@ -20,7 +16,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isExpanded, isWide, setIsExpanded, setIsWide } = useExpanded()
-  const { isContextEnabled, setIsContextEnabled } = useChat()
+  const { isContextEnabled, setIsContextEnabled } = useCanvasContext()
   const { getAIAgent } = useAIAgents()
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

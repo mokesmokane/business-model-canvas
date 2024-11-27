@@ -1,11 +1,12 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Bot, Shrink, Expand, MoreVertical, ChevronDown, Layers, X, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCanvas } from '@/contexts/CanvasContext'
 import DynamicIcon from '../Util/DynamicIcon'
 import { Info } from 'lucide-react'
 import { useAIAgents } from '@/contexts/AIAgentContext'
-import { useChat } from '@/contexts/ChatContext'
+import { useCanvasContext } from '@/contexts/ContextEnabledContext'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +29,8 @@ interface ChatHeaderProps {
 export function ChatHeader({ isWide, onClearChat, onToggleWidth, onClose }: ChatHeaderProps) {
   const { currentCanvas } = useCanvas()
   const { agentCache } = useAIAgents()
-  const { isContextEnabled, setIsContextEnabled } = useChat()
+  const { isContextEnabled, setIsContextEnabled } = useCanvasContext()
+  console.log('ChatHeader isContextEnabled:', isContextEnabled)
   const aiAgent = currentCanvas?.canvasType.id ? agentCache[currentCanvas.canvasType.id] : null
   return (
     <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">

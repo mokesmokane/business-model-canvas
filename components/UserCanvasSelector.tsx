@@ -11,6 +11,7 @@ import { CanvasTypeSelector } from "./CanvasTypeSelector"
 import { ExistingCanvases } from "./Canvas/ExistingCanvases"
 import { CanvasTypeCard } from "./Canvas/CanvasTypeCard"
 import { Canvas } from "@/types/canvas"
+import { useCanvasContext } from "@/contexts/ContextEnabledContext"
 
 export function UserCanvasSelector() {
   const { userCanvases, loadCanvas } = useCanvas()
@@ -19,6 +20,7 @@ export function UserCanvasSelector() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showTypeSelector, setShowTypeSelector] = useState(false)
   const [selectedType, setSelectedType] = useState<CanvasType | null>(null)
+  const { setIsContextEnabled } = useCanvasContext()
   const [newCanvasRef] = useEmblaCarousel({
     dragFree: true,
     containScroll: "trimSnaps"
@@ -43,6 +45,7 @@ export function UserCanvasSelector() {
 
   const handleCanvasSelect = async (canvasId: string) => {
     await loadCanvas(canvasId)
+    setIsContextEnabled(true)
     localStorage.setItem('lastCanvasId', canvasId)
   }
 
