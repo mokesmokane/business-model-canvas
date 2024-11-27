@@ -55,6 +55,10 @@ export function UserCanvasSelector() {
     return Object.entries(canvasTypes).filter(([_, type]) => type.tags?.includes(tagName));
   }
 
+  const getCustomCanvasTypes = () => {
+    return Object.entries(canvasTypes).filter(([_, type]) => type.isCustom);
+  }
+
   return (
     <>
       <div className="flex flex-col w-full h-screen overflow-y-auto bg-background">
@@ -63,6 +67,23 @@ export function UserCanvasSelector() {
             userCanvases={userCanvases as Canvas[]}
             onCanvasSelect={handleCanvasSelect}
           />
+
+          {getCustomCanvasTypes().length > 0 && (
+            <div>
+              <h2 className="text-3xl font-bold tracking-tight mb-4">Custom Canvas Types</h2>
+              <div className="overflow-hidden">
+                <div className="flex gap-6 pl-6">
+                  {getCustomCanvasTypes().map(([key, type]) => (
+                    <CanvasTypeCard
+                      key={key}
+                      type={type}
+                      onClick={handleNewCanvasSelect}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
             <div className="flex items-center mb-4">
