@@ -3,28 +3,28 @@ import * as admin from 'firebase-admin';
 
 try {
     console.log('Starting Firebase initialization...');
-    const serviceAccountJSON = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT || '', 'base64').toString('utf8');
-    console.log('Service account JSON:', serviceAccountJSON);
-    const serviceAccount = JSON.parse(serviceAccountJSON);
+    const serviceAccountEnv = process.env.FIREBASE_SERVICE_ACCOUNT || '';
+    
+    if (serviceAccountEnv) {
+        const serviceAccountJSON = Buffer.from(serviceAccountEnv, 'base64').toString('utf8');
+        console.log('Service account JSON:', serviceAccountJSON);
+        const serviceAccount = JSON.parse(serviceAccountJSON);
 
+        console.log('Service account parsed:', {
+            hasProjectId: !!serviceAccount.project_id,
+            hasClientEmail: !!serviceAccount.client_email,
+            hasPrivateKey: !!serviceAccount.private_key,
+        });
 
-    console.log('Service account parsed:', {
-        hasProjectId: !!serviceAccount.project_id,
-        hasClientEmail: !!serviceAccount.client_email,
-        hasPrivateKey: !!serviceAccount.private_key,
-    });
-
-    if (!admin.apps.length) {   
-        if (Object.keys(serviceAccount).length > 0) {
+        if (!admin.apps.length) {
             admin.initializeApp({
                 credential: admin.credential.cert(serviceAccount),
             });
             console.log('Firebase initialized with service account');
-        } else {
-            console.log('No service account found, falling back to individual credentials');
-            // console.log('FIREBASE_PRIVATE_KEY:', process.env.FIREBASE_PRIVATE_KEY);
-            // console.log('FIREBASE_CLIENT_EMAIL:', process.env.FIREBASE_CLIENT_EMAIL);
-            // console.log('FIREBASE_PROJECT_ID:', process.env.FIREBASE_PROJECT_ID);
+        }
+    } else {
+        console.log('No service account found, falling back to individual credentials');
+        if (!admin.apps.length) {
             admin.initializeApp({
                 credential: admin.credential.cert({
                     privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),

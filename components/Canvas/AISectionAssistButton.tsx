@@ -48,8 +48,8 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
     } as Message
 
     setActiveTool(action)
-    
-    await sendMessage(message)
+    console.log('sending message', message, action)
+    await sendMessage(message, action)
 
   }
 

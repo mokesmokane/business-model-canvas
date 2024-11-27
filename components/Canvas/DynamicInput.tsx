@@ -37,26 +37,6 @@ interface DynamicInputProps {
     const promptTimeoutRef = useRef<NodeJS.Timeout>()
     const currentSuggestion = suggestions[currentSuggestionIndex] || ''
     
-    // Update input value when initialValue changes
-    useEffect(() => {
-      setInputValue(initialValue)
-      setIsExpanded(!!initialValue)
-      if (initialValue && textareaRef.current) {
-        textareaRef.current.focus()
-      }
-    }, [initialValue])
-
-    // Show/hide button with animation
-    useEffect(() => {
-      let timer: NodeJS.Timeout
-      if (isExpanded) {
-        timer = setTimeout(() => setShowButton(true), 300)
-      } else {
-        setShowButton(false)
-      }
-      return () => clearTimeout(timer)
-    }, [isExpanded])
-    
     const handleSubmit = () => {
       if (inputValue.trim()) {
         onSubmit(inputValue.trim())
@@ -99,7 +79,6 @@ interface DynamicInputProps {
       setIsExpanded(true)
       setSuggestions([])
       setCurrentSuggestionIndex(0)
-      setShowButton(true)
   
       if (promptTimeoutRef.current) {
         clearTimeout(promptTimeoutRef.current)
@@ -117,29 +96,38 @@ interface DynamicInputProps {
     const handleKeyDown = async (e: React.KeyboardEvent) => {
       if (e.key === 'Tab' && !e.shiftKey) {
         e.preventDefault()
-        if (showTabPrompt && !isLoading && suggestions.length === 0) {
+        if ((showTabPrompt || inputValue.trim().length === 0) && !isLoading && suggestions.length === 0) {
           setShowTabPrompt(false)
           await getSuggestions(inputValue)
         } else if (suggestions.length > 0) {
           setCurrentSuggestionIndex((prev) => (prev + 1) % suggestions.length)
         }
-      } else if (e.key === 'Enter') {
+      } else if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault()
         if (suggestions.length > 0) {
-          e.preventDefault()
           setInputValue(prev => prev + currentSuggestion)
           setSuggestions([])
           setCurrentSuggestionIndex(0)
-        } else if (e.shiftKey) {
-          return
         } else {
-          e.preventDefault()
           handleSubmit()
         }
+      } else if (e.key === 'Enter' && (e.shiftKey || e.metaKey)) {
+        // Allow new line insertion
       } else if (e.key === 'Escape' && onCancel) {
         e.preventDefault()
         handleCancel()
       }
     }
+  
+    useEffect(() => {
+      let timer: NodeJS.Timeout
+      if (isExpanded) {
+        timer = setTimeout(() => setShowButton(true), 300)
+      } else {
+        setShowButton(false)
+      }
+      return () => clearTimeout(timer)
+    }, [isExpanded])
   
     return (
       <div 
@@ -154,7 +142,7 @@ interface DynamicInputProps {
         <div className={`relative transition-all duration-300 ease-in-out`}>
           <div className="relative">
             <div className="absolute inset-0 pointer-events-none">
-              <div className="p-[9px] whitespace-pre-wrap break-words text-base md:text-sm">
+              <div className="pt-[9px] pl-[13px] whitespace-pre-wrap break-words text-base md:text-sm">
                 <span className="opacity-0">{inputValue}</span>
                 <span className="text-muted-foreground">{currentSuggestion}</span>
               </div>
@@ -203,6 +191,12 @@ interface DynamicInputProps {
             {isLoading && (
               <div className="text-muted-foreground">
                 <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/>
+              </div>
+            )}
+            {isFocused && !showTabPrompt && suggestions.length === 0 && !isLoading && (
+              <div className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                <kbd className="bg-background px-1 rounded">Tab</kbd>
+                <span>suggest</span>
               </div>
             )}
           </div>

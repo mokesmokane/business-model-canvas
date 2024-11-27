@@ -18,9 +18,7 @@ function Providers({ children }: { children: React.ReactNode }) {
   return (
     <TooltipProvider>
       <SubscriptionProvider>
-          <ChatProvider>
             {children}
-          </ChatProvider>
       </SubscriptionProvider>
     </TooltipProvider>
   )

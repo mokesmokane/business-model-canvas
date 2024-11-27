@@ -35,11 +35,12 @@ export function MessageRenderer({ message, messageIndex}: MessageRendererProps) 
 
   // Render additional content based on message type
   const renderAdditionalContent = () => {
-    if (message instanceof CanvasTypeSuggestionMessage) {
-      return <CanvasTypeSuggestionMessageDetails message={message} />
+    console.log('message', message)
+    if ((message instanceof CanvasTypeSuggestionMessage && message.canvasTypes) || (message as CanvasTypeSuggestionMessage).canvasTypes) {
+      return <CanvasTypeSuggestionMessageDetails message={message as CanvasTypeSuggestionMessage} />
     }
 
-    if (message instanceof SuggestionMessage && message.suggestions || (message as SuggestionMessage).suggestions) {
+    if ((message instanceof SuggestionMessage && message.suggestions) || (message as SuggestionMessage).suggestions) {
       return <SuggestionMessageDetails message={(message as SuggestionMessage)} messageIndex={messageIndex} />
     }
 
@@ -82,7 +83,7 @@ export function MessageRenderer({ message, messageIndex}: MessageRendererProps) 
 } 
 
 export function CanvasTypeSuggestionMessageDetails({ message }: { message: CanvasTypeSuggestionMessage }) {
-    const existing = message.canvasTypeSuggestions.map((suggestion) => (
+    const existing = message.canvasTypes.map((suggestion) => (
         <div key={suggestion}>
           <CanvasSuggestionItem canvasTypeId={suggestion} onSelect={() => {}} />
         </div>

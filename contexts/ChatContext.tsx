@@ -104,20 +104,20 @@ export class CreateCanvasTypeMessage implements Message {
 export class CanvasTypeSuggestionMessage implements Message {
   role: 'assistant' = 'assistant'
   content: string
-  canvasTypeSuggestions: string[]
+  canvasTypes: string[]
   newCanvasType: {
     canvasType: string;
     sections: string[];
     purpose: string;
   }
 
-  constructor(content: string, canvasTypeSuggestions: string[], newCanvasType: {
+  constructor(content: string, canvasTypes: string[], newCanvasType: {
     canvasType: string;
     sections: string[];
     purpose: string;
   }) {
     this.content = content
-    this.canvasTypeSuggestions = canvasTypeSuggestions
+    this.canvasTypes = canvasTypes
     this.newCanvasType = newCanvasType
   }
 }
@@ -349,13 +349,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           newMessage: userMessage,
           action: action || activeTool || undefined
         }
+        console.log('sending message', envelope)
+        console.log('interaction', interaction)
+        console.log('formData', formData)
+        console.log('isContextEnabled', isContextEnabled)
         const send = 
           interaction ? routeInteraction(envelope)
           : formData && isContextEnabled ? sendChatRequest
           : sendContextlessChatRequest
         const aiResponse = send(envelope, formData, aiAgent)
         for await (const message of aiResponse) {
-          if(message.role === 'thinking') {
+          if(message.role === 'thinking') { 
             setLoadingMessage(message.content)
           }
           else {

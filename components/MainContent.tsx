@@ -13,6 +13,7 @@ import { AIAgentProvider } from "@/contexts/AIAgentContext"
 import { Providers } from "./providers/Providers"
 import { CanvasFoldersProvider } from "@/contexts/CanvasFoldersContext"
 import { CanvasContextProvider } from "@/contexts/ContextEnabledContext"
+import { ChatProvider } from "@/contexts/ChatContext"
 export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
@@ -40,8 +41,9 @@ export function MainContent() {
             <CanvasFoldersProvider>
             <CanvasContextProvider>
             <AIAgentProvider>
-              <CanvasProvider>
-                {isMobile ? (
+                <CanvasProvider>
+                <ChatProvider>
+                  {isMobile ? (
                   <>
                     <MobileHeader />
                     <MobileBusinessModelCanvas />
@@ -54,6 +56,7 @@ export function MainContent() {
                     </div>
                   </div>
                 )}
+                </ChatProvider> 
                 </CanvasProvider>
               </AIAgentProvider>    
               </CanvasContextProvider>

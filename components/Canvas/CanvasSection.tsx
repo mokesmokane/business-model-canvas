@@ -15,6 +15,7 @@ import { QuestionsDialog } from './QuestionsDialog'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { debounce } from 'lodash'
 import DynamicIcon from '../Util/DynamicIcon'
+import { useExpanded } from '@/contexts/ExpandedContext'
 interface AISuggestion {
   id: string;
   suggestion: string;
@@ -46,7 +47,7 @@ export function CanvasSection({
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isQuestionsDialogOpen, setIsQuestionsDialogOpen] = useState(false)
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
-
+  const { setIsExpanded, setIsWide } = useExpanded()
   const [expandedItemIndex, setExpandedItemIndex] = useState<number | null>(null);
 
   const handleItemClick = (index: number) => {
@@ -123,7 +124,7 @@ export function CanvasSection({
                     <MoreVertical />
                   </Button>
                 )}
-                <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {}} />
+                <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {setIsWide(true); setIsExpanded(true)}} />
               </CardTitle>
             </TooltipTrigger>
             {(itemsArray.length > 0) && (
