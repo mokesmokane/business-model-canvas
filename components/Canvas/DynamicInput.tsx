@@ -37,6 +37,26 @@ interface DynamicInputProps {
     const promptTimeoutRef = useRef<NodeJS.Timeout>()
     const currentSuggestion = suggestions[currentSuggestionIndex] || ''
     
+    // Update input value when initialValue changes
+    useEffect(() => {
+      setInputValue(initialValue)
+      setIsExpanded(!!initialValue)
+      if (initialValue && textareaRef.current) {
+        textareaRef.current.focus()
+      }
+    }, [initialValue])
+
+    // Show/hide button with animation
+    useEffect(() => {
+      let timer: NodeJS.Timeout
+      if (isExpanded) {
+        timer = setTimeout(() => setShowButton(true), 300)
+      } else {
+        setShowButton(false)
+      }
+      return () => clearTimeout(timer)
+    }, [isExpanded])
+    
     const handleSubmit = () => {
       if (inputValue.trim()) {
         onSubmit(inputValue.trim())

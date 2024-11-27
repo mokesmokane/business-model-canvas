@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     ] as ChatCompletionMessageParam[]
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o',
       messages: msgs,
       functions: [completionFunction],
       function_call: { name: 'provide_completions' },
