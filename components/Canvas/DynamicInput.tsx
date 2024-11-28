@@ -129,6 +129,14 @@ interface DynamicInputProps {
       return () => clearTimeout(timer)
     }, [isExpanded])
   
+    useEffect(() => {
+      if (isEditing && initialValue) {
+        setInputValue(initialValue);
+      } else {
+        setInputValue('');
+      }
+    }, [isEditing, initialValue]);
+  
     return (
       <div 
         className="w-full"

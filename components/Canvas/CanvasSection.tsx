@@ -55,7 +55,7 @@ export function CanvasSection({
   };
 
   const handleAddOrUpdateItem = (content: string) => {
-    if (editingIndex !== null) {
+    if (editingIndex !== null && editingIndex >= 0) {
       // Update existing item
       const newItems = [...itemsArray]
       newItems[editingIndex] = content
@@ -172,12 +172,16 @@ export function CanvasSection({
         
         <div className="flex-shrink-0 mt-auto pt-2">
           <DynamicInput 
-            placeholder={title}
+            placeholder={`Add ${title}`}
             section={section}
             onSubmit={handleAddOrUpdateItem}
-            onCancel={editingIndex !== null ? handleEditCancel : undefined}
+            onCancel={() => {
+              handleEditCancel();
+              setEditingIndex(null);
+            }}
             initialValue={editingIndex !== null ? itemsArray[editingIndex] : ''}
             isEditing={editingIndex !== null}
+            key={`input-${editingIndex}`}
           />
         </div>
       </CardContent>

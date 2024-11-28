@@ -94,8 +94,8 @@ function ScreenshotContent({ id }: { id: string }) {
   }
 
   return (
-    <div className="absolute inset-0 min-h-screen">
-      <div ref={canvasRef} className="h-full min-h-screen">
+    <div className="relative h-screen w-screen">
+      <div ref={canvasRef}>
         <ReadOnlyCanvas 
           sections={formData.sections}
           canvasType={formData.canvasType}
