@@ -3,7 +3,7 @@ import { CanvasType } from '@/types/canvas-sections'
 import { CSSProperties } from 'react'
 import * as Icons from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { LucideIcon } from 'lucide-react'
+import { LucideIcon, LucideProps } from 'lucide-react'
 
 interface ReadOnlyCanvasProps {
   sections: Map<string, Section>
@@ -18,6 +18,8 @@ interface ReadOnlyCanvasProps {
   title: string
   description?: string
 }
+
+type IconType = React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>
 
 function ReadOnlyHeader({ title, description }: { title: string; description?: string }) {
   return (
@@ -43,7 +45,7 @@ function ReadOnlySection({
   items: string[]
   config?: {
     name: string
-    icon: LucideIcon
+    icon: IconType
     color?: string
   }
 }) {
@@ -115,9 +117,9 @@ function ReadOnlyContent({ sections, canvasType, canvasLayout }: Omit<ReadOnlyCa
                 <ReadOnlySection
                   title={item.config?.name || ''}
                   items={item.section.items}
-                  config={item.config && {
-                    ...item.config,
-                    icon: Icon
+                  config={Icon && {
+                    name: item.config!.name,
+                    icon: Icon as IconType
                   }}
                 />
               </div>
