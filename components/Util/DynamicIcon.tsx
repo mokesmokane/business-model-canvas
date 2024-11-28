@@ -1,4 +1,4 @@
-import { icons } from 'lucide-react';
+import { icons, LayoutDashboard } from 'lucide-react';
 
 const DynamicIcon = ({name, className, color, size}: {name: string, className?: string, color?: string, size?: number}) => {
   const LucideIcon = icons[name as keyof typeof icons];
@@ -9,7 +9,7 @@ const DynamicIcon = ({name, className, color, size}: {name: string, className?: 
     if (name.length === 1 && name.match(/^[a-zA-Z]$/)) {
       return <span className={className}>{name}</span>;
     }
-    return null;
+    return <LayoutDashboard className={className} color={color} size={size}/>;
   }
 
   return <LucideIcon className={className} color={color} size={size}/>;

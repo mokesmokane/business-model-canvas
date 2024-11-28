@@ -67,7 +67,7 @@ export function ChatMessageList({
     }
   }
   
-  const { isLoading, loadingMessage, setInteraction, interaction, loadChat } = useChat()
+  const { isLoading, loadingMessage, setInteraction, interaction, loadChat, chatHistories } = useChat()
   const { currentCanvas, loadCanvas } = useCanvas()
   const { setIsContextEnabled, isContextEnabled } = useCanvasContext()
 
@@ -169,7 +169,7 @@ export function ChatMessageList({
   const Icon = options[selectedCategory as keyof typeof options]?.icon
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {isEmptyChat && interaction?.interaction !== 'admin' ? (
+      {isEmptyChat && interaction?.interaction !== 'admin' && selectedCategory !== "history" && selectedCategory !== "canvasHistory" ?(
         <div className="h-full flex flex-col justify-center">
           <div className="text-center">
             <h3 className="text-lg font-semibold mb-4 text-foreground flex items-center justify-center gap-2">
@@ -201,30 +201,7 @@ export function ChatMessageList({
               className="flex justify-center"
             >
               <AnimatePresence mode="wait">
-                {selectedCategory === 'history' || selectedCategory === 'canvasHistory' ? (
-                  <motion.div
-                  key="history"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex-1 flex flex-col h-full"
-                >
-                  <ChatHistoryList
-                    onSelect={async (chatId, canvasId) => {
-                      loadChat(chatId)
-                      
-                      if(canvasId) {
-                        await loadCanvas(canvasId)
-                        setIsContextEnabled(true)
-                        localStorage.setItem('lastCanvasId', canvasId)
-                      }
-                      setSelectedCategory(null)
-                    }}
-                    onBack={() => setSelectedCategory(null)}
-                    canvasId={selectedCategory === 'canvasHistory' ? currentCanvas?.id : undefined}
-                  />
-                </motion.div>
-                ) : selectedCategory ? (
+                { selectedCategory ? (
                   <motion.div
                     key="suggestions"
                     initial={{ opacity: 0, height: "48px", marginBottom: "0.5rem" }}
@@ -341,6 +318,22 @@ export function ChatMessageList({
             </motion.div>
           </div>
         </div>
+      ) : selectedCategory === 'history' || selectedCategory === 'canvasHistory' ? (
+        <motion.div
+        key="history"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="flex-1 flex flex-col h-full"
+      >
+        <ChatHistoryList
+          onSelect={(chatId) => {
+            loadChat(chatId)
+            setSelectedCategory(null)
+          }}
+          onBack={() => setSelectedCategory(null)}
+        />
+        </motion.div>
       ) : (
         <>
           <ScrollArea className="flex-1">

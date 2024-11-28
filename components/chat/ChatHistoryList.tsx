@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Clock, FileText } from 'lucide-react'
+import { Bot, ChevronLeft, Clock, FileText } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { useChat } from '@/contexts/ChatContext'
@@ -91,8 +91,11 @@ export function ChatHistoryList({ onSelect, onBack, canvasId }: ChatHistoryListP
                 exit={{ opacity: 0 }}
                 className="flex flex-col max-w-sm mx-auto w-full h-full"
             >
-                <ScrollArea className="flex-1">
-                    <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between mb-4 px-4">
+            </div>
+                <ScrollArea className="flex-1 [&>div>div::-webkit-scrollbar]:hidden">
+                <div className="px-4 space-y-6">
+                    <div className="flex flex-col gap-6">
                         {['Today', 'Yesterday', 'Older'].map((group) => {
                             if (!groupedHistory[group]?.length) return null
 
@@ -103,7 +106,7 @@ export function ChatHistoryList({ onSelect, onBack, canvasId }: ChatHistoryListP
                                     animate={{ opacity: 1 }}
                                     transition={{ delay: itemCount * 0.1 }}
                                 >
-                                    <h4 className="text-sm font-medium text-muted-foreground mb-2">{group}</h4>
+                                    <h4 className="text-sm font-medium text-muted-foreground mb-3 text-center">{group}</h4>
                                     <div className="flex flex-col gap-2">
                                         {groupedHistory[group].map((chat, index) => {
                                             itemCount++
@@ -116,31 +119,32 @@ export function ChatHistoryList({ onSelect, onBack, canvasId }: ChatHistoryListP
                                                 >
                                                     <Button
                                                         variant="outline"
-                                                        className="w-full text-left justify-start"
+                                                        className="w-full text-left justify-start py-8 px-4"
                                                         onClick={() => handleChatSelect(chat)}
                                                     >
-                                                        <div className="flex items-center gap-2 w-full">
-                                                            {chat.canvasInfo ? (
-                                                                <DynamicIcon name={chat.canvasInfo.icon} className="w-4 h-4 text-blue-500" />
-                                                            ) : (
-                                                                <Clock className="w-4 h-4" />
-                                                            )}
-                                                            <div className="flex flex-col flex-1 min-w-0">
+                                                        <div className="flex flex-col gap-2 w-full">
+                                                            <div className="flex items-center gap-2">
+                                                                {chat.canvasInfo ? (
+                                                                    <DynamicIcon name={chat.canvasInfo.icon} className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                                                ) : (
+                                                                    <Bot className="w-4 h-4 flex-shrink-0" />
+                                                                )}
                                                                 <span className="font-medium truncate">{chat.title}</span>
-                                                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                                                    <span>{formatDistanceToNow(chat.updatedAt, { addSuffix: true })}</span>
-                                                                    {chat.canvasInfo && (
-                                                                        <>
-                                                                            <span className="text-muted-foreground">•</span>
-                                                                            <span className={cn(
-                                                                                "px-1.5 py-0.5 rounded-full text-[10px] font-medium",
-                                                                                "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
-                                                                            )}>
-                                                                                {chat.canvasInfo.name}
-                                                                            </span>
-                                                                        </>
-                                                                    )}
-                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                <span>{formatDistanceToNow(chat.updatedAt, { addSuffix: true })}</span>
+                                                                {chat.canvasInfo && (
+                                                                    <>
+                                                                        <span className="text-muted-foreground">•</span>
+                                                                        <span className={cn(
+                                                                            "px-1.5 py-0.5 rounded-full text-[10px] font-medium",
+                                                                            "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+                                                                        )}>
+                                                                            {chat.canvasInfo.name}
+                                                                        </span>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </Button>
@@ -152,6 +156,7 @@ export function ChatHistoryList({ onSelect, onBack, canvasId }: ChatHistoryListP
                             )
                         })}
                     </div>
+                </div>
                 </ScrollArea>
 
                 {onBack && (
@@ -159,11 +164,11 @@ export function ChatHistoryList({ onSelect, onBack, canvasId }: ChatHistoryListP
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: (itemCount + 1) * 0.1 }}
-                        className="mt-4 border-t pt-2 bg-background"
+                        className="mt-4 bg-background"
                     >
                         <Button
-                            variant="ghost"
-                            className="w-full text-muted-foreground"
+                            variant="link"
+                            className="w-full text-muted-foreground gap-2"
                             onClick={onBack}
                         >
                             ← Back
