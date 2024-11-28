@@ -4,8 +4,9 @@ import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { Canvas } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { Grid2x2, Moon, Sun } from 'lucide-react'
+import { Grid2x2, Moon, Sun, Printer } from 'lucide-react'
 import LayoutEditor from './LayoutEditor'
+import { useRouter } from 'next/navigation'
 
 interface HeaderProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -37,8 +38,8 @@ const ThemeToggleButton = () => {
 export function Header() {
   const { canvasTheme, formData, updateField } = useCanvas();
   const [showLayoutEditor, setShowLayoutEditor] = useState(false);
+  const router = useRouter();
   if (!formData) return null;
-
 
   useEffect(() => {
   }, [formData]);
@@ -129,6 +130,15 @@ export function Header() {
         >
           <Grid2x2 className="h-4 w-4" />
         </Button>
+        <Button
+          canvasTheme={canvasTheme}
+          variant="outline"
+          size="icon"
+          onClick={() => router.push(`/canvas/${formData.id}/screenshot`)}
+          className="ml-2"
+        >
+          <Printer className="h-4 w-4" />
+        </Button>
         <ThemeToggleButton />
       </div>
       <LayoutEditor 
@@ -136,6 +146,5 @@ export function Header() {
         onOpenChange={setShowLayoutEditor}
       />
     </div>
-    
   )
 } 
