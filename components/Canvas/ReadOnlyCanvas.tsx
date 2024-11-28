@@ -4,6 +4,8 @@ import { CSSProperties } from 'react'
 import * as Icons from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { LucideIcon, LucideProps } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Canvas } from '@/types/canvas'
 
 interface ReadOnlyCanvasProps {
   sections: Map<string, Section>
@@ -17,20 +19,87 @@ interface ReadOnlyCanvasProps {
   }
   title: string
   description?: string
+  name: string
+  designedFor: string
+  designedBy: string
+  date: string
+  version: string
 }
 
 type IconType = React.ForwardRefExoticComponent<Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>>
 
-function ReadOnlyHeader({ title, description }: { title: string; description?: string }) {
+interface ReadOnlyHeaderProps {
+  title: string;
+  description?: string;
+  name: string;
+  designedFor: string;
+  designedBy: string;
+  date: string;
+  version: string;
+  canvasTheme?: 'light' | 'dark';
+}
+
+function ReadOnlyHeader({ title, description, name, designedFor, designedBy, date, version, canvasTheme = 'light' }: ReadOnlyHeaderProps) {
   return (
-    <div className="flex h-16 items-center justify-between border-b border-border px-4 py-2">
-      <div className="flex items-center gap-2">
-        <div>
-          <h1 className="text-lg font-semibold">{title}</h1>
-          {description && (
-            <p className="text-sm text-muted-foreground">{description}</p>
-          )}
+    <div className={`flex items-center justify-between p-4 border-b ${
+      canvasTheme === 'light' 
+        ? 'bg-white border-gray-200 text-black'
+        : 'bg-gray-950 border-gray-800 text-white'
+    }`}>
+      <div className="flex items-center gap-4">
+        <h1 className={`text-3xl font-bold tracking-tight ${
+          canvasTheme === 'light' ? 'text-black' : 'text-white'
+        }`}>
+          {title}
+        </h1>
+        <div className="flex items-center gap-2">
+          <Input 
+            value={name}
+            className={`max-w-[200px] ${
+              canvasTheme === 'light' ? 'text-black' : 'text-white'
+            }`}
+            readOnly
+          />
         </div>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        <Input
+          className={`max-w-[150px] ${
+            canvasTheme === 'light' ? 'text-black' : 'text-white'
+          }`}
+          type="text"
+          placeholder="Designed For"
+          value={designedFor}
+          readOnly
+        />
+        <Input
+          className={`max-w-[150px] ${
+            canvasTheme === 'light' ? 'text-black' : 'text-white'
+          }`}
+          type="text"
+          placeholder="Designed By"
+          value={designedBy}
+          readOnly
+        />
+        <Input
+          className={`max-w-[150px] ${
+            canvasTheme === 'light' ? 'text-black' : 'text-white'
+          }`}
+          type="date"
+          placeholder="Date"
+          value={date}
+          readOnly
+        />
+        <Input
+          className={`max-w-[150px] ${
+            canvasTheme === 'light' ? 'text-black' : 'text-white'
+          }`}
+          type="text"
+          placeholder="Version"
+          value={version}
+          readOnly
+        />
       </div>
     </div>
   )
@@ -83,7 +152,7 @@ function ReadOnlySection({
   )
 }
 
-function ReadOnlyContent({ sections, canvasType, canvasLayout }: Omit<ReadOnlyCanvasProps, 'title' | 'description'>) {
+function ReadOnlyContent({ sections, canvasType, canvasLayout }: ReadOnlyCanvasProps) {
   const sortedSections = Array.from(sections.entries())
     .map(([key, section]) => ({
       key,
@@ -131,14 +200,21 @@ function ReadOnlyContent({ sections, canvasType, canvasLayout }: Omit<ReadOnlyCa
   )
 }
 
-export function ReadOnlyCanvas({ sections, canvasType, canvasLayout, title, description }: ReadOnlyCanvasProps) {
+export function ReadOnlyCanvas({ sections, canvasType, canvasLayout, title, description, name, designedFor, designedBy, date, version }: ReadOnlyCanvasProps) {
   return (
     <div className="flex h-full w-full flex-col overflow-hidden bg-background min-h-screen">
-      <ReadOnlyHeader title={title} description={description} />
+      <ReadOnlyHeader title={title} description={description} name={name} designedFor={designedFor} designedBy={designedBy} date={date} version={version} />
       <ReadOnlyContent 
         sections={sections}
         canvasType={canvasType}
         canvasLayout={canvasLayout}
+        title={title}
+        description={description}
+        name={name}
+        designedFor={designedFor}
+        designedBy={designedBy}
+        date={date}
+        version={version}
       />
     </div>
   )

@@ -102,6 +102,11 @@ function ScreenshotContent({ id }: { id: string }) {
           canvasLayout={formData.canvasLayout}
           title={formData.name}
           description={formData.description}
+          designedFor={formData.designedFor}
+          designedBy={formData.designedBy}
+          date={formData.date}
+          version={formData.version}
+          name={formData.name}
         />
       </div>
       <div className="fixed bottom-4 right-4 flex gap-2">
@@ -113,14 +118,14 @@ function ScreenshotContent({ id }: { id: string }) {
           <FileImage className="mr-2 h-4 w-4" />
           Save as PNG
         </Button>
-        <Button
+        {/* <Button
           onClick={downloadPDF}
           className="shadow-lg"
           size="lg"
         >
           <FileText className="mr-2 h-4 w-4" />
           Save as PDF
-        </Button>
+        </Button> */}
       </div>
     </div>
   )
