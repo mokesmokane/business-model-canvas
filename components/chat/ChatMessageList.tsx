@@ -327,6 +327,7 @@ export function ChatMessageList({
         className="flex-1 flex flex-col h-full"
       >
         <ChatHistoryList
+          canvasId={selectedCategory === 'canvasHistory' ? currentCanvas?.id : undefined}
           onSelect={(chatId) => {
             loadChat(chatId)
             setSelectedCategory(null)
