@@ -29,7 +29,7 @@ interface AISectionAssistButtonProps {
 
 export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: AISectionAssistButtonProps) {
   const { isLoading, messages, setActiveTool, sendMessage } = useChat()
-  const { formData, canvasTheme, aiAgent } = useCanvas()
+  const { formData, canvasTheme } = useCanvas()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
   const handleAction = async (action: string) => {
