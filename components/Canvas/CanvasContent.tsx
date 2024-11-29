@@ -2,6 +2,7 @@ import { CanvasSection } from "./CanvasSection"
 import { useEffect, useState } from "react"
 import { useCanvas } from "@/contexts/CanvasContext"
 import { CanvasTypeService } from "@/services/canvasTypeService"
+import { SectionItem } from "@/types/canvas"
 
 interface CanvasContentProps {
   onExpandSidebar: () => void
@@ -46,12 +47,12 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
             }}
           >
             <CanvasSection
-              key={`${item.key}-${item.section.items?.length}`}
+              key={`${item.key}-${item.section.sectionItems?.length}`}
               title={item.config?.name || ''}
               sectionKey={item.key}
               icon={item.config!.icon}
               section={item.section}
-              onChange={(value: string[]) => updateSection(item.key, value)}
+              onChange={(value: SectionItem[]) => updateSection(item.key, value)}
               placeholder={item.config?.placeholder || ''}
               className="h-full overflow-hidden"
             />
