@@ -5,7 +5,7 @@ import { collection, doc, getDoc, setDoc, addDoc, updateDoc, DocumentData, onSna
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 import debounce from 'lodash/debounce';
-import { AIAgent, AIQuestion, Canvas, CanvasItem, SerializedCanvas, SerializedSections } from '@/types/canvas';
+import { AIAgent, AIQuestion, Canvas, CanvasItem, SectionItem, SerializedCanvas, SerializedSections } from '@/types/canvas';
 import { deleteDoc } from 'firebase/firestore';
 import { BUSINESS_MODEL_LAYOUT, CanvasLayout, CanvasLayoutDetails, CanvasType, getInitialCanvasState } from '@/types/canvas-sections';
 import { AIAgentService } from '@/services/aiAgentService';
@@ -37,15 +37,15 @@ interface CanvasContextType {
   error: string | null;
   userCanvases: DocumentData[];
   canvasTheme: 'light' | 'dark';
-  aiAgent: AIAgent | null;
   canvasType: CanvasType | null;
   canvasLayout: CanvasLayout | null;
   updateField: (field: keyof Canvas, value: string) => void;
   updateLayout: (layout: string[], canvasLayout: CanvasLayout) => void;
-  updateSection: (sectionKey: string, items: string[]) => void;
+  updateSection: (sectionKey: string, items: SectionItem[]) => void;
+  updateItem: (sectionKey: string, item: SectionItem) => Promise<void>;
   updateQuestionAnswer: (question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<void>;
-  createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout }) => Promise<string | undefined>;
+  createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout, parentCanvasId?: string}) => Promise<string | undefined>;
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
   clearState: () => void;
@@ -60,12 +60,12 @@ export const CanvasContext = createContext<CanvasContextType>({
   error: null,
   userCanvases: [],
   canvasTheme: 'light',
-  aiAgent: null,
   canvasType: null,
   canvasLayout: null,
   updateLayout: () => { },
   updateField: () => { },
   updateSection: () => { },
+  updateItem: () => { return Promise.resolve() },
   updateQuestionAnswer: () => { },
   loadCanvas: async () => { },
   createNewCanvas: async () => { return '' },
@@ -81,8 +81,6 @@ export const CanvasContext = createContext<CanvasContextType>({
   const [state, setState] = React.useState<CanvasState | null>(null);
   const { onCanvasCreated, rootFolderId } = useCanvasFolders()
   const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
-  const { agentCache } = useAIAgents();
-  const [aiAgent, setAiAgent] = useState<AIAgent | null>(null);
   const { setIsContextEnabled } = useCanvasContext()
   const { user } = useAuth();
 
@@ -111,14 +109,16 @@ export const CanvasContext = createContext<CanvasContextType>({
   }, []);
 
   const saveToFirebase = useCallback(async (data: Canvas) => {
-    if (!user || !data.id) return;
+    if (!user) return;
+    
     try {
       setStatus('saving');
-      const serializedData = serializeCanvas({
-        ...data,
-        updatedAt: new Date()
-      });
-      await updateDoc(doc(db, 'userCanvases', user.uid, 'canvases', data.id), serializedData as any);
+      const canvasRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), data.id);
+      
+      // Serialize the data before saving
+      const serializedData = serializeCanvas(data);
+      
+      await setDoc(canvasRef, serializedData);
       setStatus('idle');
     } catch (error) {
       console.error('Error saving to Firebase:', error);
@@ -144,7 +144,71 @@ export const CanvasContext = createContext<CanvasContextType>({
     });
   }, [saveToFirebase]);
 
-  const updateSection = useCallback((sectionKey: string, items: string[]) => {
+  const updateItem = useCallback(async (sectionKey: string, item: SectionItem) => {
+    console.log('updateItem', sectionKey, item)
+    
+    // First, prepare the updated data outside of setState
+    const updatedData = await new Promise((resolve, reject) => {
+      setState(prev => {
+        if(!prev) {
+          reject(new Error('No previous state'));
+          return null;
+        }
+        console.log('prev', prev)
+        const sections = prev.formData.sections;
+        const section = sections.get(sectionKey);
+        console.log('section', section)
+        if (!section) {
+          reject(new Error('Section not found'));
+          return prev;
+        }
+        console.log('section.sectionItems', section.sectionItems)
+        
+        const updatedSections = new Map(sections);
+        const existingItem = section.sectionItems?.find(i => i.id === item.id);
+        console.log('existingItem', existingItem)
+        if (existingItem) {
+          const updatedItems = section.sectionItems?.map(i => i.id === item.id ? item : i);
+          updatedSections.set(sectionKey, {
+            ...section,
+            sectionItems: updatedItems
+          });
+          console.log('updatedSections', updatedSections)
+        } else {
+          section.sectionItems?.push(item);
+          console.log('updatedSections', updatedSections)
+        }
+
+        const updatedData = {
+          ...prev.formData,
+          sections: updatedSections,
+          id: prev.currentCanvas?.id || prev.formData.id
+        };
+
+        console.log('updatedData', updatedData)
+        resolve(updatedData);
+        
+        return {
+          ...prev,
+          formData: updatedData
+        };
+      });
+    });
+    console.log('updatedData', updatedData)
+    // Then wait for Firebase save to complete
+    await saveToFirebase(updatedData as Canvas);
+    console.log('updatedData saved')
+    // Finally, wait for React to complete the state update
+    return new Promise<void>(resolve => {
+      // Use requestAnimationFrame to ensure we're after React's next render
+      requestAnimationFrame(() => {
+        // Add a small delay to ensure state has updated
+        setTimeout(resolve, 0);
+      });
+    });
+  }, [saveToFirebase]);
+
+  const updateSection = useCallback((sectionKey: string, items: SectionItem[]) => {
     setState(prev => {
       if(!prev) {
         return null
@@ -156,9 +220,10 @@ export const CanvasContext = createContext<CanvasContextType>({
       if (!section) return prev;
 
       const updatedSections = new Map(sections);
+      
       updatedSections.set(sectionKey, {
         ...section,
-        items: items
+        sectionItems: items
       });
 
       const updatedData = {
@@ -199,13 +264,11 @@ export const CanvasContext = createContext<CanvasContextType>({
 
       setState(prev => {
         if(!prev) {
-          const aiAgent = agentCache[canvasData.canvasType.id]
           return {
             currentCanvas: canvasData,
             formData: canvasData,
             status: 'idle',
-            error: null,
-            aiAgent: aiAgent
+            error: null
           }
         }
         return {
@@ -228,15 +291,19 @@ export const CanvasContext = createContext<CanvasContextType>({
     name: string, 
     description: string, 
     canvasType: CanvasType, 
-    folderId: string 
+    folderId: string,
+    parentCanvasId?: string,
   }) => {
     if (!user) return;
 
     try {
-
       setStatus('saving');
-      const canvasId = await canvasService.createNewCanvas(data);
-      await loadCanvas(canvasId);
+      // Remove parentCanvasId if it's undefined
+      const cleanData = {
+        ...data,
+        parentCanvasId: data.parentCanvasId || null // Convert undefined to null
+      };
+      const canvasId = await canvasService.createNewCanvas(cleanData);
       return canvasId;
     } catch (error) {
       console.error('Error creating new canvas:', error);
@@ -498,14 +565,6 @@ export const CanvasContext = createContext<CanvasContextType>({
     return () => unsubscribe();
   }, [state?.formData?.canvasType?.id]);
 
-  // Add effect to sync aiAgent with agentCache
-  useEffect(() => {
-    if (state?.formData?.canvasType?.id) {
-      const agent = agentCache[state.formData.canvasType.id];
-      setAiAgent(agent || null);
-    }
-  }, [agentCache, state?.formData?.canvasType?.id]);
-
   return (
     <CanvasContext.Provider
       value={{
@@ -515,12 +574,12 @@ export const CanvasContext = createContext<CanvasContextType>({
         error: state?.error || null,
         userCanvases,
         canvasTheme: state?.formData?.theme || 'light',
-        aiAgent: aiAgent,
         canvasType: state?.formData?.canvasType || null,
         canvasLayout: state?.formData?.canvasLayout || null,
         updateField,
         updateLayout,
         updateSection,
+        updateItem,
         updateQuestionAnswer,
         loadCanvas,
         createNewCanvas,

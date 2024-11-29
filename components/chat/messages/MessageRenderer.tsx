@@ -6,9 +6,10 @@ import AISuggestionItem from "../AISuggestionItem"
 import AIQuestionItem from "../AIQuestionItem"
 import CanvasSuggestionItem from "./CanvasSuggestionItem"
 import NewCanvasSuggestionItem from "./NewCanvasSuggestionItem"
-import { Section } from "@/types/canvas"
+import { Section, TextSectionItem } from "@/types/canvas"
 import { useCanvas } from "@/contexts/CanvasContext"
 import { Button } from "@/components/ui/button"
+import { v4 as uuidv4 } from 'uuid'
 
 interface MessageRendererProps {
   message: Message
@@ -106,8 +107,8 @@ export function SuggestionMessageDetails({ message, messageIndex }: { message: S
             return
         }
         const sectionData = formData.sections.get(section) as Section
-        const currentItems = sectionData?.items || []
-        const newItems = [...currentItems, `${suggestion}\n\n${rationale}`]
+        const currentItems = sectionData?.sectionItems || []
+        const newItems = [...currentItems, new TextSectionItem(uuidv4(), `${suggestion}\n\n${rationale}`)]
         
         updateSection(section, newItems)
         // handleRemoveSuggestion(index, suggestionId)

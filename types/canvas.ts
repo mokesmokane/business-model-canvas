@@ -36,10 +36,26 @@ export interface AISuggestion {
   rationale: string;
 }
 
+export interface SectionItem {
+  id: string;
+  canvasLink: string | null;
+}
+
+export class TextSectionItem implements SectionItem {
+  id: string;
+  canvasLink: string | null;
+  content: string;
+
+  constructor(id: string, content: string) {
+    this.id = id;
+    this.content = content;
+    this.canvasLink = null;
+  }
+}
 export interface Section {
   name: string;
-  gridIndex?: number;
-  items: string[];
+  gridIndex: number;
+  sectionItems: SectionItem[];
   qAndAs: AIQuestion[];
 }
 
@@ -57,8 +73,21 @@ export interface AIQuestion {
   answer?: string | number;
 }
 
+export interface SerializedSectionItem {
+  id: string;
+  content: string;
+  canvasLink: string | null;
+}
+
+export interface SerializedSection {
+  name: string;
+  gridIndex: number;
+  sectionItems: any[];
+  qAndAs: AIQuestion[];
+}
+
 export interface SerializedSections {
-  [key: string]: Section;
+  [key: string]: SerializedSection;
 }
 
 export interface Canvas {
@@ -76,16 +105,17 @@ export interface Canvas {
   createdAt?: Date;
   updatedAt?: Date;
   theme?: 'light' | 'dark';
+  parentCanvasId: string | null;
 }
 
-export const createNewCanvas = (id: string, name: string, description: string, canvasType: CanvasType): Canvas => {
+export const createNewCanvas = (id: string, name: string, description: string, canvasType: CanvasType, parentCanvasId: string | null): Canvas => {
   const sectionsMap = new Map(
     canvasType.sections.map((s: CanvasSection): [string, Section] => [
       s.name,
       {
         name: s.name,
         gridIndex: s.gridIndex,
-        items: [],
+        sectionItems: [],
         qAndAs: []
       }
     ])
@@ -101,6 +131,7 @@ export const createNewCanvas = (id: string, name: string, description: string, c
     canvasType,
     createdAt: new Date(),
     updatedAt: new Date(),
+    parentCanvasId: parentCanvasId || null,
     canvasLayout: canvasType.defaultLayout ? canvasType.defaultLayout.layout : BUSINESS_MODEL_LAYOUT.layout,
     sections: sectionsMap,
   }
@@ -120,6 +151,7 @@ export interface SerializedCanvas {
   userId?: string;
   createdAt?: string;
   updatedAt?: string;
+  parentCanvasId: string | null;
 }
 
 export interface CanvasState {

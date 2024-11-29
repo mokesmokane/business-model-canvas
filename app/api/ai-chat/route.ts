@@ -125,6 +125,8 @@ export async function POST(request: Request) {
     let questionToolDescription = aiAgent.questionToolDescription
     let canvasType = currentContent?.canvasType || ''
 
+    console.log('currentContent', JSON.stringify(currentContent, null, 2))
+    console.log('canvasType', JSON.stringify(canvasType, null, 2))
     
     let canvasInfo = `The Canvas currently looks like this:
       

@@ -9,7 +9,7 @@ import useEmblaCarousel from 'embla-carousel-react'
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { CanvasTypeSelector } from "./CanvasTypeSelector"
 import { ExistingCanvases } from "./Canvas/ExistingCanvases"
-import { CanvasTypeCard } from "./Canvas/CanvasTypeCard"
+import { CanvasTypeCard } from "./CanvasTypeCards/CanvasTypeCard"
 import { Canvas } from "@/types/canvas"
 import { useCanvasContext } from "@/contexts/ContextEnabledContext"
 

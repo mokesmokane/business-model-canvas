@@ -1,16 +1,19 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { 
   Sparkles,
   Lightbulb,
-  MessageCircle
+  MessageCircle,
+  ArrowRight
 } from 'lucide-react'
 import { useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { sendChatRequest } from '@/services/aiService'
+import { ConfirmDiveInDialog } from './ConfirmDiveInDialog'
+import { SectionItem as SectionItemType } from '@/types/canvas'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,43 +21,50 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-const actions = [
-  { key: 'suggestEdit', label: 'Suggest Edit', icon: Lightbulb },
-  { key: 'critique', label: 'Critique', icon: MessageCircle }
-]
-
 interface AIItemAssistButtonProps {
-  section: string
-  sectionKey: string
+  sectionName: string
+  item?: SectionItemType
   onExpandSidebar: () => void
+  onDiveIn: () => void
   onDropdownStateChange: (isOpen: boolean) => void
 }
 
 export function AIItemAssistButton({ 
-  section, 
-  sectionKey, 
+  sectionName, 
+  item,
   onExpandSidebar,
+  onDiveIn,
   onDropdownStateChange 
 }: AIItemAssistButtonProps) {
   const { sendMessage, isLoading, messages } = useChat()
-  const { formData, canvasTheme, aiAgent } = useCanvas()
+  const { formData, canvasTheme, loadCanvas } = useCanvas()
 
-  const handleAction = async (action: string) => {
-    onExpandSidebar()
-    const actionMessage = action === 'question' 
-      ? `Question me about ${section}` 
-      : action === 'critique' 
-      ? `Critique the ${section}` 
-      : action === 'research' 
-      ? `Research the ${section}` 
-      : `Suggest things for ${section}`
+  const actions = [
+    { key: 'suggestEdit', label: 'Suggest Edit', icon: Lightbulb },
+    { key: 'critique', label: 'Critique', icon: MessageCircle },
+    { key: 'diveIn', label: item?.canvasLink ? 'Open Canvas Link' : 'Dive In', icon: ArrowRight },
+  ]
+  
+    const handleAction = async (action: string) => {
+    if (action === 'diveIn') {
+        onDiveIn()
+    } else {
+      onExpandSidebar()
+      const actionMessage = action === 'question' 
+        ? `Question me about ${sectionName}` 
+        : action === 'critique' 
+        ? `Critique the ${sectionName}` 
+        : action === 'research' 
+        ? `Research the ${sectionName}` 
+        : `Suggest things for ${sectionName}`
 
-    const message = {
-      role: 'user',
-      content: actionMessage,
-    } as Message
+      const message = {
+        role: 'user',
+        content: actionMessage,
+      } as Message
 
-    await sendMessage(message, action)
+      await sendMessage(message, action)
+    }
   }
 
   return (

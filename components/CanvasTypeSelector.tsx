@@ -21,6 +21,7 @@ import CustomCanvasManager from '@/components/CustomCanvas/CustomCanvasManager';
 import CustomCanvasEditor from "@/components/CustomCanvas/CustomCanvasEditor";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { AIAgent } from "@/types/canvas"
+import { CanvasTypeCard } from "./CanvasTypeCards/CanvasTypeCardBig"
 
 interface CanvasTypeSelectorProps {
   selectedType: CanvasType | null;
@@ -281,103 +282,19 @@ export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSele
                           type.tags?.some(tag => selectedTags.includes(tag))
                         )
                         .map(([key, type]) => (
-                        <motion.div
-                          key={key}
-                          layout
-                          initial={{ opacity: 1, scale: 1 }}
-                          animate={{
-                            opacity: selectedTypeLocal ? (selectedTypeLocal === type ? 1 : 0.5) : 1,
-                            scale: selectedTypeLocal === type ? 1.05 : 1,
-                            zIndex: selectedTypeLocal === type ? 10 : 1,
-                          }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          transition={{ duration: 0.5, ease: "easeInOut" }}
-                          style={{
-                            width: 510,
-                            height: 'auto',
-                          }}
-                        >
-                          <div
-                            className={`h-full p-8 flex flex-col items-center gap-4 w-full bg-background hover:bg-muted cursor-pointer border rounded-md relative ${
-                              selectedTypeLocal === type ? 'shadow-lg' : ''
-                            }`}
-                            onClick={() => handleCanvasTypeSelect(type)}
-                          >
-                            <CanvasTypeIcon icon={type.icon} theme={theme} />
-                            <div className="space-y-2 text-center">
-                              <h3 className="font-semibold text-foreground">{type.name}</h3>
-                              <p className="text-sm text-muted-foreground overflow-hidden text-ellipsis line-clamp-4">
-                                {type.description}
-                              </p>
-                            </div>
-                            
-                            {type.tags && type.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 justify-center">
-                                {type.tags.map(tagName => {
-                                  const tagInfo = TAG_INFO.find(t => t.name === tagName);
-                                  return tagInfo && (
-                                    <span
-                                      key={tagName}
-                                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${tagInfo.color}`}
-                                    >
-                                      {tagName}
-                                    </span>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {type.defaultLayout && (
-                              <div 
-                                className="grid gap-1 p-2 border rounded-md w-full mt-2"
-                                style={{
-                                  gridTemplateColumns: type.defaultLayout.layout.gridTemplate.columns,
-                                  gridTemplateRows: type.defaultLayout.layout.gridTemplate.rows,
-                                  minHeight: '200px'
-                                }}
-                              >
-                                {type.defaultLayout.layout.areas.map((area, index) => {
-                                  const [row, col, rowSpan, colSpan] = area.split('/').map(n => n.trim());
-                                  const sectionData = type.sections[index];
-
-                                  return (
-                                    <div
-                                      key={index}
-                                      className="flex items-center justify-center border-2 border-dashed h-full"
-                                      style={{
-                                        gridArea: `${row} / ${col} / ${rowSpan} / ${colSpan}`,
-                                      }}
-                                    >
-                                      {sectionData && (
-                                        <div className="flex items-center justify-center flex-wrap gap-1">
-                                          <DynamicIcon name={sectionData.icon} className="w-4 h-4 text-muted-foreground" />
-                                          <span className="text-xs text-center text-muted-foreground">{sectionData.name}</span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-
-                            {selectedTypeLocal === type && (
-                              <Button
-                                variant="outline"
-                                size="icon"
-                                className="absolute top-2 right-2"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setSelectedTypeLocal(null)
-                                  setSelectedLayout(null)
-                                }}
-                              >
-                                <XIcon className="w-4 h-4" />
-                                <span className="sr-only">Close</span>
-                              </Button>
-                            )}
-                          </div>
-                        </motion.div>
-                      ))}
+                          <CanvasTypeCard
+                            key={key}
+                            type={type}
+                            isSelected={selectedTypeLocal === type}
+                            onClick={handleCanvasTypeSelect}
+                            onClose={(e) => {
+                              e.stopPropagation();
+                              setSelectedTypeLocal(null);
+                              setSelectedLayout(null);
+                            }}
+                            theme={theme}
+                          />
+                        ))}
                     </AnimatePresence>
                   </div>
                 </ScrollArea>

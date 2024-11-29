@@ -101,7 +101,8 @@ export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvel
       name: nameDescription.name,
       description: nameDescription.description,
       canvasType: canvasType,
-      folderId: "root"
+      folderId: "root",
+      parentCanvasId: null
     });
 
     yield {
@@ -121,6 +122,30 @@ export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvel
       role: 'assistant',
       content: newCanvasTypeResponse.content
     }
+  }
+}
+
+export async function sendCreateCanvasTypeFromDiveRequest(messageEnvelope: MessageEnvelope) {
+  const newCanvasTypeResponse = await sendAdminChatRequest(messageEnvelope)
+  console.log('newCanvasTypeResponse', newCanvasTypeResponse)
+  if(newCanvasTypeResponse.canvasTypeSuggestions && newCanvasTypeResponse.canvasTypeSuggestions.length > 0) {
+    const suggestion = newCanvasTypeResponse.canvasTypeSuggestions[0]
+    console.log('suggestion', suggestion)
+    const canvasTypeId = uuidv4()
+    const canvasType: CanvasType = {
+      id: canvasTypeId, // This will be set by Firestore
+      name: suggestion.name,
+      description: suggestion.description,
+      icon: suggestion.icon,
+      sections: suggestion.sections || [],
+      defaultLayout: suggestion.defaultLayout
+    };
+    console.log('canvasType', canvasType)
+    await canvasTypeService.saveUserCanvasType(canvasType);
+    console.log('saving aiAgent')
+    const aiAgent = await aiAgentService.createandSaveAIAgent(canvasType)
+    console.log('aiAgent', aiAgent)
+    return canvasType
   }
 }
 

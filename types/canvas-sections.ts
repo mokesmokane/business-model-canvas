@@ -192,7 +192,7 @@ export const getInitialCanvasState = (canvasType: CanvasType, canvasLayout?: Can
     sections: new Map(
       canvasType.sections.map(section => [
         section.name,
-        { name: section.name, items: [], qAndAs: [], gridIndex: section.gridIndex } as Section
+        { name: section.name, sectionItems: [], qAndAs: [], gridIndex: section.gridIndex } as Section
       ])
     ),
     userId: '',
@@ -200,7 +200,8 @@ export const getInitialCanvasState = (canvasType: CanvasType, canvasLayout?: Can
     updatedAt: undefined,
     theme: 'light',
     canvasType: canvasType,
-    canvasLayout: canvasLayout || canvasType.defaultLayout?.layout || BUSINESS_MODEL_LAYOUT.layout
+    canvasLayout: canvasLayout || canvasType.defaultLayout?.layout || BUSINESS_MODEL_LAYOUT.layout,
+    parentCanvasId: null
   });
 
 // // Updated helper function to get initial sections map for a specific canvas type

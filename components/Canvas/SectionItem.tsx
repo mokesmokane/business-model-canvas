@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AIItemAssistButton } from './AIItemAssistButton';
-import { Edit2, Trash2 } from 'lucide-react';
+import { Edit2, Link, Trash2 } from 'lucide-react';
 import { useCanvas } from '@/contexts/CanvasContext';
-
+import { ConfirmDiveInDialog } from './ConfirmDiveInDialog';
+import { SectionItem as SectionItemType, TextSectionItem } from '@/types/canvas';
 interface SectionItemProps {
-  item: string;
+  item: SectionItemType;
   onDelete: () => void;
   isEditing: boolean;
   isActive: boolean;
@@ -14,6 +15,7 @@ interface SectionItemProps {
   onClick: () => void;
   onEditStart: () => void;
   onEditEnd: () => void;
+  onDiveIn: (item: SectionItemType) => void;
   className: string;
 }
 
@@ -26,11 +28,14 @@ export function SectionItem({
   onClick,
   onEditStart,
   onEditEnd,
+  onDiveIn,
   className,
 }: SectionItemProps) {
-  const { canvasTheme } = useCanvas();
+  const { loadCanvas, canvasTheme } = useCanvas();
   const showControls = isExpanded || isEditing;
-
+  const sectionItem = item as TextSectionItem;
+  console.log('item', JSON.stringify(item, null, 2))
+  console.log('sectionItem', JSON.stringify(sectionItem, null, 2))
   return (
     <Card
       canvasTheme={canvasTheme}
@@ -39,10 +44,23 @@ export function SectionItem({
       } ${className}`}
       onClick={onClick}
     >
+      {item.canvasLink && (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute top-1 right-1 p-1 !bg-transparent hover:!bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          onClick={() => {
+            loadCanvas(item.canvasLink!);
+            localStorage.setItem('lastCanvasLink', item.canvasLink!);
+          }}
+        >
+          <Link className="h-4 w-4" />
+        </Button>
+      )}
       <p className={`text-sm whitespace-pre-wrap mb-2 ${
         canvasTheme === 'light' ? 'text-gray-700' : 'text-gray-100'
       }`}>
-        {item}
+        {sectionItem.content}
       </p>
 
       <div
@@ -54,10 +72,11 @@ export function SectionItem({
       >
         <div className="flex items-center space-x-2 mt-2 justify-end">
           <AIItemAssistButton
-            section={item}
-            sectionKey={item}
+            item={item}
+            sectionName={sectionItem.content}
             onExpandSidebar={() => {}}
             onDropdownStateChange={() => {}}
+            onDiveIn={() => onDiveIn(sectionItem)}
           />
           <Button
             onClick={isEditing ? onEditEnd : onEditStart}

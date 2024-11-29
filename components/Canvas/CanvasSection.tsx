@@ -9,13 +9,19 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { DynamicInput } from './DynamicInput'
 import SectionItem from './SectionItem'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Section } from '@/types/canvas'
+import { Section, TextSectionItem } from '@/types/canvas'
 import { Button } from '../ui/button'
 import { QuestionsDialog } from './QuestionsDialog'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { debounce } from 'lodash'
 import DynamicIcon from '../Util/DynamicIcon'
 import { useExpanded } from '@/contexts/ExpandedContext'
+import { ConfirmDiveInDialog } from './ConfirmDiveInDialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { CanvasDiveSelector } from '../CanvasDiveSelector'
+import { DiveSuggestionsProvider } from '@/contexts/DiveSuggestionsContext'
+import { SectionItem as SectionItemType } from '@/types/canvas'
+import { v4 as uuidv4 } from 'uuid';
 interface AISuggestion {
   id: string;
   suggestion: string;
@@ -27,7 +33,7 @@ interface CanvasSectionProps {
   sectionKey: string;
   icon: string;
   section: Section;
-  onChange: (value: string[]) => void;
+  onChange: (value: SectionItemType[]) => void;
   placeholder: string;
   className?: string;
 }
@@ -41,14 +47,17 @@ export function CanvasSection({
   placeholder, 
   className 
 }: CanvasSectionProps) {
-  const { updateQuestions, canvasTheme } = useCanvas()
-  const itemsArray = Array.isArray(section.items) ? section.items : section.items ? [section.items] : [];
-  const questionsArray = Array.isArray(section.qAndAs) ? section.qAndAs : section.qAndAs ? [section.qAndAs] : [];
+  const { updateQuestions, canvasTheme, updateItem, loadCanvas } = useCanvas()
+  const sectionItemsArray = section.sectionItems || [];
+  const questionsArray = section.qAndAs || [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isQuestionsDialogOpen, setIsQuestionsDialogOpen] = useState(false)
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
   const { setIsExpanded, setIsWide } = useExpanded()
   const [expandedItemIndex, setExpandedItemIndex] = useState<number | null>(null);
+  const [isDiveInDialogOpen, setIsDiveInDialogOpen] = useState(false)
+  const [diveInItem, setDiveInItem] = useState<SectionItemType | null>(null)
+  const [letsDiveIn, setLetsDiveIn] = useState(false)
 
   const handleItemClick = (index: number) => {
     setExpandedItemIndex(expandedItemIndex === index ? null : index);
@@ -57,19 +66,19 @@ export function CanvasSection({
   const handleAddOrUpdateItem = (content: string) => {
     if (editingIndex !== null && editingIndex >= 0) {
       // Update existing item
-      const newItems = [...itemsArray]
-      newItems[editingIndex] = content
+      const newItems = [...sectionItemsArray]
+      newItems[editingIndex] = new TextSectionItem(uuidv4(), content) 
       onChange(newItems)
       setEditingIndex(null)
     } else {
       // Add new item
-      const newItems = [...itemsArray, content]
+      const newItems = [...sectionItemsArray, new TextSectionItem(uuidv4(), content)]
       onChange(newItems)
     }
   }
 
   const handleDeleteItem = (index: number) => {
-    const newItems = [...itemsArray]
+    const newItems = [...sectionItemsArray]
     newItems.splice(index, 1)
     onChange(newItems)
     if (editingIndex === index) {
@@ -96,6 +105,16 @@ export function CanvasSection({
     newQuestions[index] = updatedQuestion
     // You'll need to add a method to update questions in your context/state management
     // updateQuestions(sectionKey, newQuestions)
+  }
+
+  const handleDiveIn = (item: SectionItemType) => {
+    if(item.canvasLink) {
+      loadCanvas(item.canvasLink);
+      localStorage.setItem('lastCanvasId', item.canvasLink);
+    } else {
+      setIsDiveInDialogOpen(true)
+      setDiveInItem(item)
+    }
   }
   
   return (
@@ -127,7 +146,7 @@ export function CanvasSection({
                 <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {setIsWide(true); setIsExpanded(true)}} />
               </CardTitle>
             </TooltipTrigger>
-            {(itemsArray.length > 0) && (
+            {(sectionItemsArray.length > 0) && (
               <TooltipContent className={`whitespace-pre-line text-sm ${
                 canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
               }`}>
@@ -142,7 +161,7 @@ export function CanvasSection({
           className="flex-1 relative"
           style={{ height: 'calc(100% - 60px)' }}
         >
-                    {itemsArray.length === 0 && (
+                    {sectionItemsArray.length === 0 && (
             <div className={`absolute top-0 left-0 pointer-events-none text-sm whitespace-pre-line ${
               canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
             }`}>
@@ -151,10 +170,11 @@ export function CanvasSection({
           )}
 
           <div className="space-y-2">
-            {itemsArray.map((item, index) => (
+            {sectionItemsArray.map((item, index) => (
               <SectionItem
                 key={index}
                 item={item}
+                onDiveIn={handleDiveIn}
                 isActive={activeItemIndex === index}
                 isExpanded={expandedItemIndex === index}
                 onClick={() => handleItemClick(index)}
@@ -179,7 +199,7 @@ export function CanvasSection({
               handleEditCancel();
               setEditingIndex(null);
             }}
-            initialValue={editingIndex !== null ? itemsArray[editingIndex] : ''}
+            initialValue={editingIndex !== null ? (sectionItemsArray[editingIndex] as TextSectionItem).content : ''}
             isEditing={editingIndex !== null}
             key={`input-${editingIndex}`}
           />
@@ -193,6 +213,48 @@ export function CanvasSection({
         onEdit={handleEditQuestion}
         sectionTitle={title}
       />
+
+      <DiveSuggestionsProvider>
+      <ConfirmDiveInDialog
+        isOpen={isDiveInDialogOpen && diveInItem !== null}
+        onClose={() => setIsDiveInDialogOpen(false)}
+        onConfirm={() => {
+          setIsDiveInDialogOpen(false)
+          setLetsDiveIn(true)
+        }}
+        itemContent={(diveInItem as TextSectionItem)?.content || ''}
+        sectionName={title}
+      />
+
+      <Dialog open={letsDiveIn} onOpenChange={setLetsDiveIn}>
+        <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
+          <DialogTitle></DialogTitle>
+          <CanvasDiveSelector
+            onSuccess={async (canvasId) => {
+              console.log('canvasId', canvasId);
+              const updatedItem = {...diveInItem, canvasLink: canvasId} as SectionItemType
+              await updateItem(sectionKey, updatedItem)
+              setLetsDiveIn(false)
+              setDiveInItem(null)
+              if (canvasId) {
+                console.log('loading canvas', canvasId)
+                // loadCanvas(canvasId)
+                // localStorage.setItem('lastCanvasId', canvasId)
+              }
+            }}
+              section={
+                {
+                  id: sectionKey,
+                  name: title,
+                  placeholder: placeholder
+                }
+              }
+              item={diveInItem!}
+              onClose={() => setLetsDiveIn(false)}
+            />
+        </DialogContent>
+      </Dialog>
+      </DiveSuggestionsProvider>
     </Card>
   )
 }

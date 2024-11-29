@@ -16,6 +16,7 @@ interface CanvasFoldersContextType {
   setCurrentFolder: (folder: NestedCanvasFolder | null) => void;
   rootFolderId: string;
   rootFolder: NestedCanvasFolder | null;
+  canvasIdFolderMap: Map<string, string>;
   onCreateFolder: (parentId: string, name: string) => void;
   onCanvasCreated: (canvasItem: CanvasItem, folderId: string) => void;
   onCanvasMoved: (canvasId: string, oldFolderId: string,folderId: string) => void;
@@ -35,7 +36,7 @@ export function CanvasFoldersProvider({ children }: { children: React.ReactNode 
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth(); // Get the current user
   const rootFolderId = "root"
-
+  const [canvasIdFolderMap, setCanvasIdFolderMap] = useState<Map<string, string>>(new Map());
   const [currentFolder, setCurrentFolder] = useState<NestedCanvasFolder | null>(null)
 
   // Add real-time listener for folders
@@ -61,7 +62,17 @@ export function CanvasFoldersProvider({ children }: { children: React.ReactNode 
         const root = nestedFolders.find(folder => folder.id === rootFolderId);
         setCurrentFolder(root || null);
       }
+
+      const canvasIdFolderMap = new Map<string, string>();
+      nestedFolders.forEach(folder => {
+        folder.canvases.forEach((id) => {
+          canvasIdFolderMap.set(id.id, folder.id);
+        });
+      });
+      setCanvasIdFolderMap(canvasIdFolderMap);
     });
+
+
 
     return () => unsubscribe();
   }, [user?.uid]);
@@ -181,7 +192,23 @@ export function CanvasFoldersProvider({ children }: { children: React.ReactNode 
 
 
   return (
-    <CanvasFoldersContext.Provider value={{ getFolders, refreshFolders, isLoading, folders, rootFolder, onCreateFolder, onCanvasCreated, onCanvasMoved, onCanvasDeleted, currentFolder, setCurrentFolder, rootFolderId, onFolderDelete, onFolderRename }}>
+    <CanvasFoldersContext.Provider value={{ 
+      getFolders, 
+      refreshFolders, 
+      isLoading, 
+      folders, 
+      rootFolder, 
+      onCreateFolder, 
+      onCanvasCreated, 
+      onCanvasMoved, 
+      onCanvasDeleted, 
+      currentFolder, 
+      setCurrentFolder, 
+      rootFolderId, 
+      onFolderDelete, 
+      onFolderRename,
+      canvasIdFolderMap
+    }}>
       {children}
     </CanvasFoldersContext.Provider>
   );

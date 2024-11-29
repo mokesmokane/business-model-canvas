@@ -8,11 +8,7 @@ interface ChatRequest {
 }
 
 export async function* sendChatRequest(envelope: MessageEnvelope, currentContent: any, aiAgent: AIAgent | null) {
-  const serializedContent = {
-    ...currentContent,
-    sections: Object.fromEntries(currentContent.sections || new Map())
-  };
-
+  
   const response = await fetch('/api/ai-chat', {
     method: 'POST',
     headers: {
@@ -20,7 +16,7 @@ export async function* sendChatRequest(envelope: MessageEnvelope, currentContent
     },
     body: JSON.stringify({
       messageEnvelope: envelope,
-      currentContent: serializedContent,
+      currentContent: currentContent,
       aiAgent
     }),
   })

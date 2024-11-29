@@ -6,6 +6,7 @@ import { SerializedCanvas, SerializedSections } from '@/types/canvas';
 import { v4 as uuidv4 } from 'uuid';
 import { createNewCanvas } from '@/types/canvas';
 import { addCanvasToFolder, } from './folderService';
+import { TextSectionItem } from '@/types/canvas';
 
 // Add this helper function at the top of the file
 export const serializeCanvas = (canvas: Canvas): SerializedCanvas => {
@@ -31,12 +32,35 @@ export const serializeCanvas = (canvas: Canvas): SerializedCanvas => {
   
   // Helper functions for Map <-> Object conversion
   export const serializeSections = (sections: Map<string, Section>): SerializedSections => {
-    return Object.fromEntries(sections);
+    const serializedSections: SerializedSections = {};
+    sections.forEach((section, key) => {
+      serializedSections[key] = {
+        ...section,
+        sectionItems: (section.sectionItems || []).map(item => ({
+          ...item  // Just spread all properties directly
+        }))
+      };
+    });
+    return serializedSections;
   };
   
   export const deserializeSections = (sections: SerializedSections): Map<string, Section> => {
-    console.log('sections', sections)
-    return new Map(Object.entries(sections));
+    const sectionsMap = new Map<string, Section>();
+    Object.entries(sections).forEach(([key, section]) => {
+      sectionsMap.set(key, {
+        ...section,
+        gridIndex: section.gridIndex,
+        sectionItems: (section.sectionItems || []).map(item => {
+          if (item.content !== undefined) {
+            const textItem = new TextSectionItem(item.id, item.content);
+            textItem.canvasLink = item.canvasLink;
+            return textItem;
+          }
+          return item;
+        })
+      });
+    });
+    return sectionsMap;
   };
   
 export class CanvasService {
@@ -71,13 +95,14 @@ export class CanvasService {
     name: string, 
     description: string, 
     canvasType: CanvasType, 
-    folderId: string
+    folderId: string,
+    parentCanvasId: string | null
   }) {
     const userId = this.getUserId();
     const now = new Date();
     //to Section
     
-    const newCanvas = createNewCanvas(uuidv4(), data.name, data.description, data.canvasType);
+    const newCanvas = createNewCanvas(uuidv4(), data.name, data.description, data.canvasType, data.parentCanvasId);
 
     const serializedCanvas = serializeCanvas(newCanvas);
 

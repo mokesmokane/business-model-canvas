@@ -40,7 +40,7 @@ export function CompanyEditDialog() {
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Company Details</DialogTitle>
+          <DialogTitle>Canvas Details</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div>

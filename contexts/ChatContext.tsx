@@ -11,6 +11,7 @@ import { useAuth } from './AuthContext';
 import { sendChatRequest, sendContextlessChatRequest } from '@/services/aiService';
 import { sendAdminChatRequest } from '@/services/aiService';
 import { useCanvasContext } from './ContextEnabledContext';
+import { useAIAgents } from './AIAgentContext';
 import { doc, collection, addDoc, getDocs, query, where, orderBy, updateDoc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
@@ -244,12 +245,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [interaction, setInteraction] = useState<Interaction | null>(null);
   const { user, isInTrialPeriod, userData } = useAuth()
-  const { updateSection, updateQuestionAnswer, formData, aiAgent } = useCanvas()
+  const { updateSection, updateQuestionAnswer, formData} = useCanvas()
   const [activeTool, setActiveTool] = useState<string | null>(null)
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const { isContextEnabled } = useCanvasContext();
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [aiAgent, setAiAgent] = useState<AIAgent | null>(null)
+  const { agentCache } = useAIAgents()
 
   const addMessage = (message: Message) => {
     setMessages(prevMessages => {
@@ -529,6 +532,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       loadChatHistories();
     }
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (formData?.canvasType?.id) {
+      console.log('setting ai agent', agentCache)
+      console.log('formData.canvasType.id', formData.canvasType.id)
+      console.log('agentCache[formData.canvasType.id]', agentCache[formData.canvasType.id])
+      setAiAgent(agentCache[formData.canvasType.id])
+    }
+  }, [formData?.canvasType?.id])
 
   const chatContextValue = {
     messages,

@@ -7,6 +7,8 @@ import { useCanvas } from '@/contexts/CanvasContext'
 import { Grid2x2, Moon, Sun, Printer } from 'lucide-react'
 import LayoutEditor from './LayoutEditor'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
 
 interface HeaderProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -36,7 +38,7 @@ const ThemeToggleButton = () => {
 }
 
 export function Header() {
-  const { canvasTheme, formData, updateField } = useCanvas();
+  const { canvasTheme, formData, updateField, loadCanvas } = useCanvas();
   const [showLayoutEditor, setShowLayoutEditor] = useState(false);
   const router = useRouter();
   if (!formData) return null;
@@ -73,6 +75,24 @@ export function Header() {
             'animate-pulse ring-2 ring-blue-500 rounded-md ring-opacity-75 shadow-lg shadow-blue-500/50' : ''}`}>
             <CompanyEditDialog/>
           </div>
+
+          {formData?.parentCanvasId && (
+            <Button
+              onClick={() => {
+                loadCanvas(formData.parentCanvasId!)
+                localStorage.setItem('lastCanvasId', formData.parentCanvasId!)
+              }}
+              variant="outline"
+              className={`flex items-center gap-1 text-sm ${
+                canvasTheme === 'light'
+                  ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100 hover:text-gray-900'
+                  : 'bg-gray-950 text-gray-300 border-gray-800 hover:bg-gray-800 hover:text-gray-100'
+              }`}
+            >
+              <span>Parent Canvas</span>
+              <ArrowUpRight className="h-3 w-3" />
+            </Button>
+          )}
         </div>
       </div>
       
