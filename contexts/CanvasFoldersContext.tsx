@@ -144,14 +144,21 @@ export function CanvasFoldersProvider({ children }: { children: React.ReactNode 
     }
   }, [user?.uid, folders, refreshFolders]);
 
+  const searchNestedFolders = (folders: NestedCanvasFolder[], canvasId: string): NestedCanvasFolder | null => {
+    for (const folder of folders) {
+      if (folder.canvases.has(canvasId)) return folder;
+      const result = searchNestedFolders(folder.children, canvasId);
+      if (result) return result;
+    }
+    return null;
+  }
+
   const onCanvasDeleted = useCallback(async (canvasId: string) => {
     if (!user?.uid) return;
 
     try {
       // Find folder containing the canvas
-      const folder = folders.find(folder => 
-        folder.canvases.has(canvasId)
-      );
+      const folder = searchNestedFolders(folders, canvasId);
 
       if (folder) {
         await removeCanvasFromFolder(user.uid, folder.id, canvasId);

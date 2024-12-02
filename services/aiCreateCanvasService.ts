@@ -6,6 +6,7 @@ import { CanvasType } from '@/types/canvas-sections';
 import { canvasService } from './canvasService';
 import { canvasTypeService } from './canvasTypeService';
 import { aiAgentService } from './aiAgentService';
+import { getAuth } from 'firebase/auth';
 
 interface ChatRequest {
   messages: Message[]
@@ -14,11 +15,24 @@ interface ChatRequest {
 
 
 export async function* sendCanvasSelectorRequest(messageEnvelope: MessageEnvelope) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  
+  let headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (user) {
+    const idToken = await user.getIdToken();
+    headers = {
+      ...headers,
+      'Authorization': `Bearer ${idToken}`
+    };
+  }
+
   const response = await fetch('/api/ai-canvas-selector', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify({
       messageEnvelope
     }),

@@ -1,4 +1,4 @@
-import { Section } from '@/types/canvas'
+import { Section, SectionItem, TextSectionItem } from '@/types/canvas'
 import { CanvasType } from '@/types/canvas-sections'
 import { CSSProperties } from 'react'
 import * as Icons from 'lucide-react'
@@ -111,7 +111,7 @@ function ReadOnlySection({
   config
 }: { 
   title: string
-  items: string[]
+  items: SectionItem[]
   config?: {
     name: string
     icon: IconType
@@ -134,19 +134,23 @@ function ReadOnlySection({
         <h3 className="font-semibold text-card-foreground">{title}</h3>
       </div>
       <div className="flex-1 space-y-2">
-        {items.map((item, index) => (
-          <div 
-            key={index} 
+        {items.map((item, index) => {
+          if (item instanceof TextSectionItem) {
+            return (
+              <div 
+                key={index} 
             className="rounded-md border border-border bg-background p-2 text-sm text-foreground whitespace-pre-wrap"
-          >
-            {item.split('\n').map((line, i) => (
-              <span key={i}>
-                {line}
-                {i < item.split('\n').length - 1 && <br />}
-              </span>
-            ))}
-          </div>
-        ))}
+              >
+                {item.content.split('\n').map((line, i) => (
+                  <span key={i}>
+                    {line}
+                    {i < item.content.split('\n').length - 1 && <br />}
+                  </span>
+                ))}
+            </div>
+            )
+          }
+        })}
       </div>
     </div>
   )
@@ -185,7 +189,7 @@ function ReadOnlyContent({ sections, canvasType, canvasLayout }: ReadOnlyCanvasP
               >
                 <ReadOnlySection
                   title={item.config?.name || ''}
-                  items={item.section.items}
+                  items={item.section.sectionItems}
                   config={Icon && {
                     name: item.config!.name,
                     icon: Icon as IconType

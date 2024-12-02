@@ -70,12 +70,13 @@ export function UserCanvasSelector() {
     <>
       <div className="flex flex-col w-full h-screen overflow-y-auto bg-background">
         <div className="p-8 space-y-12">
-          <ExistingCanvases 
-            userCanvases={userCanvases as Canvas[]}
-            onCanvasSelect={handleCanvasSelect}
-          />
+          {userCanvases.length > 0 && (
+            <ExistingCanvases 
+              userCanvases={userCanvases as Canvas[]}
+              onCanvasSelect={handleCanvasSelect}
+            />
+          )}
 
-          
 
           <div>
             <div className="flex items-center mb-4">

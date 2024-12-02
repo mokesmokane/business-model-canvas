@@ -35,7 +35,11 @@ export function ChatInput({
       <div className="p-2">
         <form onSubmit={handleSubmit} className="flex gap-2">
           {selectedInteraction && (
-            <Button variant="ghost" onClick={() => setSelectedInteraction(null)}>
+            <Button 
+              type="button"
+              variant="ghost" 
+              onClick={() => setSelectedInteraction(null)}
+            >
               {selectedInteraction.label}
               <X className="h-4 w-4" />
             </Button>

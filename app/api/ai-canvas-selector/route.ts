@@ -4,6 +4,8 @@ import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import { Message, MessageEnvelope } from '@/contexts/ChatContext'
 import { CanvasSection, CanvasType } from '@/types/canvas-sections'
 import { CanvasTypeAdminService } from '@/services/canvasTypeAdminService'
+import { auth } from '@/lib/firebase-admin'
+import { headers } from 'next/headers'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -188,10 +190,10 @@ function getCanvasTypeString(canvasType: CanvasType, index: number) {
   return `${index} - ${canvasType.name} (${canvasType.description}) Sections(${canvasType.sections.length}): ${canvasType.sections.map((s: CanvasSection) => s.name).join(', ')}`
 }
 
-async function getCanvasTypes(): Promise<Record<string, CanvasType>> {
+async function getCanvasTypes(userId: string): Promise<Record<string, CanvasType>> {
   try {
     const canvasTypeService = new CanvasTypeAdminService();
-    return await canvasTypeService.getCanvasTypes();
+    return await canvasTypeService.getCanvasTypes(userId);
   } catch (error) {
     console.error("Error fetching canvas types:", error);
     return {};
@@ -206,11 +208,26 @@ export async function POST(request: Request) {
     )
   }
 
+  // Get the authorization header
+  const headersList = await headers()
+  const authHeader = headersList.get('Authorization')
   
+  if (!authHeader?.startsWith('Bearer ')) {
+    return NextResponse.json(
+      { error: 'Missing or invalid authorization header' },
+      { status: 401 }
+    )
+  }
+
   try {
+    // Verify the Firebase token
+    const token = authHeader.split('Bearer ')[1]
+    const decodedToken = await auth.verifyIdToken(token)
+    const userId = decodedToken.uid
+
     const { messageEnvelope }: { messageEnvelope: MessageEnvelope } = await request.json()
     //we should get the canvas types from firestore
-    const canvasTypes = await getCanvasTypes()
+    const canvasTypes = await getCanvasTypes(userId)
     //i need to create a Record<int, CanvasType> of index to canvastype
     const canvasTypeMap = Object.values(canvasTypes).reduce((acc, ct, index) => {
       acc[index] = ct;
@@ -271,7 +288,7 @@ The canvas types you have to choose from are:
         parameters: createNewCanvasTypeSchema
       }
     }
- 
+    console.log('messages_list', messages_list)
     const completion = await openai.chat.completions.create({
       messages: messages_list as ChatCompletionMessageParam[],
       model: "gpt-4o",
