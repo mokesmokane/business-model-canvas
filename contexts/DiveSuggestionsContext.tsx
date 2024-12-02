@@ -23,7 +23,7 @@ interface DiveSuggestionsContextType {
     setNewSuggestions: (suggestions: NewCanvasTypeSuggestion[]) => void;
     setSelected: (selected: string | null) => void;
     createNewCanvasType: (newCanvasType: NewCanvasTypeSuggestion) => void;
-    createCanvas: (withSuggestions: boolean, canvasType: CanvasType) => Promise<Canvas | undefined>;
+    createCanvas: (canvasType: CanvasType, parentCanvas: Canvas | null) => Promise<Canvas | undefined>;
 }
 
 const DiveSuggestionsContext = createContext<DiveSuggestionsContextType | undefined>(undefined);
@@ -35,7 +35,6 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
     const [sectionItem, setSectionItem] = useState('');
     const [section, setSection] = useState<{ name: string; placeholder: string } | null>(null);
     const [folderId, setFolderId] = useState<string | null>(null);
-    const [parentCanvas, setParentCanvas] = useState<any>(null);
     const { createNewCanvas } = useCanvas();
     const [selected, setSelected] = useState<string | null>(null);
     const clearSuggestions = () => {
@@ -125,7 +124,6 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
             setSectionItem(params.item);
             setSection(params.section);
             setFolderId(params.folderId);
-            setParentCanvas(params.parentCanvas);
             console.log('startDiveAnalysis')
             clearSuggestions();
 
@@ -171,9 +169,8 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    async function createCanvas(withSuggestions: boolean, canvasType: CanvasType) {
+    async function createCanvas(canvasType: CanvasType, parentCanvas: Canvas | null) {
         const nameDescription = await getNameDescription();
-        console.log('nameDescription', nameDescription)
 
         const newCanvas = await createNewCanvas({
             name: nameDescription.name.trim(),

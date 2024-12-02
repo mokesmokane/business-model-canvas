@@ -2,10 +2,10 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 import { CanvasType } from '@/types/canvas-sections';
-import { Canvas, SectionItem } from '@/types/canvas';
+import { Canvas, SectionItem, TextSectionItem } from '@/types/canvas';
 import { generateSectionSuggestions } from '@/services/aiCreateCanvasService';
 import { useCanvas } from './CanvasContext';
-
+import { v4 as uuidv4 } from 'uuid';
 interface GenerationStatus {
   isGenerating: boolean;
   completedSections: string[];
@@ -30,7 +30,8 @@ const AiGenerationContext = createContext<AiGenerationContextType | undefined>(u
 
 export function AiGenerationProvider({ children }: { children: ReactNode }) {
   const [generationStatus, setGenerationStatus] = useState<Record<string, GenerationStatus>>({});
-  const { updateSection } = useCanvas();
+  const canvasContext = useCanvas();
+  const { updateSection } = canvasContext;
 
   const startGeneration = async ({ canvas, selectedType, parentCanvas, diveItem }: {
     canvas: Canvas,
@@ -59,15 +60,9 @@ export function AiGenerationProvider({ children }: { children: ReactNode }) {
           sectionToGenerate: section
         });
 
-        const sectionItems = suggestions.map((s: { content: string; rationale: string }) => ({
-          id: crypto.randomUUID(),
-          content: s.content,
-          metadata: {
-            rationale: s.rationale
-          },
-          type: 'text'
-        }));
-        
+        const sectionItems = suggestions.map((s: { content: string; rationale: string }) => (
+          new TextSectionItem(uuidv4(), `${s.content}\n\n${s.rationale}`)));
+        console.log('Current canvas state:', canvas);
         updateSection(section.name, sectionItems);
         
         updateSectionStatus(canvas.id, section.name, true);
@@ -77,6 +72,8 @@ export function AiGenerationProvider({ children }: { children: ReactNode }) {
         setError(canvas.id, `Error generating suggestions for ${section.name}`);
       }
     }
+
+    updateSectionStatus(canvas.id, 'Overview', true);
   };
 
   const updateSectionStatus = (canvasId: string, sectionName: string, completed: boolean) => {

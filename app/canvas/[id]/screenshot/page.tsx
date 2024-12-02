@@ -14,6 +14,7 @@ import { FileImage, FileText } from 'lucide-react'
 import html2canvas from 'html2canvas'
 import { CanvasPDF } from '@/components/Canvas/CanvasPDF'
 import { pdf } from '@react-pdf/renderer'
+import { AiGenerationProvider } from '@/contexts/AiGenerationContext'
 
 function ScreenshotContent({ id }: { id: string }) {
   const { loadCanvas, formData } = useCanvas()
@@ -146,7 +147,7 @@ export default function ScreenshotPage({ params }: { params: Promise<{ id: strin
           <CanvasContextProvider>
             <AIAgentProvider>
               <CanvasProvider>
-                <ScreenshotContent id={resolvedParams.id} />
+                  <ScreenshotContent id={resolvedParams.id} />
               </CanvasProvider>
             </AIAgentProvider>
           </CanvasContextProvider>

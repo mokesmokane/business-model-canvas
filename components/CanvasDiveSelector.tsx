@@ -202,7 +202,7 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
             <button
               className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={async () => {
-                const canvas = await createCanvas(false, selectedType);
+                const canvas = await createCanvas(selectedType, formData);
                 if(canvas) onSuccess(canvas.id, selectedType.id);
                 onClose();
               }}
@@ -247,7 +247,7 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
 
   const createCanvasWithSuggestions = async (selectedType: CanvasType) => {
     // First create the canvas
-    const canvas = await createCanvas(false, selectedType);
+    const canvas = await createCanvas(selectedType, formData);
     if (!canvas) return;
 
     // Start the generation process and navigate immediately

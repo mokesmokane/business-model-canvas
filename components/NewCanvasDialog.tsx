@@ -51,7 +51,7 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, customizedAiAg
         }
       }
 
-      const newCanvasId = await createNewCanvas({
+      const newCanvas = await createNewCanvas({
         name: tempName.trim(),
         description: tempDescription.trim(),
         canvasType: canvasType,
@@ -59,9 +59,9 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, customizedAiAg
         folderId: folderId || rootFolderId
       })
       
-      if (newCanvasId) {
-        await loadCanvas(newCanvasId)
-        localStorage.setItem('lastCanvasId', newCanvasId)
+      if (newCanvas) {
+        await loadCanvas(newCanvas.id)
+        localStorage.setItem('lastCanvasId', newCanvas.id)
       }
       
       // Reset form and close dialog

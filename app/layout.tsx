@@ -4,7 +4,6 @@ import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import { CanvasTypeProvider } from '@/contexts/CanvasTypeContext';
-import { AiGenerationProvider } from '@/contexts/AiGenerationContext';
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -17,8 +16,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Business Model Canvas",
-  description: "Create and save your Business Model Canvas",
+  title: "cavvy.ai",
+  description: "Materialize your ideas with AI",
 };
 
 export default function RootLayout({
@@ -32,9 +31,7 @@ export default function RootLayout({
           <Providers>
             <LayoutProvider>
               <CanvasTypeProvider>
-                <AiGenerationProvider>
                   {children}
-                </AiGenerationProvider>
               </CanvasTypeProvider>
             </LayoutProvider>
           </Providers>

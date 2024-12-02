@@ -209,35 +209,39 @@ export const CanvasContext = createContext<CanvasContextType>({
   }, [saveToFirebase]);
 
   const updateSection = useCallback((sectionKey: string, items: SectionItem[]) => {
+    console.log('updateSection', sectionKey, items)
     setState(prev => {
       if(!prev) {
+        console.log('prev is null')
         return null
       }
       const sections = prev.formData.sections;
+      console.log('sections', sections)
       if (!sections.has(sectionKey)) return prev;
-
+      
       const section = sections.get(sectionKey);
+      console.log('section', section)
       if (!section) return prev;
 
       const updatedSections = new Map(sections);
-
+      console.log('updatedSections', updatedSections)
       updatedSections.set(sectionKey, {
         ...section,
         sectionItems: items
       });
-
+      console.log('updatedSections', updatedSections)
       const updatedData = {
         ...prev.formData,
         sections: updatedSections,
         id: prev.currentCanvas?.id || prev.formData.id
       };
-
+      console.log('updatedData', updatedData)
       // Before saving to Firebase, we need to serialize the Map
       const dataForFirebase = {
         ...updatedData,
         sections: deserializeSections(serializeSections(updatedData.sections))
       };
-
+      console.log('dataForFirebase', dataForFirebase)
       saveToFirebase(dataForFirebase);
 
       return {
