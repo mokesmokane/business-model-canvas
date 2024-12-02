@@ -27,6 +27,9 @@ export function MobileBusinessModelCanvas() {
         >
           {Array.from(formData.sections.entries()).map(([key, section]) => {
             const sectionConfig = formData.canvasType.sections.find(s => s.name === section.name);
+            if (!sectionConfig) return null;
+            const sectionData = formData.sections.get(key);
+            if (!sectionData) return null;
             return (
               <SwiperSlide key={key}>
                 <CanvasSection
@@ -35,7 +38,7 @@ export function MobileBusinessModelCanvas() {
                   title={section.name}
                   icon={sectionConfig?.icon || ''}
                   sectionKey={key}
-                  section={formData.sections.get(key) || { name: '', items: [], qAndAs: [] }}
+                  section={sectionData}
                 />
               </SwiperSlide>
             );

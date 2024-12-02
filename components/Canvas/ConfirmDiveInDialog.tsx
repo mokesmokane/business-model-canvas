@@ -51,18 +51,34 @@ export function ConfirmDiveInDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ArrowRightCircle className="h-5 w-5" />
-            Dive Deeper
+            Dive Deeper Into Your Idea
           </DialogTitle>
-          <DialogDescription>
-            Create a new canvas to explore "{itemContent}" from your {sectionName} section in more detail.
-            The new canvas will be linked to this item.
+          <DialogDescription className="space-y-3 pt-2">
+            <div>
+              Create a new canvas to explore:
+            </div>
+            <div className="bg-muted/50 rounded-lg p-3 border border-border/50">
+              <div className="font-medium text-foreground line-clamp-2">"{itemContent}"</div>
+            </div>
+            <div>
+              This helps you break down complex ideas into manageable pieces.
+            </div>
+            <div className="mt-4 space-y-2">
+              <div className="font-medium text-foreground">What happens when you dive in:</div>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>AI will analyze your idea and suggest the most relevant canvas types</li>
+                <li>The new canvas will be automatically linked to this item</li>
+                <li>You can always navigate back and forth between connected canvases</li>
+                <li>Your ideas stay organized and connected in a natural way</li>
+              </ul>
+            </div>
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="flex justify-end space-x-2 sm:justify-end">
+        <DialogFooter className="flex justify-end space-x-2 sm:justify-end mt-4">
           <Button
             variant="outline"
             onClick={onClose}

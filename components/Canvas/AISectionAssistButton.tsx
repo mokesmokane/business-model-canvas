@@ -31,8 +31,10 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
   const { isLoading, messages, setActiveTool, sendMessage } = useChat()
   const { formData, canvasTheme } = useCanvas()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isThisButtonLoading, setIsThisButtonLoading] = useState(false)
 
   const handleAction = async (action: string) => {
+    setIsThisButtonLoading(true)
     onExpandSidebar()
     const actionMessage = action === 'question' 
       ? `Question me about ${section}` 
@@ -50,7 +52,7 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
     setActiveTool(action)
     console.log('sending message', message, action)
     await sendMessage(message, action)
-
+    setIsThisButtonLoading(false)
   }
 
   return (
@@ -66,7 +68,7 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
         className="ml-2 hover:bg-gray-800/50 hover:text-gray-100 group"
         disabled={isLoading}
       >
-        <Sparkles className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+        <Sparkles className={`h-4 w-4 ${isThisButtonLoading ? 'animate-spin' : ''}`} />
       </Button>
 
       <div className={`

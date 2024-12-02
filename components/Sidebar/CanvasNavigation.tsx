@@ -249,7 +249,7 @@ export function CanvasNavigation() {
   const renderCanvasItem = (canvas: CanvasItem) => (
     <div 
       key={canvas.id} 
-      className="flex items-center group px-4 py-1"
+      className="flex items-center group px-4 py-1 w-full"
       draggable
       onDragStart={(e: DragEvent<HTMLDivElement>) => {
         e.dataTransfer.setData('canvasId', canvas.id)
@@ -264,18 +264,18 @@ export function CanvasNavigation() {
       <Button
         variant="ghost"
         className={cn(
-          "flex-1 justify-start text-left text-muted-foreground hover:text-foreground hover:bg-accent",
+          "flex-1 justify-start text-left text-muted-foreground hover:text-foreground hover:bg-accent min-w-0",
           currentCanvas?.id === canvas.id && 'bg-muted font-medium border-l-2 border-primary'
         )}
         onClick={() => loadCanvas(canvas.id)}
       >
-        <DynamicIcon name={canvasTypes[canvas.canvasTypeId]?.icon} className="mr-2 h-4 w-4" />
+        <DynamicIcon name={canvasTypes[canvas.canvasTypeId]?.icon} className="mr-2 h-4 w-4 flex-shrink-0" />
         <span className="flex-1 truncate">{canvas.name}</span>
       </Button>
       <Button
         variant="ghost"
         size="icon"
-        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
+        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent flex-shrink-0"
         onClick={() => {
           setCanvasToDelete({ id: canvas.id, name: canvas.name })
           setDeleteDialogOpen(true)
