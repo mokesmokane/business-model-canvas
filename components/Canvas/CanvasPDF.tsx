@@ -1,5 +1,5 @@
 import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer'
-import { Section } from '@/types/canvas'
+import { Section, SectionItem, TextSectionItem } from '@/types/canvas'
 import { CanvasType } from '@/types/canvas-sections'
 import { PDFHeader } from './PDFHeader'
 
@@ -54,15 +54,19 @@ const styles = StyleSheet.create({
   },
 })
 
-function PDFSection({ title, items }: { title: string; items: string[] }) {
+function PDFSection({ title, items }: { title: string; items: SectionItem[] }) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      {items.map((item, index) => (
-        <Text key={index} style={styles.sectionContent}>
-          • {item}
-        </Text>
-      ))}
+      {items.map((item, index) => {
+        if(item instanceof TextSectionItem) {
+          return (
+            <Text key={index} style={styles.sectionContent}>
+              • {item.content}
+            </Text>
+          )
+        }
+      })}
     </View>
   )
 }
@@ -114,7 +118,7 @@ export function CanvasPDF({ sections, canvasType, canvasLayout, title, descripti
               <View key={item.key} style={style}>
                 <PDFSection
                   title={item.config?.name || ''}
-                  items={item.section.items}
+                  items={item.section.sectionItems}
                 />
               </View>
             )
