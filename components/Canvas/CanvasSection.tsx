@@ -109,8 +109,8 @@ export function CanvasSection({
 
   const handleDiveIn = (item: SectionItemType) => {
     if(item.canvasLink) {
-      loadCanvas(item.canvasLink);
-      localStorage.setItem('lastCanvasId', item.canvasLink);
+      loadCanvas(item.canvasLink.canvasId);
+      localStorage.setItem('lastCanvasId', item.canvasLink.canvasId);
     } else {
       setIsDiveInDialogOpen(true)
       setDiveInItem(item)
@@ -218,22 +218,22 @@ export function CanvasSection({
       <ConfirmDiveInDialog
         isOpen={isDiveInDialogOpen && diveInItem !== null}
         onClose={() => setIsDiveInDialogOpen(false)}
+        icon={Icon}
         onConfirm={() => {
           setIsDiveInDialogOpen(false)
           setLetsDiveIn(true)
         }}
         itemContent={(diveInItem as TextSectionItem)?.content || ''}
         sectionName={title}
-        icon={Icon}
       />
 
       <Dialog open={letsDiveIn} onOpenChange={setLetsDiveIn}>
         <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
           <DialogTitle></DialogTitle>
           <CanvasDiveSelector
-            onSuccess={async (canvasId) => {
+            onSuccess={async (canvasId, canvasTypeId) => {
               console.log('canvasId', canvasId);
-              const updatedItem = {...diveInItem, canvasLink: canvasId} as SectionItemType
+              const updatedItem = {...diveInItem, canvasLink: {canvasId, canvasTypeId}} as SectionItemType
               await updateItem(sectionKey, updatedItem)
               setLetsDiveIn(false)
               setDiveInItem(null)
@@ -247,6 +247,7 @@ export function CanvasSection({
                 {
                   id: sectionKey,
                   name: title,
+                  icon: Icon,
                   placeholder: placeholder
                 }
               }

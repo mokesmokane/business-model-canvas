@@ -36,21 +36,10 @@ export function ConfirmDiveInDialog({
 
   const { formData } = useCanvas();
   const { canvasIdFolderMap } = useCanvasFolders();
-  const { startDiveAnalysis } = useDiveSuggestions();
   const handleConfirm = () => {
     console.log('handleConfirm')
     const section = formData?.canvasType.sections.find((s) => s.name === sectionName)
     if (!section) return
-    console.log('starting dive analysis')
-    startDiveAnalysis({
-      parentCanvas: formData,
-      folderId: canvasIdFolderMap.get(formData?.id || "") || "root",
-      section: {
-        name: section.name,
-        placeholder: section.placeholder
-      },
-      item: itemContent,
-    })
     onConfirm()
   }
 
@@ -60,7 +49,7 @@ export function ConfirmDiveInDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <ArrowRightCircle className="h-6 w-6 text-primary" />
-            Dive Deeper Into Your Idea
+            Dive Deeper
           </DialogTitle>
           <div className="space-y-6 pt-4">
             <div className="space-y-6">

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { AIItemAssistButton } from './AIItemAssistButton';
 import { Edit2, Link, Trash2 } from 'lucide-react';
 import { useCanvas } from '@/contexts/CanvasContext';
-import { ConfirmDiveInDialog } from './ConfirmDiveInDialog';
 import { SectionItem as SectionItemType, TextSectionItem } from '@/types/canvas';
 interface SectionItemProps {
   item: SectionItemType;
@@ -50,8 +49,8 @@ export function SectionItem({
           size="icon" 
           className="absolute top-1 right-1 p-1 !bg-transparent hover:!bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           onClick={() => {
-            loadCanvas(item.canvasLink!);
-            localStorage.setItem('lastCanvasLink', item.canvasLink!);
+            loadCanvas(item.canvasLink!.canvasId);
+            localStorage.setItem('lastCanvasLink', item.canvasLink!.canvasId);
           }}
         >
           <Link className="h-4 w-4" />

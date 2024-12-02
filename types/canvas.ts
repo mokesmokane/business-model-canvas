@@ -36,14 +36,19 @@ export interface AISuggestion {
   rationale: string;
 }
 
+export interface CanvasLink {
+  canvasId: string;
+  canvasTypeId: string;
+}
+
 export interface SectionItem {
   id: string;
-  canvasLink: string | null;
+  canvasLink: CanvasLink | null;
 }
 
 export class TextSectionItem implements SectionItem {
   id: string;
-  canvasLink: string | null;
+  canvasLink: CanvasLink | null;
   content: string;
 
   constructor(id: string, content: string) {
