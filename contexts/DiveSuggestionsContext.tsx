@@ -5,6 +5,7 @@ import { CanvasType } from '@/types/canvas-sections';
 import { NewCanvasTypeSuggestion, ExistingCanvasTypeSuggestion } from '@/app/api/ai-canvas-dive/types';
 import { sendCreateCanvasTypeFromDiveRequest } from '@/services/aiCreateCanvasService';
 import { useCanvas } from './CanvasContext';
+import { Canvas } from '@/types/canvas';
 
 interface DiveSuggestionsContextType {
     existingSuggestions: CanvasType[];
@@ -22,7 +23,7 @@ interface DiveSuggestionsContextType {
     setNewSuggestions: (suggestions: NewCanvasTypeSuggestion[]) => void;
     setSelected: (selected: string | null) => void;
     createNewCanvasType: (newCanvasType: NewCanvasTypeSuggestion) => void;
-    createCanvas: (withSuggestions: boolean, canvasType: CanvasType) => Promise<string | undefined>;
+    createCanvas: (withSuggestions: boolean, canvasType: CanvasType) => Promise<Canvas | undefined>;
 }
 
 const DiveSuggestionsContext = createContext<DiveSuggestionsContextType | undefined>(undefined);
@@ -174,7 +175,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
         const nameDescription = await getNameDescription();
         console.log('nameDescription', nameDescription)
 
-        const newCanvasId = await createNewCanvas({
+        const newCanvas = await createNewCanvas({
             name: nameDescription.name.trim(),
             description: nameDescription.description.trim(),
             canvasType: canvasType,
@@ -183,7 +184,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
             parentCanvasId: parentCanvas?.id,
         })
 
-        return newCanvasId;
+        return newCanvas;
     }
 
     return (

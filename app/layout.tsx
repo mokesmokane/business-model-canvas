@@ -4,6 +4,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import { CanvasTypeProvider } from '@/contexts/CanvasTypeContext';
+import { AiGenerationProvider } from '@/contexts/AiGenerationContext';
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -31,7 +32,9 @@ export default function RootLayout({
           <Providers>
             <LayoutProvider>
               <CanvasTypeProvider>
-                {children}
+                <AiGenerationProvider>
+                  {children}
+                </AiGenerationProvider>
               </CanvasTypeProvider>
             </LayoutProvider>
           </Providers>

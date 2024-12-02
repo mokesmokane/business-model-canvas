@@ -22,6 +22,8 @@ import { CanvasDiveSelector } from '../CanvasDiveSelector'
 import { DiveSuggestionsProvider } from '@/contexts/DiveSuggestionsContext'
 import { SectionItem as SectionItemType } from '@/types/canvas'
 import { v4 as uuidv4 } from 'uuid';
+import { useAiGeneration } from '@/contexts/AiGenerationContext';
+
 interface AISuggestion {
   id: string;
   suggestion: string;
@@ -47,7 +49,11 @@ export function CanvasSection({
   placeholder, 
   className 
 }: CanvasSectionProps) {
-  const { updateQuestions, canvasTheme, updateItem, loadCanvas } = useCanvas()
+  const { updateQuestions, canvasTheme, updateItem, loadCanvas, formData } = useCanvas();
+  const { generationStatus } = useAiGeneration();
+  const isGenerating = formData?.id ? generationStatus[formData.id]?.isGenerating : false;
+  const currentGeneratingSection = formData?.id ? generationStatus[formData.id]?.currentSection : null;
+  const isCurrentSectionGenerating = currentGeneratingSection === title;
   const sectionItemsArray = section.sectionItems || [];
   const questionsArray = section.qAndAs || [];
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
@@ -64,6 +70,7 @@ export function CanvasSection({
   };
 
   const handleAddOrUpdateItem = (content: string) => {
+    if (isGenerating) return;
     if (editingIndex !== null && editingIndex >= 0) {
       // Update existing item
       const newItems = [...sectionItemsArray]
@@ -77,7 +84,14 @@ export function CanvasSection({
     }
   }
 
+  const handleDeleteLink = (index: number) => {
+    const newItems = [...sectionItemsArray]
+    newItems[index].canvasLink = null
+    onChange(newItems)
+  }
+
   const handleDeleteItem = (index: number) => {
+    if (isGenerating) return;
     const newItems = [...sectionItemsArray]
     newItems.splice(index, 1)
     onChange(newItems)
@@ -87,6 +101,7 @@ export function CanvasSection({
   }
 
   const handleEditStart = (index: number) => {
+    if (isGenerating) return;
     setEditingIndex(index)
   }
 
@@ -108,6 +123,7 @@ export function CanvasSection({
   }
 
   const handleDiveIn = (item: SectionItemType) => {
+    if (isGenerating) return;
     if(item.canvasLink) {
       loadCanvas(item.canvasLink.canvasId);
       localStorage.setItem('lastCanvasId', item.canvasLink.canvasId);
@@ -120,7 +136,8 @@ export function CanvasSection({
   return (
     <Card 
       canvasTheme={canvasTheme}
-    className={`flex flex-col h-full max-h-full overflow-hidden`}>
+      className={`flex flex-col h-full max-h-full overflow-hidden ${isGenerating ? 'opacity-50' : ''} ${isCurrentSectionGenerating ? 'border-primary' : ''}`}
+    >
       <CardHeader className={`flex-shrink-0`}>
         <TooltipProvider>
           <Tooltip>
@@ -132,8 +149,13 @@ export function CanvasSection({
                   canvasTheme === 'light' ? 'text-gray-700' : 'text-gray-300'
                 }`} />
                 {title}
+                {isCurrentSectionGenerating && (
+                  <div className="ml-2 text-xs text-primary animate-pulse">
+                    Generating...
+                  </div>
+                )}
                 <div className="flex-1" />
-                {questionsArray.length > 0 && (
+                {questionsArray.length > 0 && !isGenerating && (
                   <Button 
                     canvasTheme={canvasTheme}
                     variant="outline" 
@@ -143,7 +165,13 @@ export function CanvasSection({
                     <MoreVertical />
                   </Button>
                 )}
-                <AISectionAssistButton section={title} sectionKey={sectionKey} onExpandSidebar={() => {setIsWide(true); setIsExpanded(true)}} />
+                {!isGenerating && (
+                  <AISectionAssistButton 
+                    section={title} 
+                    sectionKey={sectionKey} 
+                    onExpandSidebar={() => {setIsWide(true); setIsExpanded(true)}} 
+                  />
+                )}
               </CardTitle>
             </TooltipTrigger>
             {(sectionItemsArray.length > 0) && (
@@ -156,7 +184,7 @@ export function CanvasSection({
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      <CardContent className={`flex-1 flex flex-col overflow-hidden`}>
+      <CardContent className={`flex-1 flex flex-col overflow-hidden ${isGenerating ? 'pointer-events-none' : ''}`}>
       <ScrollArea 
           className="flex-1 relative"
           style={{ height: 'calc(100% - 60px)' }}
@@ -175,12 +203,13 @@ export function CanvasSection({
                 key={index}
                 item={item}
                 onDiveIn={handleDiveIn}
-                isActive={activeItemIndex === index}
+                isActive={activeItemIndex === index}  
                 isExpanded={expandedItemIndex === index}
                 onClick={() => handleItemClick(index)}
                 onDelete={() => handleDeleteItem(index)}
                 isEditing={editingIndex === index}
                 onEditStart={() => handleEditStart(index)}
+                onDeleteLink={() => handleDeleteLink(index)}
                 onEditEnd={() => handleEditCancel()}
                 className={`cursor-pointer ${
                   expandedItemIndex === index ? 'bg-gray-200' : ''
@@ -239,8 +268,8 @@ export function CanvasSection({
               setDiveInItem(null)
               if (canvasId) {
                 console.log('loading canvas', canvasId)
-                // loadCanvas(canvasId)
-                // localStorage.setItem('lastCanvasId', canvasId)
+                loadCanvas(canvasId)
+                localStorage.setItem('lastCanvasId', canvasId)
               }
             }}
               section={

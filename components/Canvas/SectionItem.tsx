@@ -5,6 +5,8 @@ import { AIItemAssistButton } from './AIItemAssistButton';
 import { Edit2, Link, Trash2 } from 'lucide-react';
 import { useCanvas } from '@/contexts/CanvasContext';
 import { SectionItem as SectionItemType, TextSectionItem } from '@/types/canvas';
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader, DialogFooter } from '@/components/ui/dialog';
+
 interface SectionItemProps {
   item: SectionItemType;
   onDelete: () => void;
@@ -15,6 +17,7 @@ interface SectionItemProps {
   onEditStart: () => void;
   onEditEnd: () => void;
   onDiveIn: (item: SectionItemType) => void;
+  onDeleteLink: () => void;
   className: string;
 }
 
@@ -28,13 +31,17 @@ export function SectionItem({
   onEditStart,
   onEditEnd,
   onDiveIn,
+  onDeleteLink,
   className,
 }: SectionItemProps) {
   const { loadCanvas, canvasTheme } = useCanvas();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const showControls = isExpanded || isEditing;
   const sectionItem = item as TextSectionItem;
   console.log('item', JSON.stringify(item, null, 2))
   console.log('sectionItem', JSON.stringify(sectionItem, null, 2))
+
+
   return (
     <Card
       canvasTheme={canvasTheme}
@@ -48,9 +55,19 @@ export function SectionItem({
           variant="ghost" 
           size="icon" 
           className="absolute top-1 right-1 p-1 !bg-transparent hover:!bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          onClick={() => {
-            loadCanvas(item.canvasLink!.canvasId);
-            localStorage.setItem('lastCanvasLink', item.canvasLink!.canvasId);
+          onClick={async () => {
+            try{
+              const loaded = await loadCanvas(item.canvasLink!.canvasId);
+              if(loaded) {
+                localStorage.setItem('lastCanvasLink', item.canvasLink!.canvasId);
+              } else {
+                //display a dialog to teh user which says canvas not found delete link?
+                setIsDialogOpen(true)
+              }
+            } catch (error) {
+              //display a dialog to teh user which says canvas not found delete link?
+              setIsDialogOpen(true)
+            }
           }}
         >
           <Link className="h-4 w-4" />
@@ -105,6 +122,35 @@ export function SectionItem({
           </Button>
         </div>
       </div>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Canvas not found</DialogTitle>
+            <DialogDescription>
+              Do you want to delete the link?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDialogOpen(false)}
+              className="dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 dark:border-slate-700"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                onDeleteLink();
+                setIsDialogOpen(false);
+              }}
+              className="dark:bg-red-900 dark:hover:bg-red-800 dark:text-slate-100"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }

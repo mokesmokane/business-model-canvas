@@ -44,8 +44,8 @@ interface CanvasContextType {
   updateSection: (sectionKey: string, items: SectionItem[]) => void;
   updateItem: (sectionKey: string, item: SectionItem) => Promise<void>;
   updateQuestionAnswer: (question: AIQuestion) => void;
-  loadCanvas: (id: string) => Promise<void>;
-  createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout, parentCanvasId?: string}) => Promise<string | undefined>;
+  loadCanvas: (id: string) => Promise<boolean>;
+  createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout, parentCanvasId?: string}) => Promise<Canvas | undefined>;
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
   clearState: () => void;
@@ -67,8 +67,8 @@ export const CanvasContext = createContext<CanvasContextType>({
   updateSection: () => { },
   updateItem: () => { return Promise.resolve() },
   updateQuestionAnswer: () => { },
-  loadCanvas: async () => { },
-  createNewCanvas: async () => { return '' },
+  loadCanvas: async () => { return false },
+  createNewCanvas: async () => { return undefined },
   resetForm: () => { },
   deleteCanvas: async () => { },
   clearState: () => { },
@@ -220,7 +220,7 @@ export const CanvasContext = createContext<CanvasContextType>({
       if (!section) return prev;
 
       const updatedSections = new Map(sections);
-      
+
       updatedSections.set(sectionKey, {
         ...section,
         sectionItems: items
@@ -247,9 +247,9 @@ export const CanvasContext = createContext<CanvasContextType>({
     });
   }, [saveToFirebase]);
 
-  const loadCanvas = useCallback(async (id: string) => {
+  const loadCanvas = useCallback(async (id: string) => {  
     
-    if (!user?.uid || !id) return;
+    if (!user?.uid || !id) return false;
     setIsContextEnabled(true)
     try {
       setStatus('loading');
@@ -283,7 +283,9 @@ export const CanvasContext = createContext<CanvasContextType>({
     } catch (err) {
       console.error('Error loading canvas:', err);
       setStatus('error', err instanceof Error ? err.message : 'Failed to load canvas');
+      return false;
     }
+    return true;
   }, [setStatus, user?.uid]);
 
   // Update createNewCanvas to use the singleton
@@ -303,8 +305,8 @@ export const CanvasContext = createContext<CanvasContextType>({
         ...data,
         parentCanvasId: data.parentCanvasId || null // Convert undefined to null
       };
-      const canvasId = await canvasService.createNewCanvas(cleanData);
-      return canvasId;
+      const canvas = await canvasService.createNewCanvas(cleanData);
+      return canvas;
     } catch (error) {
       console.error('Error creating new canvas:', error);
       setStatus('error', error instanceof Error ? error.message : 'Failed to create canvas');

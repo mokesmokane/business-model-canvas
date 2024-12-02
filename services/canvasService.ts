@@ -110,7 +110,7 @@ export class CanvasService {
     await setDoc(docRef, serializedCanvas);
     await addCanvasToFolder(userId, data.folderId, {id: newCanvas.id, name: newCanvas.name, canvasTypeId: newCanvas.canvasType.id});
 
-    return newCanvas.id;
+    return newCanvas;
   }
 
   // Add other canvas-related methods here

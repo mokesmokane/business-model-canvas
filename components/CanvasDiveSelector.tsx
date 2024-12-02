@@ -10,12 +10,13 @@ import { Bot, Loader2 } from "lucide-react"
 import { useCanvas } from "@/contexts/CanvasContext"
 import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
 import { CanvasTypeCardTags } from "./CanvasTypeCards/CanvasTypeCardTags"
-import { sendCreateCanvasTypeFromDiveRequest } from "@/services/aiCreateCanvasService"
+import { sendCreateCanvasTypeFromDiveRequest, generateSectionSuggestions, updateCanvasSection } from "@/services/aiCreateCanvasService"
 import { SectionItem as SectionItemType, TextSectionItem } from "@/types/canvas"
 import { ExistingCanvasDiveResponse, ExistingCanvasTypeSuggestion, NewCanvasDiveResponse, NewCanvasTypeSuggestion } from "@/app/api/ai-canvas-dive/types"
 import { CanvasTypeCard } from "./CanvasTypeCards/CanvasTypeCard"
 import { useDiveSuggestions } from '@/contexts/DiveSuggestionsContext';
 import { useRecentCanvasTypes } from "@/contexts/RecentCanvasTypesContext"
+import { useAiGeneration } from '@/contexts/AiGenerationContext';
 
 interface CanvasDiveSelectorProps {
   section: {
@@ -52,6 +53,7 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
   const { recentTypes } = useRecentCanvasTypes();
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [isCreatingNewType, setIsCreatingNewType] = useState(false);
+  const { startGeneration, updateSectionStatus, setError } = useAiGeneration();
 
   useEffect(() => {
     setFilteredCanvasTypes(Object.entries(canvasTypes).filter(([_, type]) => type.name.toLowerCase().includes(searchTerm.toLowerCase())));
@@ -64,8 +66,10 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
     const linkedCanvasIds = currentSection?.sectionItems
       .map((item: SectionItemType) => item.canvasLink?.canvasTypeId)
       .filter((id): id is string => id !== undefined) || [];
-    console.log('linkedCanvasIds', linkedCanvasIds);
-    return linkedCanvasIds.map(id => canvasTypes[id]).filter(Boolean);
+    //shouldnt have the same id multiple times
+    const uniqueLinkedCanvasIds = [...new Set(linkedCanvasIds)];
+    console.log('linkedCanvasIds', uniqueLinkedCanvasIds);
+    return uniqueLinkedCanvasIds.map(id => canvasTypes[id]).filter(Boolean);
   }, [formData, section.name, canvasTypes]);
 
   const renderQuickSelect = () => {
@@ -198,8 +202,8 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
             <button
               className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={async () => {
-                const canvasId = await createCanvas(false, selectedType);
-                if(canvasId) onSuccess(canvasId, selected);
+                const canvas = await createCanvas(false, selectedType);
+                if(canvas) onSuccess(canvas.id, selectedType.id);
                 onClose();
               }}
             >
@@ -207,14 +211,10 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
             </button>
             <button
               className="px-4 py-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/90"
-              onClick={async () => {
-                const canvasId = await createCanvas(true, selectedType);
-                if(canvasId) onSuccess(canvasId, selected);
-                onClose();
-              }}
+              onClick={() => createCanvasWithSuggestions(selectedType)}
             >
               Create with Suggestions
-            </button>
+            </button> 
           </div>
           <div className="w-full flex justify-center mt-6">
             <button
@@ -243,6 +243,23 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
         </div>
       </div>
     );
+  };
+
+  const createCanvasWithSuggestions = async (selectedType: CanvasType) => {
+    // First create the canvas
+    const canvas = await createCanvas(false, selectedType);
+    if (!canvas) return;
+
+    // Start the generation process and navigate immediately
+    startGeneration({
+      canvas,
+      selectedType,
+      parentCanvas: formData!,
+      diveItem: item
+    });
+    
+    onSuccess(canvas.id, selectedType.id);
+    onClose();
   };
 
   const renderContent = () => {
