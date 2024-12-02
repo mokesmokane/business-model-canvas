@@ -224,6 +224,7 @@ export function CanvasSection({
         }}
         itemContent={(diveInItem as TextSectionItem)?.content || ''}
         sectionName={title}
+        icon={Icon}
       />
 
       <Dialog open={letsDiveIn} onOpenChange={setLetsDiveIn}>

@@ -40,7 +40,7 @@ export async function getCanvasDiveSuggestions(
     throw new Error('Section not found')
   }
 
-  const item = section.items.find(i => i === itemId)
+  const item = section.sectionItems.find(i => i.id === itemId)
   if (!item) {
     throw new Error('Item not found')
   }
