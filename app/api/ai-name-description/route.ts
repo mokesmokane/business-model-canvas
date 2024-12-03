@@ -39,6 +39,9 @@ export async function POST(request: Request) {
       content: `You are an expert canvas design assistant for Cavvy, a platform that helps users create and manage strategic planning and analysis canvases across any domain. 
       Your role is to help users with any questions they have about canvas types, sections, and layouts.
       Your current role is to help users name and describe their canvas based on the limited information provided by the user in previous messages
+      The name should reflect what they are using the canvas for not the canvas type.
+      The description should be a short description of the project that the canvas is for.
+      The description should be no more than 100 characters.
 
 } 
 `
@@ -60,6 +63,8 @@ export async function POST(request: Request) {
         parameters: nameCanvasSchema
       }
     }
+
+    console.log('messages_list', messages_list)
  
     const completion = await openai.chat.completions.create({
       messages: messages_list as ChatCompletionMessageParam[],

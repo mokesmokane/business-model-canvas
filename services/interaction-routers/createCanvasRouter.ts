@@ -13,7 +13,7 @@ export const createCanvasInteractionRouter: InteractionRouter = {
             console.log('sending canvas selector request')
             interaction = (messageEnvelope: MessageEnvelope) => sendCanvasSelectorRequest(messageEnvelope) as AsyncGenerator<Message, void, unknown>
         }
-        else if (messageEnvelope.newMessage instanceof CreateCanvasTypeMessage) {
+        else if (messageEnvelope.newMessage.type === 'createCanvasType') {
             console.log('sending create canvas type request')
             interaction = (messageEnvelope: MessageEnvelope) => sendCreateCanvasTypeRequest(messageEnvelope) as AsyncGenerator<Message, void, unknown>
         }

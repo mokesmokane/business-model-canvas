@@ -8,15 +8,18 @@ import { useCanvasTypes } from '@/contexts/CanvasTypeContext'
 import { CanvasType } from '@/types/canvas-sections'
 import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Tooltip } from '@/components/ui/tooltip'
+import { useCanvas } from '@/contexts/CanvasContext'
+import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'
 
 interface CanvasSuggestionItemProps {
   canvasTypeId: string  
-  onSelect: (canvasTypeId: string) => void;
+  onSubmit: (canvasType: CanvasType) => void
 }
 
-function CanvasSuggestionItem({ canvasTypeId, onSelect }: CanvasSuggestionItemProps) {
+function CanvasSuggestionItem({ canvasTypeId, onSubmit }: CanvasSuggestionItemProps) {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const {getCanvasTypes} = useCanvasTypes()
+  const { rootFolderId } = useCanvasFolders()
   const [canvasType, setCanvasType] = useState<CanvasType | null>(null)
 
   useEffect(() => {
@@ -24,9 +27,6 @@ function CanvasSuggestionItem({ canvasTypeId, onSelect }: CanvasSuggestionItemPr
       setCanvasType(types[canvasTypeId])
     })
   }, [canvasTypeId])
-
-  const handleSubmit = () => {
-  }
 
   return (
     <TooltipProvider>
@@ -43,10 +43,10 @@ function CanvasSuggestionItem({ canvasTypeId, onSelect }: CanvasSuggestionItemPr
                     <p className="text-sm dark:text-gray-200 text-gray-700">{canvasType?.name}</p>
                     <Button
                       size="sm"
-                      onClick={handleSubmit}
+                      onClick={() => {if(canvasType) {onSubmit(canvasType)}}}
                       disabled={isSubmitted}
                     >
-                      select
+                      Select
                     </Button>
                   </div>
                 </div>

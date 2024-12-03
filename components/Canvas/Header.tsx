@@ -2,44 +2,32 @@ import React, { ChangeEvent, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
-import { Canvas } from '@/types/canvas'
+import { Canvas, TextSectionItem, Section } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { Grid2x2, Moon, Sun, Printer } from 'lucide-react'
+import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import LayoutEditor from './LayoutEditor'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowUpRight } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
+import { MoreVertical } from 'lucide-react'
+import DynamicIcon from '../Util/DynamicIcon'
+import { useCanvasContext } from '@/contexts/ContextEnabledContext'
 
 interface HeaderProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-const ThemeToggleButton = () => {
-  const { canvasTheme, setCanvasTheme } = useCanvas()
-  return (
-    <Button
-      variant="outline"
-      size="icon"
-      onClick={() => setCanvasTheme(canvasTheme === 'light' ? 'dark' : 'light')}
-      className={`${
-        canvasTheme === 'light'
-          ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100 hover:text-gray-900'
-          : 'bg-gray-950 text-gray-300 border-gray-800 hover:bg-gray-800 hover:text-gray-100'
-      }`}
-    >
-      {canvasTheme === 'light' ? (
-        <Moon className="h-4 w-4" />
-      ) : (
-        <Sun className="h-4 w-4" />
-      )}
-      <span className="sr-only">Toggle theme</span>
-    </Button>
-  )
-}
-
 export function Header() {
-  const { canvasTheme, formData, updateField, loadCanvas } = useCanvas();
+  const { canvasTheme, formData, updateField, loadCanvas, setCanvasTheme } = useCanvas();
   const [showLayoutEditor, setShowLayoutEditor] = useState(false);
+  const { setHoveredItemId } = useCanvas();
   const router = useRouter();
   if (!formData) return null;
 
@@ -48,6 +36,20 @@ export function Header() {
 
   function onInputChange(event: ChangeEvent<HTMLInputElement>): void {
     updateField(event.target.id as keyof Canvas, event.target.value)
+  }
+
+  function getChildCanvases(formData: Canvas) {
+    return Array.from(formData.sections.values())
+      .flatMap(section => 
+        section.sectionItems?.filter(item => item.canvasLink) || []
+      );
+  }
+
+  function findSectionForItem(itemId: string): [string, Section] | undefined {
+    return Array.from(formData!.sections.entries())
+      .find(([_, section]) => 
+        section.sectionItems.some(item => item.id === itemId)
+      );
   }
 
   return (
@@ -141,25 +143,93 @@ export function Header() {
           value={formData?.version || ''}
           onChange={onInputChange}
         />
-        <Button
-          canvasTheme={canvasTheme}
-          variant="outline"
-          size="icon"
-          onClick={() => setShowLayoutEditor(true)}
-          className="ml-2"
-        >
-          <Grid2x2 className="h-4 w-4" />
-        </Button>
-        <Button
-          canvasTheme={canvasTheme}
-          variant="outline"
-          size="icon"
-          onClick={() => router.push(`/canvas/${formData.id}/screenshot`)}
-          className="ml-2"
-        >
-          <Printer className="h-4 w-4" />
-        </Button>
-        <ThemeToggleButton />
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className={`${
+                canvasTheme === 'light'
+                  ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100 hover:text-gray-900'
+                  : 'bg-gray-950 text-gray-300 border-gray-800 hover:bg-gray-800 hover:text-gray-100'
+              }`}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => setShowLayoutEditor(true)}>
+              <Grid2x2 className="h-4 w-4 mr-2" />
+              Layout Editor
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(`/canvas/${formData.id}/screenshot`)}>
+              <Printer className="h-4 w-4 mr-2" />
+              Screenshot
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setCanvasTheme(canvasTheme === 'light' ? 'dark' : 'light')}>
+              {canvasTheme === 'light' ? (
+                <Moon className="h-4 w-4 mr-2" />
+              ) : (
+                <Sun className="h-4 w-4 mr-2" />
+              )}
+              Toggle Theme
+            </DropdownMenuItem>
+            {(formData?.parentCanvasId || getChildCanvases(formData).length > 0) && (
+              <>
+                <DropdownMenuLabel>Linked Canvases</DropdownMenuLabel>
+                <DropdownMenuItem 
+                  onClick={() => {
+                    loadCanvas(formData.parentCanvasId!)
+                    localStorage.setItem('lastCanvasId', formData.parentCanvasId!)
+                  }}
+                >
+                  <ArrowUpRight className="h-4 w-4 mr-2" />
+                  Parent Canvas
+                </DropdownMenuItem>
+                
+                {getChildCanvases(formData).length > 0 && (
+                  <>
+                    {getChildCanvases(formData).map((item, index) => {
+                      const [sectionName, _] = findSectionForItem(item.id) || [];
+                      
+                      return (
+                        <DropdownMenuItem 
+                          key={item.id}
+                          onClick={() => {
+                            loadCanvas(item.canvasLink!.canvasId)
+                            localStorage.setItem('lastCanvasId', item.canvasLink!.canvasId)
+                          }}
+                          onMouseEnter={() => setHoveredItemId(item.id)}
+                          onMouseLeave={() => setHoveredItemId(null)}
+                          className="flex items-center gap-2"
+                        >
+                          <ArrowDownRight className="h-4 w-4 mr-2" />
+                          <div className="flex flex-col flex-1">
+                          {sectionName && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <DynamicIcon 
+                                  name={formData.canvasType?.sections.find(section => section.name === sectionName)?.icon || 'Square'} 
+                                  className="h-3 w-3" 
+                                /> 
+                                {sectionName}
+                              </span>
+                            )}
+                            <span className="line-clamp-1">
+                              {item instanceof TextSectionItem ? item.content : `Child Canvas ${index + 1}`}
+                            </span>
+                            
+                          </div>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </>
+                )}
+                <DropdownMenuSeparator />
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <LayoutEditor 
         open={showLayoutEditor} 

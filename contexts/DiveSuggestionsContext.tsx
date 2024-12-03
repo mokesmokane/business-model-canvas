@@ -42,7 +42,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
         setNewSuggestions([]);
         setStatusMessage('');
     };
-    async function getNameDescription() {
+    async function getNameDescription(canvasType: CanvasType) {
 
         const messageEnvelope = {
             messageHistory: [
@@ -59,11 +59,15 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
                 {
                     role: 'user' as const,
                     content: 'lets create a canvas to dig into this'
+                },
+                {
+                    role: 'assistant' as const,
+                    content: `Here is the canvas type to use for this: ${JSON.stringify(canvasType)}`
                 }
             ],
             newMessage: {
                 role: 'user' as const,
-                content: 'lets name our new canvas and give it a description'
+                content: `lets name our new canvas and give it a description based off what we are digging into (${sectionItem})`
             }
         };
 
@@ -89,6 +93,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
             const messageEnvelope = {
                 messageHistory: [],
                 newMessage: {
+                    type: 'text' as const,
                     role: 'user' as const,
                     content: JSON.stringify(newCanvasType)
                 },
@@ -170,7 +175,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
     };
 
     async function createCanvas(canvasType: CanvasType, parentCanvas: Canvas | null) {
-        const nameDescription = await getNameDescription();
+        const nameDescription = await getNameDescription(canvasType);
 
         const newCanvas = await createNewCanvas({
             name: nameDescription.name.trim(),

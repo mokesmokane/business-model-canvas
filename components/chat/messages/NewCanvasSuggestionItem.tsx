@@ -3,7 +3,7 @@
 import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { CreateCanvasTypeMessage, useChat } from '@/contexts/ChatContext'
+import { createCanvasTypeMessage, CreateCanvasTypeMessage, useChat } from '@/contexts/ChatContext'
 interface NewCanvasSuggestionItemProps {
   newCanvasSuggestion: {
     canvasType: string;
@@ -15,7 +15,7 @@ interface NewCanvasSuggestionItemProps {
 function NewCanvasSuggestionItem({ newCanvasSuggestion }: NewCanvasSuggestionItemProps) {
   const { sendMessage } = useChat()
   const handleSubmit = () => {
-    sendMessage(new CreateCanvasTypeMessage(newCanvasSuggestion))
+    sendMessage(createCanvasTypeMessage(newCanvasSuggestion))
   }
 
   console.log('newCanvasSuggestion', newCanvasSuggestion)

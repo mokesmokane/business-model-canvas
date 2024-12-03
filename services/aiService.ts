@@ -28,20 +28,7 @@ export async function* sendChatRequest(envelope: MessageEnvelope, currentContent
 
   let data = await response.json()
 
-  const res =  {
-    role: 'assistant',
-    content: data.message,
-    suggestions: data.suggestions?.map((suggestion: any) => ({
-      ...suggestion,
-      id: uuidv4()
-    })),
-    questions: data.questions?.map((question: any) => ({
-      ...question,
-      id: uuidv4()
-    }))
-  } as Message
-  
-  yield res  
+  yield data as Message
 } 
 
 
@@ -62,22 +49,7 @@ export async function* sendContextlessChatRequest(envelope: MessageEnvelope, cur
     throw new Error(`${response.status} ${response.statusText}\n\nDetails: ${JSON.stringify(errorData, null, 2)}`)
   }
 
-  let data = await response.json()
-
-  const res =  {
-    role: 'assistant',
-    content: data.message,
-    suggestions: data.suggestions?.map((suggestion: any) => ({
-      ...suggestion,
-      id: uuidv4()
-    })),
-    questions: data.questions?.map((question: any) => ({
-      ...question,
-      id: uuidv4()
-    }))
-  } as Message
-  
-  yield res  
+  yield await response.json() as Message
 } 
 
 export async function sendAdminChatRequest(messageEnvelope: MessageEnvelope) {

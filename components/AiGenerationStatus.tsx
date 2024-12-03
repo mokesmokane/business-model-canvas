@@ -1,13 +1,14 @@
 import { useAiGeneration } from '@/contexts/AiGenerationContext';
-import { Bot, CheckCircle2, Loader2 } from 'lucide-react';
+import { Bot, CheckCircle2, Loader2, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
 interface AiGenerationStatusProps {
   canvasId: string;
 }
 
 export function AiGenerationStatus({ canvasId }: AiGenerationStatusProps) {
-  const { generationStatus } = useAiGeneration();
+  const { generationStatus, clearStatus } = useAiGeneration();
   const status = generationStatus[canvasId];
 
   if (!status?.isGenerating && !status?.error) return null;
@@ -33,9 +34,19 @@ export function AiGenerationStatus({ canvasId }: AiGenerationStatusProps) {
         </div>
 
         <div className="flex-1">
-          <h3 className="font-medium mb-2 text-foreground dark:text-foreground-dark">
-            {status.error ? 'Generation Error' : 'AI Generating Content'}
-          </h3>
+          <div className="flex justify-between items-start">
+            <h3 className="font-medium mb-2 text-foreground dark:text-foreground-dark">
+              {status.error ? 'Generation Error' : 'AI Generating Content'}
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 -mt-1 -mr-1"
+              onClick={() => clearStatus(canvasId)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
 
           {status.error ? (
             <p className="text-sm text-destructive dark:text-destructive-dark">{status.error}</p>

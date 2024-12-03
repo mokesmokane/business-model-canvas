@@ -24,6 +24,7 @@ interface AiGenerationContextType {
   updateSectionStatus: (canvasId: string, sectionName: string, completed: boolean) => void;
   setError: (canvasId: string, error: string) => void;
   clearStatus: (canvasId: string) => void;
+  cancelGeneration: (canvasId: string) => void;
 }
 
 const AiGenerationContext = createContext<AiGenerationContextType | undefined>(undefined);
@@ -110,13 +111,23 @@ export function AiGenerationProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const cancelGeneration = async (canvasId: string) => {
+    try {
+      setError(canvasId, "Generation cancelled");
+      // Additional cleanup logic can go here
+    } catch (error) {
+      console.error('Failed to cancel generation:', error);
+    }
+  };
+
   return (
     <AiGenerationContext.Provider value={{
       generationStatus,
       startGeneration,
       updateSectionStatus,
       setError,
-      clearStatus
+      clearStatus,
+      cancelGeneration
     }}>
       {children}
     </AiGenerationContext.Provider>

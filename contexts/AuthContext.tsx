@@ -25,6 +25,7 @@ interface AuthContextType {
   isInTrialPeriod: boolean;
   isAdminUser: boolean;
   trialDaysRemaining: number | null;
+  hasProFeatures: boolean;
   signUp: (email: string, password: string) => Promise<User>;
   signIn: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInTrialPeriod, setIsInTrialPeriod] = useState(false);
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
-
+  const [hasProFeatures, setHasProFeatures] = useState(false);
   useEffect(() => {
     let unsubscribeUser: (() => void) | undefined;
 
@@ -85,19 +86,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const createdAt = new Date(userData.createdAt);
             const trialEndDate = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
             const now = new Date();
-            
-            setIsInTrialPeriod(now < trialEndDate);
+            const isInTrialPeriod = now < trialEndDate;
+            setIsInTrialPeriod(isInTrialPeriod);
             setIsAdminUser(userData.admin);
             
             const remainingTime = trialEndDate.getTime() - now.getTime();
             const remainingDays = Math.max(0, Math.ceil(remainingTime / (1000 * 60 * 60 * 24)));
             setTrialDaysRemaining(remainingDays);
+            setHasProFeatures(userData?.subscriptionStatus === 'active' && userData?.subscriptionPlan === 'pro' || isInTrialPeriod);
           }
         });
       } else {
         setUserData(null);
         setIsInTrialPeriod(false);
         setTrialDaysRemaining(null);
+        setHasProFeatures(false);
       }
     });
 
@@ -198,6 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isInTrialPeriod,
       trialDaysRemaining,
       isAdminUser,
+      hasProFeatures,
       signUp, 
       signIn, 
       logout,

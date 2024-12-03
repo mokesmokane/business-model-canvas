@@ -10,13 +10,17 @@ import { Section, TextSectionItem } from "@/types/canvas"
 import { useCanvas } from "@/contexts/CanvasContext"
 import { Button } from "@/components/ui/button"
 import { v4 as uuidv4 } from 'uuid'
+import { CanvasType } from "@/types/canvas-sections"
+import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
+
 
 interface MessageRendererProps {
   message: Message
   messageIndex: number
+  messageHistory: Message[]
 }
 
-export function MessageRenderer({ message, messageIndex}: MessageRendererProps) {
+export function MessageRenderer({ message, messageIndex, messageHistory}: MessageRendererProps) {
   // Render the base message content
   const renderBaseMessage = () => {
     if (message.role === 'error') {
@@ -37,20 +41,20 @@ export function MessageRenderer({ message, messageIndex}: MessageRendererProps) 
   // Render additional content based on message type
   const renderAdditionalContent = () => {
     console.log('message', message)
-    if ((message instanceof CanvasTypeSuggestionMessage && message.canvasTypes) || (message as CanvasTypeSuggestionMessage).canvasTypes) {
-      return <CanvasTypeSuggestionMessageDetails message={message as CanvasTypeSuggestionMessage} />
+    if (message.type === 'canvasType') {
+      return <CanvasTypeSuggestionMessageDetails message={message as CanvasTypeSuggestionMessage} messageHistory={messageHistory} />
     }
 
-    if ((message instanceof SuggestionMessage && message.suggestions) || (message as SuggestionMessage).suggestions) {
-      return <SuggestionMessageDetails message={(message as SuggestionMessage)} messageIndex={messageIndex} />
+    if (message.type === 'suggestion') {
+      return <SuggestionMessageDetails message={message as SuggestionMessage} messageIndex={messageIndex} />
     }
 
-    if ((message instanceof QuestionMessage && message.questions) || (message as QuestionMessage).questions) {
-      return <QuestionMessageDetails message={(message as QuestionMessage)} />
+    if (message.type === 'question') {
+      return <QuestionMessageDetails message={message as QuestionMessage} />
     }
 
-    if (message instanceof TrailPeroidEndedMessage) {
-      return <TrailPeroidEndedMessageDetails message={message} />
+    if (message.type === 'trailPeriodEnded') {
+      return <TrailPeroidEndedMessageDetails message={message as TrailPeroidEndedMessage} />
     }
 
     return null
@@ -83,19 +87,40 @@ export function MessageRenderer({ message, messageIndex}: MessageRendererProps) 
   )
 } 
 
-export function CanvasTypeSuggestionMessageDetails({ message }: { message: CanvasTypeSuggestionMessage }) {
-    const existing = message.canvasTypes.map((suggestion) => (
-        <div key={suggestion}>
-          <CanvasSuggestionItem canvasTypeId={suggestion} onSelect={() => {}} />
-        </div>
-      ))
-      return (
-        <>
-          {existing}
-          <div className="mt-4">Or we could create a new canvas type:</div>
-          <NewCanvasSuggestionItem newCanvasSuggestion={message.newCanvasType} />
-        </>
-      )
+export function CanvasTypeSuggestionMessageDetails({ message, messageHistory }: { message: CanvasTypeSuggestionMessage, messageHistory: Message[] }) {
+  const { rootFolderId } = useCanvasFolders()
+  const { createNewCanvasAndNameIt, loadCanvas } = useCanvas()
+
+  const handleSubmit = async (canvasType: CanvasType) => {
+    if (!canvasType) {
+      return
+    }
+    const newCanvas = await createNewCanvasAndNameIt({
+      canvasType: canvasType,
+      folderId: rootFolderId,
+      messageHistory: messageHistory
+    })
+    
+    if (newCanvas) {
+      await loadCanvas(newCanvas.id)
+      localStorage.setItem('lastCanvasId', newCanvas.id)
+    }
+  }
+
+  const existing = message.canvasTypes.map((suggestion) => (
+      <div key={suggestion}>
+        <CanvasSuggestionItem canvasTypeId={suggestion} onSubmit={handleSubmit}/>
+      </div>
+    ))
+    return (
+      <>
+        {existing}
+        <ReactMarkdown className="prose dark:prose-invert prose-sm">
+        Or we could create a new canvas type:
+        </ReactMarkdown>
+        <NewCanvasSuggestionItem newCanvasSuggestion={message.newCanvasType} />
+      </>
+    )
 }
 
 export function SuggestionMessageDetails({ message, messageIndex }: { message: SuggestionMessage, messageIndex: number }) {
@@ -121,8 +146,9 @@ export function SuggestionMessageDetails({ message, messageIndex }: { message: S
     const handleExpand = async (suggestion: { suggestion: string }) => {
         const expandMessage = `Tell me more about "${suggestion.suggestion}"`
         sendMessage({
-        role: 'user',
-        content: expandMessage
+          type: 'text',
+          role: 'user',
+          content: expandMessage
         })
     }
 

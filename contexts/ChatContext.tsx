@@ -15,10 +15,155 @@ import { useAIAgents } from './AIAgentContext';
 import { doc, collection, addDoc, getDocs, query, where, orderBy, updateDoc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 
-export interface Message {
+export type MessageType = 
+  | 'text' 
+  | 'suggestion' 
+  | 'question' 
+  | 'canvasType' 
+  | 'admin'
+  | 'error'
+  | 'createCanvasType'
+  | 'trailPeriodEnded'
+  | 'newCanvasType'
+  | 'thinking';
+
+export interface BaseMessage {
+  type: MessageType;
   role: 'user' | 'assistant' | 'error' | 'system' | 'thinking';
   content: string;
 }
+
+export interface TextMessage extends BaseMessage {
+  type: 'text';
+}
+
+export const createTextMessage = (content: string, role: 'user' | 'assistant' = 'assistant'): TextMessage => ({
+  type: 'text',
+  role,
+  content
+});
+
+export interface SuggestionMessage extends BaseMessage {
+  type: 'suggestion';
+  suggestions: {
+    id: string;
+    section: string;
+    suggestion: string;
+    rationale: string;
+    icon: string;
+  }[];
+}
+
+export const createSuggestionMessage = (content: string, suggestions: SuggestionMessage['suggestions']): SuggestionMessage => ({
+  type: 'suggestion',
+  role: 'assistant',
+  content,
+  suggestions
+});
+
+export interface QuestionMessage extends BaseMessage {
+  type: 'question';
+  questions: {
+    id: string;
+    question: string;
+    section: string;
+    type: 'open' | 'rating' | 'multipleChoice';
+    options: string[];
+    scale: {
+      min: number;
+      max: number;
+      label: string;
+    }|null;
+    answer: string | number | null;
+  }[];
+}
+
+export const createQuestionMessage = (content: string, questions: QuestionMessage['questions']): QuestionMessage => ({
+  type: 'question',
+  role: 'assistant',
+  content,
+  questions
+});
+
+export interface CanvasTypeSuggestionMessage extends BaseMessage {
+  type: 'canvasType';
+  canvasTypes: string[];
+  newCanvasType: {
+    canvasType: string;
+    sections: string[];
+    purpose: string;
+  };
+}
+
+export const createCanvasTypeSuggestionMessage = (
+  content: string, 
+  canvasTypes: string[], 
+  newCanvasType: CanvasTypeSuggestionMessage['newCanvasType']
+): CanvasTypeSuggestionMessage => ({
+  type: 'canvasType',
+  role: 'assistant',
+  content,
+  canvasTypes,
+  newCanvasType
+});
+
+export interface AdminMessage extends BaseMessage {
+  type: 'admin';
+  canvasTypeSuggestions?: CanvasTypeSuggestion[];
+  canvasLayoutSuggestions?: CanvasLayoutSuggestion[];
+}
+
+export const createAdminMessage = (
+  content: string,
+  canvasTypeSuggestions?: CanvasTypeSuggestion[],
+  canvasLayoutSuggestions?: CanvasLayoutSuggestion[]
+): AdminMessage => ({
+  type: 'admin',
+  role: 'assistant',
+  content,
+  canvasTypeSuggestions,
+  canvasLayoutSuggestions
+});
+
+export interface TrailPeroidEndedMessage extends BaseMessage {
+  type: 'trailPeriodEnded';   
+}
+
+export const createTrialEndedMessage = (): TrailPeroidEndedMessage => ({
+  type: 'trailPeriodEnded',
+  role: 'assistant',
+  content: 'Your trial period has ended. Please upgrade your subscription to continue.'
+});
+
+export interface NewCanvasTypeMessage extends BaseMessage {
+  newCanvasType: string
+}
+
+export const createErrorMessage = (content: string): BaseMessage => ({
+  type: 'error',
+  role: 'error',
+  content
+});
+
+export interface CreateCanvasTypeMessage extends BaseMessage {
+  type: 'createCanvasType';
+  action: 'createCanvasType';
+  newCanvasType: {
+    canvasType: string;
+    sections: string[];
+    purpose: string;
+  };
+}
+
+export type Message = 
+  | TextMessage 
+  | SuggestionMessage 
+  | QuestionMessage 
+  | CanvasTypeSuggestionMessage 
+  | AdminMessage
+  | TrailPeroidEndedMessage
+  | CreateCanvasTypeMessage
+  | BaseMessage;
 
 export interface MessageEnvelope {
   messageHistory: Message[];
@@ -26,128 +171,9 @@ export interface MessageEnvelope {
   action?: string;
 }
 
-export class SuggestionMessage implements Message {
-  role: 'assistant' = 'assistant'
-  content: string
-  suggestions: {
-    id: string;
-    section: string;
-    suggestion: string;
-    rationale: string;
-    icon: string;
-  }[]
-
-  constructor(content: string, suggestions: {
-    id: string;
-    section: string;
-    suggestion: string;
-    rationale: string;
-    icon: string;
-  }[]) {
-    this.content = content
-    this.suggestions = suggestions
-  }
-}
-
-export class QuestionMessage implements Message {
-  role: 'assistant' = 'assistant'
-  content: string
-  questions: {
-    id: string;
-    question: string;
-    section: string;
-    type: 'open' | 'rating' | 'multipleChoice';
-    options?: string[];
-    scale?: {
-      min: number;
-      max: number;
-      label: string;
-    };
-  }[]
-
-  constructor(content: string, questions: {
-    id: string;
-    question: string;
-    section: string;
-    type: 'open' | 'rating' | 'multipleChoice';
-    options?: string[];
-    scale?: {
-      min: number;
-      max: number;
-      label: string;
-    };
-  }[]) {
-    this.content = content
-    this.questions = questions
-  }
-}
-
-
-export class CreateCanvasTypeMessage implements Message {
-  role: 'user' = 'user'
-  content: 'Great! lets create that canvas type now...' = 'Great! lets create that canvas type now...'
-  action = 'createCanvasType'
-  newCanvasType: {
-    canvasType: string;
-    sections: string[];
-    purpose: string;
-  }
-
-  constructor(newCanvasType: {
-    canvasType: string;
-    sections: string[];
-    purpose: string;
-  }) {
-    this.newCanvasType = newCanvasType
-  }
-}
-
-export class CanvasTypeSuggestionMessage implements Message {
-  role: 'assistant' = 'assistant'
-  content: string
-  canvasTypes: string[]
-  newCanvasType: {
-    canvasType: string;
-    sections: string[];
-    purpose: string;
-  }
-
-  constructor(content: string, canvasTypes: string[], newCanvasType: {
-    canvasType: string;
-    sections: string[];
-    purpose: string;
-  }) {
-    this.content = content
-    this.canvasTypes = canvasTypes
-    this.newCanvasType = newCanvasType
-  }
-}
-
-export class TrailPeroidEndedMessage implements Message {
-  role: 'assistant' = 'assistant'
-  content: string = 'Your trial period has ended. Please upgrade your subscription to continue.'
-}
-
 export interface Interaction {
   interaction: string
   label: string
-}
-
-export interface NewCanvasTypeMessage extends Message {
-  newCanvasType: string
-}
-
-export class AdminMessage implements Message {
-  role: 'assistant' = 'assistant'
-  content: string
-  canvasTypeSuggestions?: CanvasTypeSuggestion[];
-  canvasLayoutSuggestions?: CanvasLayoutSuggestion[];
-
-  constructor(content: string, canvasTypeSuggestions?: CanvasTypeSuggestion[], canvasLayoutSuggestions?: CanvasLayoutSuggestion[]) {
-    this.content = content
-    this.canvasTypeSuggestions = canvasTypeSuggestions
-    this.canvasLayoutSuggestions = canvasLayoutSuggestions
-  }
 }
 
 export interface ChatHistory {
@@ -291,7 +317,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     addMessage(userMessage)
 
     if (!isInTrialPeriod && (!userData?.subscriptionStatus || userData?.subscriptionPlan === 'free')) {
-      addMessage(new TrailPeroidEndedMessage())
+      addMessage(createTrialEndedMessage())
       return
     }
 
@@ -307,12 +333,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             action: action || activeTool || undefined
           })
           const formattedResponse: AdminMessage = {
+            type: 'admin',
             role: 'assistant',
-            content: aiResponse.content || '',
+            content: aiResponse.content || '',  
             canvasTypeSuggestions: aiResponse.canvasTypeSuggestions?.map((suggestion: any) => ({
               id: suggestion.id,
               name: suggestion.name,
-              icon: suggestion.icon,
+              icon: suggestion.icon,  
               description: suggestion.description,
               defaultLayout: suggestion.defaultLayout,
               sections: suggestion.sections,
@@ -334,6 +361,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             : String(error)
           
           addMessage({ 
+            type: 'error',
             role: 'error', 
             content: `An error occurred:\n\n${errorMessage}` 
           })
@@ -373,8 +401,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         const errorMessage = error instanceof Error 
           ? `${error.name}: ${error.message}\n\nStack: ${error.stack}`
           : String(error)
-        
+
         addMessage({ 
+          type: 'error',
           role: 'error', 
           content: `An error occurred:\n\n${errorMessage}` 
         })
@@ -382,7 +411,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false)
       }
     } else {
-      addMessage({ role: 'error', content: 'Please select a canvas type to continue.' })
+      addMessage({ 
+        type: 'error',
+        role: 'error', 
+        content: 'Please select a canvas type to continue.' 
+      })
     }
   }
 
@@ -411,6 +444,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error loading chat histories:', error);
       addMessage({ 
+        type: 'error',
         role: 'error', 
         content: 'Failed to load chat histories' 
       });
@@ -423,12 +457,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
     const chatData: Record<string, any> = {
       messages: messages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-        ...(msg as any).suggestions && { suggestions: (msg as any).suggestions },
-        ...(msg as any).questions && { questions: (msg as any).questions },
-        ...(msg as any).canvasTypeSuggestions && { canvasTypeSuggestions: (msg as any).canvasTypeSuggestions },
-        ...(msg as any).canvasLayoutSuggestions && { canvasLayoutSuggestions: (msg as any).canvasLayoutSuggestions }
+        ...msg,
       })),
       updatedAt: new Date(),
       title: messages[0]?.content.slice(0, 50) || 'New Chat',
@@ -448,7 +477,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const chatRef = currentChatId 
         ? doc(userChatsRef, currentChatId)
         : doc(userChatsRef);
-        
+      
       if (currentChatId) {
         await updateDoc(chatRef, chatData);
       } else {
@@ -461,10 +490,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       await loadChatHistories();
     } catch (error) {
-      addMessage({ 
-        role: 'error', 
-        content: 'Failed to save chat history' 
-      });
+      console.error('Error saving chat:', error);
     }
   };
 
@@ -494,6 +520,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error loading chat:', error);
       addMessage({ 
+        type: 'error',
         role: 'error', 
         content: 'Failed to load chat' 
       });
@@ -515,6 +542,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Error deleting chat:', error);
       addMessage({ 
+        type: 'error',
         role: 'error', 
         content: 'Failed to delete chat' 
       });
@@ -574,4 +602,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 }
 
 export const useChat = () => useContext(ChatContext);
- 
+
+export const createCanvasTypeMessage = (newCanvasType: CreateCanvasTypeMessage['newCanvasType']): CreateCanvasTypeMessage => ({
+  type: 'createCanvasType',
+  role: 'user',
+  content: 'Great! lets create that canvas type now...',
+  action: 'createCanvasType',
+  newCanvasType
+});

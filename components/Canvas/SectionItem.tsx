@@ -34,19 +34,19 @@ export function SectionItem({
   onDeleteLink,
   className,
 }: SectionItemProps) {
-  const { loadCanvas, canvasTheme } = useCanvas();
+  const { loadCanvas, canvasTheme, hoveredItemId } = useCanvas();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const showControls = isExpanded || isEditing;
   const sectionItem = item as TextSectionItem;
-  console.log('item', JSON.stringify(item, null, 2))
-  console.log('sectionItem', JSON.stringify(sectionItem, null, 2))
-
+  const isHovered = hoveredItemId === item.id;
 
   return (
     <Card
       canvasTheme={canvasTheme}
-      className={`mb-2 p-3 transition-all duration-300 !bg-transparent relative ${
+      className={`mb-2 p-3 transition-all duration-300 relative ${
         isEditing ? 'border-primary/50 bg-primary/5 shadow-md' : ''
+      } ${
+        isHovered ? (canvasTheme === 'light' ? 'bg-gray-100' : 'bg-gray-900') : '!bg-transparent'
       } ${className}`}
       onClick={onClick}
     >

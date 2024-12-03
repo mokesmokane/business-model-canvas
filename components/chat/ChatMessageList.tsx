@@ -343,7 +343,9 @@ export function ChatMessageList({
               <MessageRenderer
                 key={index}
                 message={message} 
-                messageIndex={index}/>
+                messageIndex={index}
+                messageHistory={messages}
+              />
               ))}
               
               {isLoading && (

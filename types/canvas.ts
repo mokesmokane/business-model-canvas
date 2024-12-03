@@ -69,13 +69,13 @@ export interface AIQuestion {
   question: string;
   section: string;
   type: 'open' | 'rating' | 'multipleChoice';
-  options?: string[];
-  scale?: {
+  options: string[];
+  scale: {
     min: number;
     max: number;
     label: string;
-  };
-  answer?: string | number;
+  }|null;
+  answer: string | number | null;
 }
 
 export interface SerializedSectionItem {

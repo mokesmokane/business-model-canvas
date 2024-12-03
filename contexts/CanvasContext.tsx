@@ -15,6 +15,8 @@ import { canvasService } from '@/services/canvasService';
 import { deserializeCanvas, serializeCanvas, deserializeSections, serializeSections } from '@/services/canvasService';
 import { useAIAgents } from './AIAgentContext';
 import { useCanvasContext } from './ContextEnabledContext';
+import { sendNameDescriptionRequest } from '@/services/aiCreateCanvasService';
+import { Message, MessageEnvelope } from './ChatContext';
 
 interface Section {
   name: string;
@@ -46,11 +48,14 @@ interface CanvasContextType {
   updateQuestionAnswer: (question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<boolean>;
   createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout, parentCanvasId?: string}) => Promise<Canvas | undefined>;
+  createNewCanvasAndNameIt: (data: { canvasType: CanvasType, folderId: string, parentCanvasId?: string, messageHistory: Message[]}) => Promise<Canvas | undefined>;
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
   clearState: () => void;
   updateQuestions: (sectionKey: string, questions: any[]) => void;
   setCanvasTheme: (theme: 'light' | 'dark') => void;
+  hoveredItemId: string | null;
+  setHoveredItemId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 export const CanvasContext = createContext<CanvasContextType>({
@@ -69,11 +74,14 @@ export const CanvasContext = createContext<CanvasContextType>({
   updateQuestionAnswer: () => { },
   loadCanvas: async () => { return false },
   createNewCanvas: async () => { return undefined },
+  createNewCanvasAndNameIt: async () => { return undefined },
   resetForm: () => { },
   deleteCanvas: async () => { },
   clearState: () => { },
   updateQuestions: () => { },
   setCanvasTheme: () => { },
+  hoveredItemId: null,
+  setHoveredItemId: () => { },
 });
 
   const AUTOSAVE_DELAY = 1000;
@@ -82,7 +90,8 @@ export const CanvasContext = createContext<CanvasContextType>({
   const { onCanvasCreated, rootFolderId } = useCanvasFolders()
   const [userCanvases, setUserCanvases] = useState<DocumentData[]>([]);
   const { setIsContextEnabled } = useCanvasContext()
-  const { user } = useAuth();
+  const { user, hasProFeatures } = useAuth();
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
   // Initialize canvasService when user changes
   useEffect(() => {
@@ -292,7 +301,37 @@ export const CanvasContext = createContext<CanvasContextType>({
     return true;
   }, [setStatus, user?.uid]);
 
-  // Update createNewCanvas to use the singleton
+  
+  const createNewCanvasAndNameIt = async (data: { 
+    canvasType: CanvasType, 
+    folderId: string,
+    parentCanvasId?: string,
+    messageHistory: Message[],
+  }) => {
+    let name = 'New Canvas'
+    let description = ''
+    if (!user) return;
+      if(hasProFeatures) {
+        const env: MessageEnvelope = {
+          messageHistory: data.messageHistory,
+          newMessage: {
+            type: 'text',
+            role: 'user',
+            content: 'Please suggest a name and description for the new canvas'
+          }
+        }   
+        const nameDescription = await sendNameDescriptionRequest(env)
+        name = nameDescription.name
+        description = nameDescription.description
+      }
+    const canvas = await createNewCanvas({
+      name,
+      description,
+      ...data
+    })
+    return canvas
+  }
+
   const createNewCanvas = async (data: { 
     name: string, 
     description: string, 
@@ -589,11 +628,14 @@ export const CanvasContext = createContext<CanvasContextType>({
         updateQuestionAnswer,
         loadCanvas,
         createNewCanvas,
+        createNewCanvasAndNameIt,
         resetForm,
         deleteCanvas,
         clearState,
         updateQuestions,
         setCanvasTheme,
+        hoveredItemId,
+        setHoveredItemId,
       }}
     >
       {children}

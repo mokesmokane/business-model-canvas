@@ -7,6 +7,7 @@ import { useCanvas } from '@/contexts/CanvasContext'
 
 interface CanvasProps {
   onExpandSidebar: () => void
+  hoveredItemId?: string | null;
 }
 
 function Providers({ children }: { children: React.ReactNode }) {
@@ -17,7 +18,7 @@ function Providers({ children }: { children: React.ReactNode }) {
   )
 }
 
-export function Canvas({ onExpandSidebar }: CanvasProps) {
+export function Canvas({ onExpandSidebar, hoveredItemId }: CanvasProps) {
   const { formData } = useCanvas();
 
   let component = (

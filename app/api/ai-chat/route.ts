@@ -8,10 +8,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })
 
-// const sections = ["keyPartners", "keyActivities", "keyResources", "valuePropositions", "customerRelationships", "channels", "customerSegments", "costStructure", "revenueStreams"]
-
-
-
 function suggestionsToolSchema(sections:string[],canvasName:string) {
   return {
     type: "object",
@@ -103,12 +99,13 @@ export async function POST(request: Request) {
     const canvasName = currentContent?.canvasType?.name || ''
     const messages = [...messageEnvelope.messageHistory, messageEnvelope.newMessage]
     const expanded_messages = messages.flatMap((msg: Message) => {
-      if (msg instanceof SuggestionMessage) {
-        return msg.suggestions.map((suggestion) => ({
+      if (msg.type === 'suggestion') {
+
+        return (msg as SuggestionMessage).suggestions.map((suggestion) => ({
           role: "assistant",
           content: `Suggestion for ${suggestion.section}:\n${suggestion.suggestion}\n\nRationale: ${suggestion.rationale}`
         }))
-      } else if (msg instanceof QuestionMessage) {
+      } else if (msg.type === 'question') {
         return [msg]
       } 
 
@@ -160,13 +157,13 @@ export async function POST(request: Request) {
       
       `
     }
-    let tool_call = 'auto'
+    let tool_call :'auto'|'required'|'none' | { type: 'function', function: { name: string } } = 'auto'
     if (action === 'question') {
       systemPrompt.content = `${questionPrompt}
 
       ${canvasInfo}
       `
-      tool_call = 'required'
+      tool_call = { type: 'function', function: { name: 'questions' } }
     } else if (action === 'critique') {
       systemPrompt.content = `${critiquePrompt}
 
@@ -182,7 +179,7 @@ export async function POST(request: Request) {
 
       ${canvasInfo}
       `
-      tool_call = 'required'
+      tool_call = { type: 'function', function: { name: 'suggestions' } }
     }
 
     let messages_list = [
@@ -218,7 +215,7 @@ export async function POST(request: Request) {
         action === 'suggest' ? [suggestTool]
         : action === 'question' ? [questionTool]
         : [suggestTool, questionTool],
-      tool_choice: "auto"
+      tool_choice: tool_call
     })
 
     const response = completion.choices[0].message
@@ -228,21 +225,26 @@ export async function POST(request: Request) {
       const toolResponse = JSON.parse(response.tool_calls[0].function.arguments)
       if (response.tool_calls[0].function.name === "suggestions") {
       return NextResponse.json({ 
-        message: "Here are my suggestions:",
+        type: 'suggestion',
+        role: 'assistant',
+        content: "Here are my suggestions:",
         suggestions: toolResponse.suggestions 
         })
       } else if (response.tool_calls[0].function.name === "questions") {
 
         return NextResponse.json({ 
-          message: "Here are the questions I came up with:",
+          type: 'question',
+          role: 'assistant',
+          content: "Here are the questions I came up with:",
           questions: toolResponse.questions 
         })
       }
     }
 
     return NextResponse.json({ 
-      message: response.content,
-      suggestions: null 
+      type: 'text',
+      role: 'assistant',
+      content: response.content
     })
 
   } catch (error) {

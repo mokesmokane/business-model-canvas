@@ -1,7 +1,6 @@
-import { CanvasTypeSuggestionMessage, CreateCanvasTypeMessage, Message, MessageEnvelope } from '@/contexts/ChatContext'
+import { createCanvasTypeSuggestionMessage, createTextMessage, Message, MessageEnvelope } from '@/contexts/ChatContext'
 import { AIAgent, Canvas, SectionItem } from '@/types/canvas';
 import { v4 as uuidv4 } from 'uuid'
-import { CanvasTypeService } from './canvasTypeService';
 import { CanvasSection, CanvasType } from '@/types/canvas-sections';
 import { canvasService } from './canvasService';
 import { canvasTypeService } from './canvasTypeService';
@@ -48,7 +47,7 @@ export async function* sendCanvasSelectorRequest(messageEnvelope: MessageEnvelop
   
   if(data.canvasTypeSuggestions) {
     console.log('canvasTypeSuggestions', data.canvasTypeSuggestions)
-    const message = new CanvasTypeSuggestionMessage(data.message, data.canvasTypeSuggestions, data.newCanvasType)
+    const message = createCanvasTypeSuggestionMessage(data.message, data.canvasTypeSuggestions, data.newCanvasType)
     yield message
   }
 
@@ -60,11 +59,9 @@ export async function* sendCanvasSelectorRequest(messageEnvelope: MessageEnvelop
     const newCanvasTypeResponse = await sendAdminChatRequest({
       messageHistory: messageEnvelope.messageHistory,
       action: 'suggestCanvasTypes',
-      newMessage: {
-        role: 'user',
-        content: data.newCanvasType,
-      }
-    })
+      newMessage: createTextMessage(data.newCanvasType)
+      })
+
     yield {
       role: 'assistant',
       content: data.message,

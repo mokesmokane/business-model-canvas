@@ -210,7 +210,7 @@ export class CanvasTypeService {
     async updateCanvasType(id: string, canvasType: CanvasType): Promise<void> {
         //must check if user is admin
         const user = await this.getUser();
-        if (!user?.isAdmin) {
+        if (!user?.admin) {
             throw new Error('User is not admin');
         }
         try {
