@@ -19,7 +19,7 @@ export function MobileBusinessModelCanvas() {
     <div className={`flex flex-col h-[calc(100vh-64px)] ${
       canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
     }`}>
-      <div className="flex-1 w-full pt-4">
+      <div className="flex-1 overflow-hidden pb-16">
         <Swiper
           spaceBetween={30}
           onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}

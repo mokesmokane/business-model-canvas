@@ -15,6 +15,8 @@ import { CanvasFoldersProvider } from "@/contexts/CanvasFoldersContext"
 import { CanvasContextProvider } from "@/contexts/ContextEnabledContext"
 import { ChatProvider } from "@/contexts/ChatContext"
 import { AiGenerationProvider } from "@/contexts/AiGenerationContext"
+import { MobileBottomNav } from "./mobile/MobileBottomNav"
+
 export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
@@ -49,6 +51,7 @@ export function MainContent() {
                   <>
                     <MobileHeader />
                     <MobileBusinessModelCanvas />
+                    <MobileBottomNav />
                   </>
                 ) : (
                   <div className="flex flex-col h-screen overflow-hidden">
