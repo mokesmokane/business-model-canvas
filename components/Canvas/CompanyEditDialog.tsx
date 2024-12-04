@@ -7,7 +7,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { DialogClose } from '@radix-ui/react-dialog'
 import { useCanvas } from '@/contexts/CanvasContext'
 
-export function CompanyEditDialog() {
+interface Props {
+  controlledOpen?: boolean;
+  onControlledOpenChange?: (open: boolean) => void;
+}
+
+export function CompanyEditDialog({ controlledOpen, onControlledOpenChange }: Props) {
   const { formData, updateField } = useCanvas();
   const [tempName, setTempName] = React.useState(formData?.name || '')
   const [tempDescription, setTempDescription] = React.useState(formData?.description || '')
@@ -33,11 +38,13 @@ export function CompanyEditDialog() {
 
   return (
     <Dialog onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon">
-          <Pencil className="h-4 w-4" />
-        </Button>
-      </DialogTrigger>
+      {!controlledOpen && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <Pencil className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Canvas Details</DialogTitle>
