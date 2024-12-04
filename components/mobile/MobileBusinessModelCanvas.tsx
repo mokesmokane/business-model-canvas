@@ -4,11 +4,16 @@ import 'swiper/css';
 import { useEffect, useState } from "react";
 import { CanvasSection } from "../Canvas/CanvasSection";
 import { Loader2 } from "lucide-react";
+import { MobileConfirmDiveInSheet } from "../Canvas/MobileConfirmDiveInSheet";
+import { useRouter } from "next/navigation";
 
 export function MobileBusinessModelCanvas({ canvasId }: { canvasId: string }) {
   const { formData, canvasTheme, loadCanvas } = useCanvas();
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [diveInSheetOpen, setDiveInSheetOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{ content: string; sectionName: string; icon: string } | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (canvasId && typeof canvasId === 'string') {
@@ -20,6 +25,18 @@ export function MobileBusinessModelCanvas({ canvasId }: { canvasId: string }) {
       return () => clearTimeout(timer)
     }
   }, [canvasId, loadCanvas])
+
+  const handleDiveIn = (content: string, sectionName: string, icon: string) => {
+    setSelectedItem({ content, sectionName, icon });
+    setDiveInSheetOpen(true);
+  };
+
+  const handleDiveInConfirm = (canvasId: string, canvasTypeId: string) => {
+    router.push(`/canvas/${canvasId}`);
+    setDiveInSheetOpen(false);
+    setSelectedItem(null);
+  };
+
   if (!formData) return null;
   if (isLoading) return <div className="flex justify-center items-center h-[calc(100vh-64px)]"><Loader2 className="animate-spin" /></div>;
   
@@ -66,6 +83,20 @@ export function MobileBusinessModelCanvas({ canvasId }: { canvasId: string }) {
           />
         ))}
       </div>
+
+      {selectedItem && (
+        <MobileConfirmDiveInSheet
+          isOpen={diveInSheetOpen}
+          onClose={() => {
+            setDiveInSheetOpen(false);
+            setSelectedItem(null);
+          }}
+          onConfirm={handleDiveInConfirm}
+          itemContent={selectedItem.content}
+          sectionName={selectedItem.sectionName}
+          icon={selectedItem.icon}
+        />
+      )}
     </div>
   );
 }
