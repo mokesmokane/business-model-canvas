@@ -60,11 +60,11 @@ const canvasTypeSchema = {
                     properties: {
                       columns: { 
                         type: "string",
-                        description: "CSS grid-template-columns value"
+                        description: "CSS grid-template-rows value ie '1fr 1fr 1fr' or '1fr 2fr' YOU MUST NOT USE REPEAT FUNCTIONS" 
                       },
                       rows: { 
                         type: "string",
-                        description: "CSS grid-template-rows value"
+                        description: "CSS grid-template-rows value ie '1fr 1fr 1fr' or '1fr 2fr' YOU MUST NOT USE REPEAT FUNCTIONS" 
                       }
                     },
                     required: ["columns", "rows"],
