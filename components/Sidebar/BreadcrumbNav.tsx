@@ -26,6 +26,7 @@ import { DialogTitle } from '@radix-ui/react-dialog'
 interface BreadcrumbNavProps {
   path: NestedCanvasFolder[]
   onNavigate: (folder: NestedCanvasFolder | null) => void
+  isExpanded: boolean
 }
 
 interface MoveOperation {
@@ -34,10 +35,10 @@ interface MoveOperation {
   targetFolderId: string | null
 }
 
-export function BreadcrumbNav({ path, onNavigate }: BreadcrumbNavProps) {
+export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavProps) {
   const { onCanvasCreated, onCreateFolder, onCanvasMoved } = useCanvasFolders()
   const { clearState } = useCanvas()
-  const { isExpanded, setIsExpanded } = useExpanded()
+  const { setIsExpanded } = useExpanded()
   const [dragOverFolderId, setDragOverFolderId] = React.useState<string | null>(null)
   const [pendingMove, setPendingMove] = React.useState<MoveOperation | null>(null)
   const [showTypeSelector, setShowTypeSelector] = React.useState(false)

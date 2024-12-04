@@ -365,7 +365,7 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
 
   return (
     <div className="space-y-2 w-full">
-      <BreadcrumbNav path={currentPath} onNavigate={handleNavigate} />
+      <BreadcrumbNav isExpanded={isExpanded} path={currentPath} onNavigate={handleNavigate} />
       {isExpanded && renderCurrentFolder()}
       {canvasToDelete && (
         <DeleteCanvasDialog

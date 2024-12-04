@@ -393,7 +393,7 @@ export function MobileConfirmDiveInSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="bottom" className="h-[85vh] flex flex-col p-0">
+      <SheetContent side="bottom" className="h-[95vh] flex flex-col p-0">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="space-y-1">

@@ -183,13 +183,26 @@ interface DynamicInputProps {
           </div>
           <div className="absolute left-2 bottom-2 flex items-center gap-2">
             {showTabPrompt && suggestions.length === 0 && !isLoading && (
-              <div className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <div 
+                className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer"
+                onClick={async () => {
+                  setShowTabPrompt(false)
+                  await getSuggestions(inputValue)
+                }}
+              >
                 <kbd className="bg-background px-1 rounded">Tab</kbd>
                 <span>suggest</span>
               </div>
             )}
             {suggestions.length > 0 && (
-              <div className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1">
+              <div 
+                className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer"
+                onClick={() => {
+                  setInputValue(prev => prev + currentSuggestion)
+                  setSuggestions([])
+                  setCurrentSuggestionIndex(0)
+                }}
+              >
                 <kbd className="bg-background px-1 rounded">Tab</kbd>
                 <span>{currentSuggestionIndex + 1}/{suggestions.length}</span>
                 <kbd className="bg-background px-1 rounded">↵</kbd>

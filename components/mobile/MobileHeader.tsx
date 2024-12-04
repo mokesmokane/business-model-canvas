@@ -13,6 +13,7 @@ import { useState } from "react"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { CanvasProvider } from "@/contexts/CanvasContext"
 import { MobileSidebar } from "../Sidebar/MobileSidebar"
+import { useSwipeable } from 'react-swipeable'
 
 
 export function MobileHeader() {
@@ -28,6 +29,10 @@ export function MobileHeader() {
     }
   }
 
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => setIsOpen(false),
+  })
+
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-800 bg-background">
       <div className="flex h-16 items-center justify-between px-4">
@@ -39,7 +44,11 @@ export function MobileHeader() {
                   <Menu className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] p-0 [&_button[data-state=open]]:hidden">
+              <SheetContent 
+                side="left" 
+                className="w-[300px] p-0 [&_button[data-state=open]]:hidden"
+                {...swipeHandlers}
+              >
                 <VisuallyHidden asChild>
                   <SheetTitle>Navigation Menu</SheetTitle>
                 </VisuallyHidden>
