@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
-import { useChat } from '@/contexts/ChatContext'
+import { createTextMessage, useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { ChatHeader } from './ChatHeader'
@@ -24,10 +24,7 @@ export function AIChatArea({ onClose }: { onClose?: () => void }) {
   }, [messages, isLoading])
 
   const handleSend = () => {
-    sendMessage({
-      role: 'user',
-      content: input
-    })
+    sendMessage(createTextMessage(input, 'user'))
   }
 
   const handleNewChat = () => {
