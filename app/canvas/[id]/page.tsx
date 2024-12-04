@@ -55,11 +55,11 @@ export default function CanvasPage() {
                 <AiGenerationProvider>
                   <ChatProvider>
                     {isMobile ? (
-                      <>
+                      <div className="flex flex-col h-screen overflow-hidden">
                         <MobileHeader />
                         <MobileBusinessModelCanvas canvasId={params.id as string} />
                         <MobileBottomNav />
-                      </>
+                      </div>
                     ) : (
                       <div className="flex flex-col h-screen overflow-hidden">
                         <SiteHeader />

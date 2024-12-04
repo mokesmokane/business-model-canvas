@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [trialDaysRemaining, setTrialDaysRemaining] = useState<number | null>(null);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [hasProFeatures, setHasProFeatures] = useState(false);
+  
   useEffect(() => {
     let unsubscribeUser: (() => void) | undefined;
 
@@ -84,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Calculate trial period
           if (userData?.createdAt) {
             const createdAt = new Date(userData.createdAt);
+            
             const trialEndDate = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
             const now = new Date();
             const isInTrialPeriod = now < trialEndDate;

@@ -6,10 +6,12 @@ import { usePathname } from "next/navigation"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useState } from "react"
 import { CanvasTypeSelector } from "@/components/CanvasTypeSelector"
+import { MobileAIChat } from "./MobileAIChat"
 
 export function MobileBottomNav() {
   const pathname = usePathname()
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [showChatSheet, setShowChatSheet] = useState(false)
 
   return (
     <>
@@ -28,15 +30,15 @@ export function MobileBottomNav() {
               </Link>
             </li>
             <li>
-              <Link 
-                href="/chat" 
+              <button 
+                onClick={() => setShowChatSheet(true)}
                 className={`flex flex-col items-center gap-1 ${
-                  pathname === '/chat' ? 'text-primary' : 'text-muted-foreground'
+                  showChatSheet ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 <MessageCircle size={24} />
                 <span className="text-xs">Chat</span>
-              </Link>
+              </button>
             </li>
             <li>
               <button 
@@ -61,6 +63,8 @@ export function MobileBottomNav() {
           </ul>
         </nav>
       </div>
+
+      <MobileAIChat isOpen={showChatSheet} onOpenChange={setShowChatSheet} />
 
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="sm:max-w-[425px]">

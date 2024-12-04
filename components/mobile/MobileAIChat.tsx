@@ -8,21 +8,22 @@ import { SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { useCanvas } from "@/contexts/CanvasContext"
 
-export function MobileAIChat() {
-  const [isOpen, setIsOpen] = useState(false)
+interface MobileAIChatProps {
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function MobileAIChat({ isOpen, onOpenChange }: MobileAIChatProps) {
+  const [internalOpen, setInternalOpen] = useState(false)
   const { canvasTheme } = useCanvas()
+
+  // Use either controlled or uncontrolled state
+  const isSheetOpen = isOpen !== undefined ? isOpen : internalOpen
+  const handleOpenChange = onOpenChange || setInternalOpen
+
   return (
     <TooltipProvider>
-      <Sheet open={isOpen} onOpenChange={setIsOpen}>
-        <SheetTrigger asChild>
-          <Button
-            canvasTheme={canvasTheme}
-            size="icon"
-            className="fixed bottom-4 right-4 h-12 w-12 rounded-full shadow-lg"
-          >
-            <Bot className="h-6 w-6" />
-          </Button>
-        </SheetTrigger>
+      <Sheet open={isSheetOpen} onOpenChange={handleOpenChange}>
         <SheetContent 
           side="bottom" 
           className="h-[90vh] p-0"
@@ -31,7 +32,7 @@ export function MobileAIChat() {
             <SheetTitle>AI Assistant</SheetTitle>
           </VisuallyHidden>
           <div className="h-full flex flex-col w-full">
-            <AIChatArea onClose={() => setIsOpen(false)}/>
+            <AIChatArea onClose={() => handleOpenChange(false)}/>
           </div>
         </SheetContent>
       </Sheet>

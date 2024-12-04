@@ -24,6 +24,8 @@ import { SectionItem as SectionItemType } from '@/types/canvas'
 import { v4 as uuidv4 } from 'uuid';
 import { useAiGeneration } from '@/contexts/AiGenerationContext';
 import { useRouter } from 'next/navigation'
+import { MobileConfirmDiveInSheet } from './MobileConfirmDiveInSheet'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface AISuggestion {
   id: string;
@@ -66,6 +68,7 @@ export function CanvasSection({
   const [diveInItem, setDiveInItem] = useState<SectionItemType | null>(null)
   const [letsDiveIn, setLetsDiveIn] = useState(false)
   const router = useRouter()
+  const isMobile = useIsMobile()
 
   const handleItemClick = (index: number) => {
     setExpandedItemIndex(expandedItemIndex === index ? null : index);
@@ -246,17 +249,31 @@ export function CanvasSection({
       />
 
       <DiveSuggestionsProvider>
-      <ConfirmDiveInDialog
-        isOpen={isDiveInDialogOpen && diveInItem !== null}
-        onClose={() => setIsDiveInDialogOpen(false)}
-        icon={Icon}
-        onConfirm={() => {
-          setIsDiveInDialogOpen(false)
-          setLetsDiveIn(true)
-        }}
-        itemContent={(diveInItem as TextSectionItem)?.content || ''}
-        sectionName={title}
-      />
+      {isMobile ? (
+        <MobileConfirmDiveInSheet
+          isOpen={isDiveInDialogOpen && diveInItem !== null}
+          onClose={() => setIsDiveInDialogOpen(false)}
+          icon={Icon}
+          onConfirm={() => {
+            setIsDiveInDialogOpen(false)
+            setLetsDiveIn(true)
+          }}
+          itemContent={(diveInItem as TextSectionItem)?.content || ''}
+          sectionName={title}
+        />
+      ) : (
+        <ConfirmDiveInDialog
+          isOpen={isDiveInDialogOpen && diveInItem !== null}
+          onClose={() => setIsDiveInDialogOpen(false)}
+          icon={Icon}
+          onConfirm={() => {
+            setIsDiveInDialogOpen(false)
+            setLetsDiveIn(true)
+          }}
+          itemContent={(diveInItem as TextSectionItem)?.content || ''}
+          sectionName={title}
+        />
+      )}
 
       <Dialog open={letsDiveIn} onOpenChange={setLetsDiveIn}>
         <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
@@ -274,17 +291,17 @@ export function CanvasSection({
                 localStorage.setItem('lastCanvasId', canvasId)
               }
             }}
-              section={
-                {
-                  id: sectionKey,
-                  name: title,
-                  icon: Icon,
-                  placeholder: placeholder
-                }
+            section={
+              {
+                id: sectionKey,
+                name: title,
+                icon: Icon,
+                placeholder: placeholder
               }
-              item={diveInItem!}
-              onClose={() => setLetsDiveIn(false)}
-            />
+            }
+            item={diveInItem!}
+            onClose={() => setLetsDiveIn(false)}
+          />
         </DialogContent>
       </Dialog>
       </DiveSuggestionsProvider>
