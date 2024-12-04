@@ -36,8 +36,8 @@ export function AIItemAssistButton({
   onDiveIn,
   onDropdownStateChange 
 }: AIItemAssistButtonProps) {
-  const { sendMessage, isLoading, messages } = useChat()
-  const { formData, canvasTheme, loadCanvas } = useCanvas()
+  const { sendMessage, isLoading } = useChat()
+  const { canvasTheme } = useCanvas()
 
   const actions = [
     { key: 'suggestEdit', label: 'Suggest Edit', icon: Lightbulb },

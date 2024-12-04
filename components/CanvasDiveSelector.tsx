@@ -17,6 +17,7 @@ import { CanvasTypeCard } from "./CanvasTypeCards/CanvasTypeCard"
 import { useDiveSuggestions } from '@/contexts/DiveSuggestionsContext';
 import { useRecentCanvasTypes } from "@/contexts/RecentCanvasTypesContext"
 import { useAiGeneration } from '@/contexts/AiGenerationContext';
+import { useRouter } from 'next/navigation'
 
 interface CanvasDiveSelectorProps {
   section: {
@@ -54,6 +55,7 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [isCreatingNewType, setIsCreatingNewType] = useState(false);
   const { startGeneration, updateSectionStatus, setError } = useAiGeneration();
+  const router = useRouter()
 
   useEffect(() => {
     setFilteredCanvasTypes(Object.entries(canvasTypes).filter(([_, type]) => type.name.toLowerCase().includes(searchTerm.toLowerCase())));
@@ -258,6 +260,8 @@ export function CanvasDiveSelector({ section, item, onClose, onSuccess }: Canvas
       diveItem: item
     });
     
+    localStorage.setItem('lastCanvasId', canvas.id)
+    router.push(`/canvas/${canvas.id}`)
     onSuccess(canvas.id, selectedType.id);
     onClose();
   };

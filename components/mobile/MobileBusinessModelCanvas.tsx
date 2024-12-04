@@ -1,20 +1,28 @@
 import { useCanvas } from "@/contexts/CanvasContext";
 import { Swiper, SwiperSlide } from 'swiper/react';
-// import { MobileCanvasSection } from "../mobile/MobileCanvasSection";
-import { MobileAIChat } from "./MobileAIChat";
 import 'swiper/css';
-import { Building2, Users, Workflow, Gift, Heart, Users2, Truck, Receipt, Coins, Icon } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
+import { useEffect, useState } from "react";
 import { CanvasSection } from "../Canvas/CanvasSection";
-import DynamicIcon from "../Util/DynamicIcon";
+import { Loader2 } from "lucide-react";
 
-export function MobileBusinessModelCanvas() {
-  const { formData, canvasTheme } = useCanvas();
+export function MobileBusinessModelCanvas({ canvasId }: { canvasId: string }) {
+  const { formData, canvasTheme, loadCanvas } = useCanvas();
   const [activeIndex, setActiveIndex] = useState(0);
-  if (!formData) return null;
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    if (canvasId && typeof canvasId === 'string') {
+      setIsLoading(true)
+      loadCanvas(canvasId)
+      const timer = setTimeout(() => {
+        setIsLoading(false)
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [canvasId, loadCanvas])
+  if (!formData) return null;
+  if (isLoading) return <div className="flex justify-center items-center h-[calc(100vh-64px)]"><Loader2 className="animate-spin" /></div>;
+  
   return (
     <div className={`flex flex-col h-[calc(100vh-64px)] ${
       canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
@@ -34,67 +42,29 @@ export function MobileBusinessModelCanvas() {
               <SwiperSlide key={key}>
                 <CanvasSection
                   onChange={() => {}}
-                  placeholder={section.name}
+                  placeholder={sectionConfig.placeholder.replace(/([.!?]) /g, '$1\n\n')}
                   title={section.name}
                   icon={sectionConfig?.icon || ''}
                   sectionKey={key}
                   section={sectionData}
-                />
+                /> 
               </SwiperSlide>
             );
           })}
         </Swiper>
       </div>
 
-      <div className={`${
-        canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
-      }`}>
-        <TooltipProvider>
-          <div className="flex justify-between px-4 py-2">
-          {Array.from(formData.sections.entries()).map(([key, section], index) => {
-            const sectionConfig = formData.canvasType.sections.find(s => s.name === section.name);
-              const icon = sectionConfig?.icon;
-              return (
-                <Tooltip key={section.name}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className={`mt-2 h-8 w-8 ${
-                        index === activeIndex
-                          ? `${canvasTheme === 'light' ? 'bg-gray-100 text-gray-900' : 'bg-gray-800 text-gray-100'}`
-                          : `${canvasTheme === 'light' ? 'text-gray-400' : 'text-gray-500'}`
-                      }`}
-                      onClick={() => {
-                        const swiperEl = document.querySelector('.swiper') as HTMLElement & { swiper: any };
-                        if (swiperEl) {
-                          swiperEl.swiper.slideTo(index);
-                        }
-                      }}
-                    >
-                      <DynamicIcon name={icon || ''} className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent 
-                    side="top"
-                    className={`${
-                      canvasTheme === 'light' 
-                        ? 'bg-gray-100 text-gray-900 border-gray-200' 
-                        : 'bg-gray-900 text-gray-100 border-gray-800'
-                    }`}
-                  >
-                    {section.name}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-            <MobileAIChat />
-          </div>
-
-        </TooltipProvider>
-        
-        <div className="px-4 py-1">
-        </div>
+      <div className={`fixed bottom-16 left-0 right-0 flex justify-center gap-2 py-2 z-10 bg-transparent`}>
+        {Array.from(formData.sections.entries()).map((_, index) => (
+          <div
+            key={index}
+            className={`h-2 w-2 rounded-full transition-all ${
+              index === activeIndex
+                ? `${canvasTheme === 'light' ? 'bg-gray-900' : 'bg-gray-100'}`
+                : `${canvasTheme === 'light' ? 'bg-gray-300' : 'bg-gray-700'}`
+            }`}
+          />
+        ))}
       </div>
     </div>
   );

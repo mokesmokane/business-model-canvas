@@ -10,7 +10,7 @@ import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
 import { ChatProvider } from '@/contexts/ChatContext'
 import { CanvasNavigation } from './CanvasNavigation'
 
-interface SidebarProps {
+interface MobileSidebarProps {
   setShowAuthDialog: (show: boolean) => void
 }
 
@@ -24,29 +24,25 @@ function Providers({ children }: { children: React.ReactNode }) {
   )
 } 
 
-export function Sidebar({setShowAuthDialog}: SidebarProps) {
+export function MobileSidebar({setShowAuthDialog}: MobileSidebarProps) {
   const { user } = useAuth()
-  const { isExpanded, isWide } = useExpanded()
+  const { isWide } = useExpanded()
   
   if (!user) return null;
 
-  const sidebarWidth = !isExpanded ? '4rem' : isWide ? '42rem' : '24rem'
+  const sidebarWidth = isWide ? '42rem' : '24rem'
   let component = (
       <div 
-        className={`relative flex flex-col h-[calc(100vh-64px)] bg-background border-r border-zinc-300/50 dark:border-zinc-800/50 transition-all duration-300 ease-in-out ${
-          isExpanded ? 'items-stretch' : 'items-center'
-        }`}
+        className="relative flex flex-col h-[calc(100vh)] bg-background border-r border-zinc-300/50 dark:border-zinc-800/50 transition-all duration-300 ease-in-out items-stretch z-50"
         style={{ width: sidebarWidth }}
       >
         <div className="flex flex-col gap-4 w-full py-2">
-          <CanvasNavigation isExpanded={isExpanded} />
+          <CanvasNavigation isExpanded={true} />
         </div>
-        {isExpanded && <div className="border-t border-zinc-300/50 dark:border-zinc-700/50 my-2 w-full"></div>}
-        <div className={`flex-grow overflow-hidden ${isExpanded ? 'w-full' : 'w-16'}`}>
-          <SidebarAIChatArea/>
-        </div>
-        <div className={`flex-none ${isExpanded ? 'w-full' : 'w-16'}`}>
-          <SidebarFooter isExpanded={isExpanded} setShowAuthDialog={setShowAuthDialog} />
+        <div className="border-t border-zinc-300/50 dark:border-zinc-700/50 my-2 w-full"></div>
+        <div className="flex-grow w-full" />
+        <div className="w-full">
+          <SidebarFooter isExpanded={true} setShowAuthDialog={setShowAuthDialog} />
         </div>
       </div>
   )

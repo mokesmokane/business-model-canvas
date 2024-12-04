@@ -25,14 +25,15 @@ interface NewCanvasDialogProps {
 }
 
 export function NewCanvasDialog({ open, onOpenChange, canvasType, customizedAiAgent, customizedType, layout, folderId}: NewCanvasDialogProps) {
-  const { createNewCanvas, loadCanvas } = useCanvas();
-  const { rootFolderId, setCurrentFolder } = useCanvasFolders()
+  const { createNewCanvas } = useCanvas();
+  const { rootFolderId } = useCanvasFolders()
   const [tempName, setTempName] = React.useState('')
   const [tempDescription, setTempDescription] = React.useState('')
   const [isValid, setIsValid] = React.useState(true)
   const { saveCustomCanvasType } = useCanvasTypes();
   const { saveCustomAIAgent } = useAIAgents();
   const { user } = useAuth();
+  const router = useRouter();
   const handleSave = async () => {
     if (!tempName.trim()) {
       setIsValid(false)
@@ -60,8 +61,8 @@ export function NewCanvasDialog({ open, onOpenChange, canvasType, customizedAiAg
       })
       
       if (newCanvas) {
-        await loadCanvas(newCanvas.id)
         localStorage.setItem('lastCanvasId', newCanvas.id)
+        router.push(`/canvas/${newCanvas.id}`)
       }
       
       // Reset form and close dialog

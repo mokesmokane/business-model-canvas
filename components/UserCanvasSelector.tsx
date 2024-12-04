@@ -12,15 +12,23 @@ import { ExistingCanvases } from "./Canvas/ExistingCanvases"
 import { CanvasTypeCard } from "./CanvasTypeCards/CanvasTypeCard"
 import { Canvas } from "@/types/canvas"
 import { useCanvasContext } from "@/contexts/ContextEnabledContext"
+import { useRouter } from 'next/navigation'
+import { Sidebar } from "./Sidebar/Sidebar"
+import { AuthDialog } from "./auth/AuthDialog"
+import { useIsMobile } from "@/hooks/useIsMobile"
 
 export function UserCanvasSelector() {
-  const { userCanvases, loadCanvas } = useCanvas()
+  const { userCanvases } = useCanvas()
   const { getCanvasTypes } = useCanvasTypes()
   const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({})
   const [searchTerm, setSearchTerm] = useState('')
   const [showTypeSelector, setShowTypeSelector] = useState(false)
   const [selectedType, setSelectedType] = useState<CanvasType | null>(null)
   const { setIsContextEnabled } = useCanvasContext()
+  const router = useRouter()
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
+  const isMobile = useIsMobile()
+  
   const [newCanvasRef] = useEmblaCarousel({
     dragFree: true,
     containScroll: "trimSnaps"
@@ -44,9 +52,9 @@ export function UserCanvasSelector() {
   }, [getCanvasTypes])
 
   const handleCanvasSelect = async (canvasId: string) => {
-    await loadCanvas(canvasId)
     setIsContextEnabled(true)
     localStorage.setItem('lastCanvasId', canvasId)
+    router.push(`/canvas/${canvasId}`)
   }
 
   const handleNewCanvasSelect = (type: CanvasType) => {
@@ -68,46 +76,32 @@ export function UserCanvasSelector() {
 
   return (
     <>
-      <div className="flex flex-col w-full h-screen overflow-y-auto bg-background">
-        <div className="p-8 space-y-12">
-          {userCanvases.length > 0 && (
-            <ExistingCanvases 
-              userCanvases={userCanvases as Canvas[]}
-              onCanvasSelect={handleCanvasSelect}
-            />
-          )}
-
-
-          <div>
-            <div className="flex items-center mb-4">
-              <h2 className="text-3xl font-bold tracking-tight mr-4">Create New Canvas</h2> 
-              <input
-                type="text"
-                placeholder="Search canvas types..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-gray-300 rounded-md p-2 max-w-xs"
+      <div className="flex h-full bg-white">
+        {!isMobile && <Sidebar setShowAuthDialog={setShowAuthDialog} />}
+        <div className="flex flex-col w-full h-screen overflow-y-auto bg-background">
+          <div className="p-8 space-y-12">
+            {userCanvases.length > 0 && (
+              <ExistingCanvases 
+                userCanvases={userCanvases as Canvas[]}
+                onCanvasSelect={handleCanvasSelect}
               />
-            </div>
-            <div className="overflow-hidden" ref={newCanvasRef}>
-              <div className="flex gap-6 pl-6">
-                {filteredCanvasTypes.map(([key, type]) => (
-                  <CanvasTypeCard
-                    key={key}
-                    type={type}
-                    onClick={handleNewCanvasSelect}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
+            )}
 
-          {getCustomCanvasTypes().length > 0 && (
+
             <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-4">Custom Canvas Types</h2>
-              <div className="overflow-hidden" ref={customCanvasRef}>
+              <div className="flex items-center mb-4">
+                <h2 className="text-3xl font-bold tracking-tight mr-4">Create New Canvas</h2> 
+                <input
+                  type="text"
+                  placeholder="Search canvas types..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="border border-gray-300 rounded-md p-2 max-w-xs"
+                />
+              </div>
+              <div className="overflow-hidden" ref={newCanvasRef}>
                 <div className="flex gap-6 pl-6">
-                  {getCustomCanvasTypes().map(([key, type]) => (
+                  {filteredCanvasTypes.map(([key, type]) => (
                     <CanvasTypeCard
                       key={key}
                       type={type}
@@ -117,18 +111,13 @@ export function UserCanvasSelector() {
                 </div>
               </div>
             </div>
-          )}
 
-          {TAG_INFO.map(tag => {
-            const canvasTypesForTag = getCanvasTypesByTag(tag.name);
-            if (canvasTypesForTag.length === 0) return null;
-
-            return (
-              <div key={tag.name}>
-                <h2 className="text-3xl font-bold tracking-tight mb-4">{`${tag.name} Canvases`}</h2>
-                <div className="overflow-hidden" ref={tagCarousels[tag.name].ref}>
+            {getCustomCanvasTypes().length > 0 && (
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight mb-4">Custom Canvas Types</h2>
+                <div className="overflow-hidden" ref={customCanvasRef}>
                   <div className="flex gap-6 pl-6">
-                    {canvasTypesForTag.map(([key, type]) => (
+                    {getCustomCanvasTypes().map(([key, type]) => (
                       <CanvasTypeCard
                         key={key}
                         type={type}
@@ -138,8 +127,30 @@ export function UserCanvasSelector() {
                   </div>
                 </div>
               </div>
-            );
-          })}
+            )}
+
+            {TAG_INFO.map(tag => {
+              const canvasTypesForTag = getCanvasTypesByTag(tag.name);
+              if (canvasTypesForTag.length === 0) return null;
+
+              return (
+                <div key={tag.name}>
+                  <h2 className="text-3xl font-bold tracking-tight mb-4">{`${tag.name} Canvases`}</h2>
+                  <div className="overflow-hidden" ref={tagCarousels[tag.name].ref}>
+                    <div className="flex gap-6 pl-6">
+                      {canvasTypesForTag.map(([key, type]) => (
+                        <CanvasTypeCard
+                          key={key}
+                          type={type}
+                          onClick={handleNewCanvasSelect}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -149,6 +160,12 @@ export function UserCanvasSelector() {
           <CanvasTypeSelector selectedType={selectedType} />
         </DialogContent>
       </Dialog>
+      <AuthDialog 
+        isOpen={showAuthDialog}
+        openSignUp={false}
+        onClose={() => setShowAuthDialog(false)}
+        onSuccess={() => {}}
+      />
     </>
   )
 }

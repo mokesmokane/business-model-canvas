@@ -261,44 +261,79 @@ export const CanvasContext = createContext<CanvasContextType>({
   }, [saveToFirebase]);
 
   const loadCanvas = useCallback(async (id: string) => {  
-    
-    if (!user?.uid || !id) return false;
+    if (!user?.uid || !id) {
+      setStatus('error', 'Authentication required');
+      throw new Error('Authentication required');
+    }
+
     setIsContextEnabled(true)
     try {
       setStatus('loading');
-      const canvasRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), id);
-      const canvasDoc = await getDoc(canvasRef);
+      
+      // First try to load from user's own canvases
+      let canvasRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), id);
+      let canvasDoc = await getDoc(canvasRef);
 
+      // If not found in user's canvases, check if it's a shared canvas
       if (!canvasDoc.exists()) {
+        // Here you would implement your canvas sharing logic
+        // For example, checking a separate collection for shared canvases
+        // or checking canvas permissions
+        
+        // For now, we'll just throw not found
         throw new Error('Canvas not found');
       }
 
-      const canvasData = deserializeCanvas({ ...canvasDoc.data(), id: canvasDoc.id } as SerializedCanvas);
+      // Check if the user has permission to view this canvas
+      const canvasData = canvasDoc.data();
+      if (!canvasData) {
+        throw new Error('Canvas not found');
+      }
+
+      // Here you would implement additional permission checks
+      // For example, checking if the canvas is shared with this user
+      // or if the user has the right role/permissions
+
+      const deserializedCanvas = deserializeCanvas({ ...canvasData, id: canvasDoc.id } as SerializedCanvas);
 
       setState(prev => {
         if(!prev) {
           return {
-            currentCanvas: canvasData,
-            formData: canvasData,
+            currentCanvas: deserializedCanvas,
+            formData: deserializedCanvas,
             status: 'idle',
             error: null
           }
         }
         return {
           ...prev,
-          currentCanvas: canvasData,
-          formData: canvasData,
+          currentCanvas: deserializedCanvas,
+          formData: deserializedCanvas,
           status: 'idle',
           error: null,
         }
       });
+      
       localStorage.setItem('lastCanvasId', id);
+      return true;
     } catch (err) {
       console.error('Error loading canvas:', err);
-      setStatus('error', err instanceof Error ? err.message : 'Failed to load canvas');
-      return false;
+      
+      // Handle specific error cases
+      if (err instanceof Error) {
+        if (err.message.includes('not found')) {
+          setStatus('error', 'Canvas not found');
+        } else if (err.message.includes('permission') || err.message.includes('access')) {
+          setStatus('error', 'You don\'t have permission to view this canvas');
+        } else {
+          setStatus('error', err.message);
+        }
+      } else {
+        setStatus('error', 'Failed to load canvas');
+      }
+      
+      throw err; // Re-throw to let the component handle the error
     }
-    return true;
   }, [setStatus, user?.uid]);
 
   

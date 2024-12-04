@@ -3,7 +3,8 @@ import { CreditCard, LogOut, Menu, Settings, User } from "lucide-react"
 import Link from 'next/link'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
-import { MobileDrawer } from "./MobileDrawer"
+// import { MobileDrawer } from "./MobileDrawer"
+import { Sidebar } from "@/components/Sidebar/Sidebar"
 import { DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import { DropdownMenu } from "@radix-ui/react-dropdown-menu"
 import { SubscriptionBadge } from "../subscription/SubscriptionBadge"
@@ -11,6 +12,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext"
 import { useState } from "react"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { CanvasProvider } from "@/contexts/CanvasContext"
+import { MobileSidebar } from "../Sidebar/MobileSidebar"
 
 
 export function MobileHeader() {
@@ -42,7 +44,7 @@ export function MobileHeader() {
                   <SheetTitle>Navigation Menu</SheetTitle>
                 </VisuallyHidden>
                 <CanvasProvider>
-                  <MobileDrawer onClose={() => setIsOpen(false)} />
+                  <MobileSidebar setShowAuthDialog={setShowAuthDialog} />
                 </CanvasProvider>
               </SheetContent>
             </Sheet>

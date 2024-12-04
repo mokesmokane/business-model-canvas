@@ -32,6 +32,7 @@ import { DragEvent } from 'react'
 import { MoveCanvasDialog } from "@/components/modals/MoveCanvasDialog"
 import DynamicIcon from '../Util/DynamicIcon'
 import { useCanvasTypes } from '@/contexts/CanvasTypeContext'
+import { useRouter } from 'next/navigation'
 
 function findFolderInTree(folders: NestedCanvasFolder[], folderId: string): NestedCanvasFolder | null {
   for (const folder of folders) {
@@ -63,7 +64,11 @@ function countCanvasesInFolder(folder: NestedCanvasFolder): number {
   return count;
 }
 
-export function CanvasNavigation() {
+interface CanvasNavigationProps { 
+  isExpanded: boolean
+}
+
+export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
   const { folders, rootFolder, onCanvasDeleted, onFolderRename, onFolderDelete, onCanvasMoved } = useCanvasFolders()
   const { loadCanvas, currentCanvas, deleteCanvas, clearState } = useCanvas()
   const { canvasTypes } = useCanvasTypes()
@@ -75,11 +80,11 @@ export function CanvasNavigation() {
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   const [folderToRename, setFolderToRename] = useState<{ id: string, name: string } | null>(null)
   const { user } = useAuth();
-  const { isExpanded } = useExpanded()
   const currentFolder = currentPath.length > 0 ? currentPath[currentPath.length - 1] : rootFolder
   const [draggedCanvas, setDraggedCanvas] = useState<CanvasItem | null>(null)
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null)
   const [pendingMove, setPendingMove] = useState<MoveOperation | null>(null)
+  const router = useRouter()
   
   React.useEffect(() => {
     console.log('useEffect triggered')
@@ -267,7 +272,7 @@ export function CanvasNavigation() {
           "flex-1 justify-start text-left text-muted-foreground hover:text-foreground hover:bg-accent min-w-0",
           currentCanvas?.id === canvas.id && 'bg-muted font-medium border-l-2 border-primary'
         )}
-        onClick={() => loadCanvas(canvas.id)}
+        onClick={() => handleCanvasClick(canvas.id)}
       >
         <DynamicIcon name={canvasTypes[canvas.canvasTypeId]?.icon} className="mr-2 h-4 w-4 flex-shrink-0" />
         <span className="flex-1 truncate">{canvas.name}</span>
@@ -352,6 +357,12 @@ export function CanvasNavigation() {
       </div>
     )
   }
+
+  const handleCanvasClick = (canvasId: string) => {
+    localStorage.setItem('lastCanvasId', canvasId)
+    router.push(`/canvas/${canvasId}`)
+  }
+
   return (
     <div className="space-y-2 w-full">
       <BreadcrumbNav path={currentPath} onNavigate={handleNavigate} />

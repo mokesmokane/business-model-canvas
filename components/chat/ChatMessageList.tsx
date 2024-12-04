@@ -68,8 +68,8 @@ export function ChatMessageList({
   }
   
   const { isLoading, loadingMessage, setInteraction, interaction, loadChat, chatHistories } = useChat()
-  const { currentCanvas, loadCanvas } = useCanvas()
-  const { setIsContextEnabled, isContextEnabled } = useCanvasContext()
+  const { currentCanvas } = useCanvas()
+  const { isContextEnabled } = useCanvasContext()
 
   
   const sectionsMap = currentCanvas?.canvasType?.sections.reduce((acc: any, section: CanvasSection) => {

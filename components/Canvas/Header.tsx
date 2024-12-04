@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { Canvas, TextSectionItem, Section } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight, ArrowRight } from 'lucide-react'
 import LayoutEditor from './LayoutEditor'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -25,7 +25,7 @@ interface HeaderProps {
 }
 
 export function Header() {
-  const { canvasTheme, formData, updateField, loadCanvas, setCanvasTheme } = useCanvas();
+  const { canvasTheme, formData, updateField, setCanvasTheme } = useCanvas();
   const [showLayoutEditor, setShowLayoutEditor] = useState(false);
   const { setHoveredItemId } = useCanvas();
   const router = useRouter();
@@ -50,6 +50,18 @@ export function Header() {
       .find(([_, section]) => 
         section.sectionItems.some(item => item.id === itemId)
       );
+  }
+
+  const handleParentCanvasClick = () => {
+    if (formData?.parentCanvasId) {
+      localStorage.setItem('lastCanvasId', formData.parentCanvasId)
+      router.push(`/canvas/${formData.parentCanvasId}`)
+    }
+  }
+
+  const handleLinkedCanvasClick = (canvasId: string) => {
+    localStorage.setItem('lastCanvasId', canvasId)
+    router.push(`/canvas/${canvasId}`)
   }
 
   return (
@@ -80,10 +92,7 @@ export function Header() {
 
           {formData?.parentCanvasId && (
             <Button
-              onClick={() => {
-                loadCanvas(formData.parentCanvasId!)
-                localStorage.setItem('lastCanvasId', formData.parentCanvasId!)
-              }}
+              onClick={handleParentCanvasClick}
               variant="outline"
               className={`flex items-center gap-1 text-sm ${
                 canvasTheme === 'light'
@@ -179,10 +188,7 @@ export function Header() {
               <>
                 <DropdownMenuLabel>Linked Canvases</DropdownMenuLabel>
                 <DropdownMenuItem 
-                  onClick={() => {
-                    loadCanvas(formData.parentCanvasId!)
-                    localStorage.setItem('lastCanvasId', formData.parentCanvasId!)
-                  }}
+                  onClick={handleParentCanvasClick}
                 >
                   <ArrowUpRight className="h-4 w-4 mr-2" />
                   Parent Canvas
@@ -197,8 +203,8 @@ export function Header() {
                         <DropdownMenuItem 
                           key={item.id}
                           onClick={() => {
-                            loadCanvas(item.canvasLink!.canvasId)
                             localStorage.setItem('lastCanvasId', item.canvasLink!.canvasId)
+                            router.push(`/canvas/${item.canvasLink!.canvasId}`)
                           }}
                           onMouseEnter={() => setHoveredItemId(item.id)}
                           onMouseLeave={() => setHoveredItemId(null)}

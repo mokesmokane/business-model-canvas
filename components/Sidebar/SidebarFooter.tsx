@@ -44,9 +44,9 @@ export function SidebarFooter({ isExpanded, setShowAuthDialog }: SidebarFooterPr
   ];
 
   return (
-    <div className={`mt-auto border-t border-zinc-300/50 dark:border-zinc-800/50 ${isExpanded ? 'py-2 px-4' : 'py-4'}`}>
+    <div className={`mt-auto border-t border-zinc-300/50 dark:border-zinc-800/50 w-full ${isExpanded ? 'py-2' : 'py-4'}`}>
       {isExpanded ? (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 px-4">
           {footerItems.map(({ icon: Icon, label, action }) => (
             <Button
               key={label}

@@ -6,6 +6,7 @@ import { Edit2, Link, Trash2 } from 'lucide-react';
 import { useCanvas } from '@/contexts/CanvasContext';
 import { SectionItem as SectionItemType, TextSectionItem } from '@/types/canvas';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader, DialogFooter } from '@/components/ui/dialog';
+import { useRouter } from 'next/navigation'
 
 interface SectionItemProps {
   item: SectionItemType;
@@ -39,6 +40,21 @@ export function SectionItem({
   const showControls = isExpanded || isEditing;
   const sectionItem = item as TextSectionItem;
   const isHovered = hoveredItemId === item.id;
+  const router = useRouter()
+
+  const handleCanvasLink = async () => {
+    try {
+      const loaded = await loadCanvas(item.canvasLink!.canvasId)
+      if (loaded) {
+        localStorage.setItem('lastCanvasId', item.canvasLink!.canvasId)
+        router.push(`/canvas/${item.canvasLink!.canvasId}`)
+      } else {
+        setIsDialogOpen(true)
+      }
+    } catch (error) {
+      setIsDialogOpen(true)
+    }
+  }
 
   return (
     <Card
@@ -55,20 +71,7 @@ export function SectionItem({
           variant="ghost" 
           size="icon" 
           className="absolute top-1 right-1 p-1 !bg-transparent hover:!bg-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-          onClick={async () => {
-            try{
-              const loaded = await loadCanvas(item.canvasLink!.canvasId);
-              if(loaded) {
-                localStorage.setItem('lastCanvasLink', item.canvasLink!.canvasId);
-              } else {
-                //display a dialog to teh user which says canvas not found delete link?
-                setIsDialogOpen(true)
-              }
-            } catch (error) {
-              //display a dialog to teh user which says canvas not found delete link?
-              setIsDialogOpen(true)
-            }
-          }}
+          onClick={handleCanvasLink}
         >
           <Link className="h-4 w-4" />
         </Button>

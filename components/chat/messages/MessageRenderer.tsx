@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { v4 as uuidv4 } from 'uuid'
 import { CanvasType } from "@/types/canvas-sections"
 import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
+import { useRouter } from 'next/navigation'
 
 
 interface MessageRendererProps {
@@ -90,6 +91,8 @@ export function MessageRenderer({ message, messageIndex, messageHistory}: Messag
 export function CanvasTypeSuggestionMessageDetails({ message, messageHistory }: { message: CanvasTypeSuggestionMessage, messageHistory: Message[] }) {
   const { rootFolderId } = useCanvasFolders()
   const { createNewCanvasAndNameIt, loadCanvas } = useCanvas()
+  const router = useRouter()
+
 
   const handleSubmit = async (canvasType: CanvasType) => {
     if (!canvasType) {
@@ -104,6 +107,7 @@ export function CanvasTypeSuggestionMessageDetails({ message, messageHistory }: 
     if (newCanvas) {
       await loadCanvas(newCanvas.id)
       localStorage.setItem('lastCanvasId', newCanvas.id)
+      router.push(`/canvas/${newCanvas.id}`)
     }
   }
 

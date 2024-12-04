@@ -23,6 +23,7 @@ import { DiveSuggestionsProvider } from '@/contexts/DiveSuggestionsContext'
 import { SectionItem as SectionItemType } from '@/types/canvas'
 import { v4 as uuidv4 } from 'uuid';
 import { useAiGeneration } from '@/contexts/AiGenerationContext';
+import { useRouter } from 'next/navigation'
 
 interface AISuggestion {
   id: string;
@@ -64,6 +65,7 @@ export function CanvasSection({
   const [isDiveInDialogOpen, setIsDiveInDialogOpen] = useState(false)
   const [diveInItem, setDiveInItem] = useState<SectionItemType | null>(null)
   const [letsDiveIn, setLetsDiveIn] = useState(false)
+  const router = useRouter()
 
   const handleItemClick = (index: number) => {
     setExpandedItemIndex(expandedItemIndex === index ? null : index);
@@ -125,8 +127,8 @@ export function CanvasSection({
   const handleDiveIn = (item: SectionItemType) => {
     if (isGenerating) return;
     if(item.canvasLink) {
-      loadCanvas(item.canvasLink.canvasId);
-      localStorage.setItem('lastCanvasId', item.canvasLink.canvasId);
+      localStorage.setItem('lastCanvasId', item.canvasLink.canvasId)
+      router.push(`/canvas/${item.canvasLink.canvasId}`)
     } else {
       setIsDiveInDialogOpen(true)
       setDiveInItem(item)

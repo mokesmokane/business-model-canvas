@@ -16,11 +16,13 @@ import { CanvasContextProvider } from "@/contexts/ContextEnabledContext"
 import { ChatProvider } from "@/contexts/ChatContext"
 import { AiGenerationProvider } from "@/contexts/AiGenerationContext"
 import { MobileBottomNav } from "./mobile/MobileBottomNav"
+import { UserCanvasSelector } from "./UserCanvasSelector"
+import { Sidebar } from "./Sidebar/Sidebar"
 
 export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
-
+  const [showAuthDialog, setShowAuthDialog] = useState(false)
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
@@ -49,15 +51,15 @@ export function MainContent() {
                 <ChatProvider>
                   {isMobile ? (
                   <>
-                    <MobileHeader />
-                    <MobileBusinessModelCanvas />
+                    <MobileHeader />                      
+                    <UserCanvasSelector />
                     <MobileBottomNav />
                   </>
                 ) : (
                   <div className="flex flex-col h-screen overflow-hidden">
                     <SiteHeader />
                     <div className="flex-1 overflow-hidden">
-                      <BusinessModelCanvasComponent />
+                      <UserCanvasSelector />
                     </div>
                   </div>
                 )}
