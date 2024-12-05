@@ -13,7 +13,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'
-import { useCanvas } from '@/contexts/CanvasContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { DragEvent } from 'react'
 import { cn } from '@/lib/utils'
@@ -22,6 +21,7 @@ import { MoveCanvasDialog } from "@/components/modals/MoveCanvasDialog"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { CanvasTypeSelector } from "@/components/CanvasTypeSelector"
 import { DialogTitle } from '@radix-ui/react-dialog'
+import { useRouter } from 'next/navigation'
 
 interface BreadcrumbNavProps {
   path: NestedCanvasFolder[]
@@ -36,13 +36,12 @@ interface MoveOperation {
 }
 
 export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavProps) {
-  const { onCanvasCreated, onCreateFolder, onCanvasMoved } = useCanvasFolders()
-  const { clearState } = useCanvas()
+  const { onCreateFolder, onCanvasMoved } = useCanvasFolders()
   const { setIsExpanded } = useExpanded()
   const [dragOverFolderId, setDragOverFolderId] = React.useState<string | null>(null)
   const [pendingMove, setPendingMove] = React.useState<MoveOperation | null>(null)
   const [showTypeSelector, setShowTypeSelector] = React.useState(false)
-
+  const router = useRouter()
   const onAddFolder = () => {
     const currentFolder = (path.length > 0 ? path[path.length - 1] : null)?.id ?? 'root'
     onCreateFolder(currentFolder, 'New Folder')
@@ -58,7 +57,9 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
       return
     }
     if (path.length === 0) {
-      clearState()
+      //navigate to the canvases page
+      router.push('/')
+      return
     }
     onNavigate(folder)
   }

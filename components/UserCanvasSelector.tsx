@@ -79,7 +79,7 @@ export function UserCanvasSelector() {
       <div className="flex h-full bg-white">
         {!isMobile && <Sidebar setShowAuthDialog={setShowAuthDialog} />}
         <div className="flex flex-col w-full h-screen overflow-y-auto bg-background">
-          <div className="p-8 space-y-12">
+          <div className="pl-8 py-8 space-y-12">
             {userCanvases.length > 0 && (
               <ExistingCanvases 
                 userCanvases={userCanvases as Canvas[]}
@@ -100,7 +100,7 @@ export function UserCanvasSelector() {
                 />
               </div>
               <div className="overflow-hidden" ref={newCanvasRef}>
-                <div className="flex gap-6 pl-6">
+                <div className="flex gap-6">
                   {filteredCanvasTypes.map(([key, type]) => (
                     <CanvasTypeCard
                       key={key}
@@ -116,7 +116,7 @@ export function UserCanvasSelector() {
               <div>
                 <h2 className="text-3xl font-bold tracking-tight mb-4">Custom Canvas Types</h2>
                 <div className="overflow-hidden" ref={customCanvasRef}>
-                  <div className="flex gap-6 pl-6">
+                  <div className="flex gap-6">
                     {getCustomCanvasTypes().map(([key, type]) => (
                       <CanvasTypeCard
                         key={key}
@@ -137,7 +137,7 @@ export function UserCanvasSelector() {
                 <div key={tag.name}>
                   <h2 className="text-3xl font-bold tracking-tight mb-4">{`${tag.name} Canvases`}</h2>
                   <div className="overflow-hidden" ref={tagCarousels[tag.name].ref}>
-                    <div className="flex gap-6 pl-6">
+                    <div className="flex gap-6">
                       {canvasTypesForTag.map(([key, type]) => (
                         <CanvasTypeCard
                           key={key}

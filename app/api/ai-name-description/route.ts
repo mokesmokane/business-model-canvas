@@ -43,7 +43,7 @@ export async function POST(request: Request) {
       The description should be a short description of the project that the canvas is for.
       The description should be no more than 100 characters.
 
-} 
+}
 `
     }
      const  tool_call = 'required'

@@ -31,8 +31,6 @@ export function Canvas({ onExpandSidebar, hoveredItemId }: CanvasProps) {
     </div>
   )
   return (
-    <Providers>
-      {component}
-    </Providers>
+      component
   )
 }

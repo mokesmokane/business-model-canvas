@@ -8,12 +8,10 @@ import { Providers } from "@/components/providers/Providers"
 export default function BillingPage() {
   return (
     <div className="min-h-screen bg-background">
-      <Providers>
         <SiteHeader />
         <SubscriptionProvider>
           <SubscriptionDetails />
         </SubscriptionProvider>
-      </Providers>
     </div>
   )
 } 

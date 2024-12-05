@@ -24,6 +24,7 @@ export default function CanvasPage() {
   const { loadCanvas } = useCanvas()
   const [isMobile, setIsMobile] = useState(false)
 
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
@@ -47,7 +48,6 @@ export default function CanvasPage() {
       enableSystem
       disableTransitionOnChange
     >
-      <Providers>
         <CanvasFoldersProvider>
           <CanvasContextProvider>
             <AIAgentProvider>
@@ -74,7 +74,6 @@ export default function CanvasPage() {
             </AIAgentProvider>
           </CanvasContextProvider>
         </CanvasFoldersProvider>
-      </Providers>
     </ThemeProvider>
   )
 } 

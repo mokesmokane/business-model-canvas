@@ -36,7 +36,6 @@ export default function HelpPage() {
   ]
 
   return (
-    <Providers>
       <div className="min-h-screen bg-background">
 
       <SiteHeader />
@@ -70,6 +69,5 @@ export default function HelpPage() {
           </div>
         </div>
       </div>
-    </Providers>
   )
 } 

@@ -54,7 +54,6 @@ export default function PricingPage() {
   }
 
   return (
-    <Providers>
       <div className="min-h-screen bg-gray-900">
         <SiteHeader />
         <div className="container mx-auto px-4 py-16">
@@ -154,7 +153,6 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
-    </Providers>
   )
 }
 

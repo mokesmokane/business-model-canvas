@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
 interface ExpandedContextType {
   isExpanded: boolean;
@@ -14,6 +14,10 @@ const ExpandedContext = createContext<ExpandedContextType | undefined>(undefined
 export function ExpandedProvider({ children }: { children: React.ReactNode }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isWide, setIsWide] = useState(false);
+
+  useEffect(() => {
+    console.log('Sidebar expanded state:', isExpanded)
+  }, [isExpanded])
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);

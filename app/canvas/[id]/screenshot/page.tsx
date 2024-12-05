@@ -142,7 +142,6 @@ export default function ScreenshotPage({ params }: { params: Promise<{ id: strin
       enableSystem
       disableTransitionOnChange
     >
-      <Providers>
         <CanvasFoldersProvider>
           <CanvasContextProvider>
             <AIAgentProvider>
@@ -152,7 +151,6 @@ export default function ScreenshotPage({ params }: { params: Promise<{ id: strin
             </AIAgentProvider>
           </CanvasContextProvider>
         </CanvasFoldersProvider>
-      </Providers>
     </ThemeProvider>
   )
 } 

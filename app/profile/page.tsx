@@ -33,7 +33,6 @@ export default function ProfilePage() {
   }
 
   return (
-    <Providers>
       <div className="min-h-screen bg-background">
         <SiteHeader />
         <div className="container mx-auto py-10">
@@ -79,6 +78,5 @@ export default function ProfilePage() {
         </div>
         </div>
       </div>
-    </Providers>
   )
 } 

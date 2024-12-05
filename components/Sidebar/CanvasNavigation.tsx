@@ -3,12 +3,6 @@
 import * as React from 'react'
 import { File, Folder, LayoutDashboard, MoreVertical, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from '@/components/ui/context-menu'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'
 import { CanvasItem, NestedCanvasFolder } from '@/types/canvas'
@@ -27,7 +21,6 @@ import { RenameFolderDialog } from '../RenameFolderDialog'
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
-import { useExpanded } from '@/contexts/ExpandedContext';
 import { DragEvent } from 'react'
 import { MoveCanvasDialog } from "@/components/modals/MoveCanvasDialog"
 import DynamicIcon from '../Util/DynamicIcon'
@@ -87,7 +80,6 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
   const router = useRouter()
   
   React.useEffect(() => {
-    console.log('useEffect triggered')
     if (currentPath.length > 0) {
       const currentFolderId = currentPath[currentPath.length - 1].id;
       
@@ -148,14 +140,9 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
   }
 
   const handleDeleteFolder = (folderId: string) => {
-    console.log('handleDeleteFolder called with ID:', folderId)
-    console.log('Current folders:', folders)
-    console.log('Current folder:', currentFolder)
     
     const folder = folders.find(f => f.id === folderId) || 
                   currentFolder?.children.find(f => f.id === folderId)
-    
-    console.log('Found folder:', folder)
     
     if (!folder) return
     
@@ -181,7 +168,6 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
 
   const handleCanvasMove = async (canvasId: string, targetFolderId: string | null) => {
     if (!canvasId || !currentFolder) {
-      console.error('Missing required data for move')
       return
     }
 
@@ -192,7 +178,6 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
         targetFolderId ?? 'root'
       )
     } catch (error) {
-      console.error('Error moving canvas:', error)
       throw error
     } finally {
       setPendingMove(null)
@@ -230,26 +215,11 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
     
     // Prevent moving to same folder
     if (targetFolderId === currentFolder?.id) {
-      console.log('Same folder, ignoring drop')
       return
     }
-    console.log('targetFolderId', targetFolderId)
     const path = getPathString(targetFolderId)
-    console.log('path', path)
     setPendingMove({ canvasId, canvasName, targetFolderId, targetPath: path })
   }
-
-  // const handleMoveConfirm = async () => {
-  //   if (!pendingMove) return
-    
-  //   try {
-  //     await handleCanvasMove(pendingMove.canvasId, pendingMove.targetFolderId)
-  //     setPendingMove(null)
-  //   } catch (error) {
-  //     console.error('Move failed:', error)
-  //     setPendingMove(null)
-  //   }
-  // }
 
   const renderCanvasItem = (canvas: CanvasItem) => (
     <div 
@@ -296,7 +266,7 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
     if (!displayFolder) return null
     
     return (
-      <div className="space-y-1">
+      <div className="space-y-1 overflow-y-auto">
         {displayFolder.children.map((folder) => (
           <div 
             key={folder.id} 
@@ -364,9 +334,13 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
   }
 
   return (
-    <div className="space-y-2 w-full">
+    <div className="space-y-2 w-full flex flex-col h-full">
       <BreadcrumbNav isExpanded={isExpanded} path={currentPath} onNavigate={handleNavigate} />
-      {isExpanded && renderCurrentFolder()}
+      {isExpanded && (
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {renderCurrentFolder()}
+        </div>
+      )}
       {canvasToDelete && (
         <DeleteCanvasDialog
           open={deleteDialogOpen}

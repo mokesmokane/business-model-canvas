@@ -1,11 +1,8 @@
 import { Button } from "@/components/ui/button"
-import { CreditCard, LogOut, Menu, Settings, User } from "lucide-react"
+import { CreditCard, LogOut, Menu, Settings, User} from "lucide-react"
 import Link from 'next/link'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
-// import { MobileDrawer } from "./MobileDrawer"
-import { SubscriptionBadge } from "../subscription/SubscriptionBadge"
-import { SubscriptionProvider } from "@/contexts/SubscriptionContext"
 import { useState } from "react"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { CanvasProvider, useCanvas } from "@/contexts/CanvasContext"
@@ -23,9 +20,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
-import { CompanyEditDialog } from '../Canvas/CompanyEditDialog'
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { CanvasSection } from "@/types/canvas-sections"
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext"
+import { SubscriptionBadge } from "../subscription/SubscriptionBadge"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 
 
 export function MobileHeader() {
@@ -36,6 +41,9 @@ export function MobileHeader() {
   const router = useRouter()
   const { canvasTheme, formData, setCanvasTheme, setHoveredItemId } = useCanvas()
   const [showCompanyEditDialog, setShowCompanyEditDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
+  const [editName, setEditName] = useState("")
+  const [editDescription, setEditDescription] = useState("")
 
   const handleSignOut = async () => {
     try {   
@@ -70,23 +78,45 @@ export function MobileHeader() {
     }
   }
 
+  const handleEditClick = () => {
+    setEditName(formData?.name || "")
+    setEditDescription(formData?.description || "")
+    setShowEditDialog(true)
+  }
+
+  const handleSaveEdit = async () => {
+    // Add your save logic here
+    // Example: await updateCanvas(formData.id, { name: editName, description: editDescription })
+    setShowEditDialog(false)
+  }
+
   const renderUserDropdown = () => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost" 
-          size="icon"
-          className={`relative h-8 w-8 rounded-full hover:bg-muted-foreground/10 ${
-            canvasTheme === 'light'
-              ? 'bg-white text-gray-700 border-gray-200'
-              : 'bg-gray-950 text-gray-300 border-gray-800'
-          }`}
-        >
-          <MoreVertical className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        onClick={handleEditClick}
+        className="text-sm font-medium max-w-[150px] px-2"
+      >
+        <span className="overflow-hidden text-ellipsis whitespace-nowrap block w-full text-left">
+          {formData?.name || 'Untitled Canvas'}
+        </span>
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost" 
+            size="icon"
+            className={`relative h-8 w-8 rounded-full hover:bg-muted-foreground/10 ${
+              canvasTheme === 'light'
+                ? 'bg-white text-gray-700 border-gray-200'
+                : 'bg-gray-950 text-gray-300 border-gray-800'
+            }`}
+          >
+            <MoreVertical className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()} onClick={handleEditClick}>
               <div className="flex flex-col">
                 <span className="font-medium">{formData?.name || 'Untitled Canvas'}</span>
                 <span className="text-xs text-muted-foreground line-clamp-1">
@@ -164,6 +194,7 @@ export function MobileHeader() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+    </div>
   )
 
   return (
@@ -209,7 +240,51 @@ export function MobileHeader() {
               </>
             )}
 
-            {user ? renderUserDropdown() : (
+            {user && formData ? renderUserDropdown() : 
+            user? (<>
+                <SubscriptionProvider>
+                  <SubscriptionBadge />
+                </SubscriptionProvider>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="relative h-8 w-8 rounded-full hover:bg-muted-foreground/10"
+                    >
+                      <div className="absolute inset-0 rounded-full bg-muted flex items-center justify-center">
+                          <User className="h-4 w-4" />
+                        </div>
+                      </Button>
+                    </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <div className="flex items-center justify-start gap-2 p-2">
+                      <div className="flex flex-col space-y-1 leading-none">
+                        <p className="font-medium">{user.email}</p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/billing">
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        <span>Billing</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+            </>
+             
+            ) : (
               <Button
                 onClick={() => setShowAuthDialog(true)}
                 variant="outline"
@@ -221,6 +296,38 @@ export function MobileHeader() {
           </nav>
         </div>
       </header>
+      
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="top-[50%] translate-y-[-50%]">
+          <DialogHeader>
+            <DialogTitle>Edit Canvas Details</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium">Name</label>
+              <Input
+                id="name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Canvas name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="description" className="text-sm font-medium">Description</label>
+              <Textarea
+                id="description"
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Add a description"
+                rows={3}
+              />
+            </div>
+            <Button onClick={handleSaveEdit} className="w-full">
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
 } 

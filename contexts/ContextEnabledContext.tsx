@@ -17,7 +17,6 @@ export function CanvasContextProvider({ children }: { children: React.ReactNode 
 
   const setIsContextEnabled = (enabled: boolean) => {
     setIsContextEnabledState(enabled);
-    console.log('Global isContextEnabled', enabled);
   };
 
   return (

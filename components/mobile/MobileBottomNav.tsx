@@ -7,6 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useState } from "react"
 import { CanvasTypeSelector } from "@/components/CanvasTypeSelector"
 import { MobileAIChat } from "./MobileAIChat"
+import { MobileCanvasTypeSelector } from "../MobileCanvasTypeSelector"
 
 export function MobileBottomNav() {
   const pathname = usePathname()
@@ -65,12 +66,8 @@ export function MobileBottomNav() {
       </div>
 
       <MobileAIChat isOpen={showChatSheet} onOpenChange={setShowChatSheet} />
+      <MobileCanvasTypeSelector isOpen={showCreateDialog} onClose={() => setShowCreateDialog(false)} />
 
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <CanvasTypeSelector selectedType={null} />
-        </DialogContent>
-      </Dialog>
     </>
   )
 } 

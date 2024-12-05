@@ -3,11 +3,9 @@
 import React from 'react'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { SidebarFooter } from './SidebarFooter'
-import { SidebarAIChatArea } from '../chat/SidebarAIChatArea'
 import { useAuth } from '@/contexts/AuthContext'
 import { useExpanded } from '@/contexts/ExpandedContext'
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
-import { ChatProvider } from '@/contexts/ChatContext'
 import { CanvasNavigation } from './CanvasNavigation'
 
 interface MobileSidebarProps {
@@ -36,7 +34,7 @@ export function MobileSidebar({setShowAuthDialog}: MobileSidebarProps) {
         className="relative flex flex-col h-[calc(100vh)] bg-background border-r border-zinc-300/50 dark:border-zinc-800/50 transition-all duration-300 ease-in-out items-stretch z-50"
         style={{ width: sidebarWidth }}
       >
-        <div className="flex flex-col gap-4 w-full py-2">
+        <div className="flex flex-col gap-4 w-full py-2" style={{ maxHeight: 'calc(100vh * 0.4)' }}>
           <CanvasNavigation isExpanded={true} />
         </div>
         <div className="border-t border-zinc-300/50 dark:border-zinc-700/50 my-2 w-full"></div>
@@ -47,8 +45,6 @@ export function MobileSidebar({setShowAuthDialog}: MobileSidebarProps) {
       </div>
   )
   return (
-    <Providers>
-      {component}
-    </Providers>
+      component
   )
 }

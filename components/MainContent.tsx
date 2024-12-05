@@ -42,7 +42,6 @@ export function MainContent() {
           enableSystem
           disableTransitionOnChange
         >
-          <Providers>
             <CanvasFoldersProvider>
             <CanvasContextProvider>
             <AIAgentProvider>
@@ -69,7 +68,6 @@ export function MainContent() {
               </AIAgentProvider>    
               </CanvasContextProvider>
             </CanvasFoldersProvider>
-          </Providers>
         </ThemeProvider>
       ) : (
         <LandingPage />

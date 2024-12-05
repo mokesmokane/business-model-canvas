@@ -20,7 +20,6 @@ export const serializeCanvas = (canvas: Canvas): SerializedCanvas => {
   
   // Add this helper function to deserialize data from Firestore
   export const deserializeCanvas = (data: SerializedCanvas): Canvas => {
-    console.log('datamokes', data)
     return {
       ...data,
       sections: deserializeSections(data.sections),

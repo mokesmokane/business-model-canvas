@@ -5,7 +5,7 @@ import { CanvasType } from '@/types/canvas-sections';
 import { NewCanvasTypeSuggestion, ExistingCanvasTypeSuggestion } from '@/app/api/ai-canvas-dive/types';
 import { sendCreateCanvasTypeFromDiveRequest } from '@/services/aiCreateCanvasService';
 import { useCanvas } from './CanvasContext';
-import { Canvas } from '@/types/canvas';
+import { Canvas, Section, SectionItem } from '@/types/canvas';
 
 interface DiveSuggestionsContextType {
     existingSuggestions: CanvasType[];
@@ -23,7 +23,7 @@ interface DiveSuggestionsContextType {
     setNewSuggestions: (suggestions: NewCanvasTypeSuggestion[]) => void;
     setSelected: (selected: string | null) => void;
     createNewCanvasType: (newCanvasType: NewCanvasTypeSuggestion) => void;
-    createCanvas: (canvasType: CanvasType, parentCanvas: Canvas | null) => Promise<Canvas | undefined>;
+    createCanvas: (canvasType: CanvasType, parentCanvas: Canvas | null, section: Section, item: SectionItem) => Promise<Canvas | undefined>;
 }
 
 const DiveSuggestionsContext = createContext<DiveSuggestionsContextType | undefined>(undefined);
@@ -32,8 +32,6 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
     const [existingSuggestions, setExistingSuggestions] = useState<CanvasType[]>([]);
     const [newSuggestions, setNewSuggestions] = useState<NewCanvasTypeSuggestion[]>([]);
     const [statusMessage, setStatusMessage] = useState('');
-    const [sectionItem, setSectionItem] = useState('');
-    const [section, setSection] = useState<{ name: string; placeholder: string } | null>(null);
     const [folderId, setFolderId] = useState<string | null>(null);
     const { createNewCanvas } = useCanvas();
     const [selected, setSelected] = useState<string | null>(null);
@@ -42,7 +40,8 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
         setNewSuggestions([]);
         setStatusMessage('');
     };
-    async function getNameDescription(canvasType: CanvasType) {
+
+    async function getNameDescription(canvasType: CanvasType, section: Section, item: SectionItem) {
 
         const messageEnvelope = {
             messageHistory: [
@@ -53,7 +52,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
                 },
                 {
                     role: 'user' as const,
-                    content: `Here is the section item to dig into: ${sectionItem}  
+                    content: `Here is the section item to dig into: ${JSON.stringify(item)}  
                 `
                 },
                 {
@@ -67,7 +66,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
             ],
             newMessage: {
                 role: 'user' as const,
-                content: `lets name our new canvas and give it a description based off what we are digging into (${sectionItem})`
+                content: `lets name our new canvas and give it a description based off what we are digging into (${JSON.stringify(item)})`
             }
         };
 
@@ -126,8 +125,6 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
         item: string;
     }) {
         try {
-            setSectionItem(params.item);
-            setSection(params.section);
             setFolderId(params.folderId);
             console.log('startDiveAnalysis')
             clearSuggestions();
@@ -174,8 +171,8 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    async function createCanvas(canvasType: CanvasType, parentCanvas: Canvas | null) {
-        const nameDescription = await getNameDescription(canvasType);
+    async function createCanvas(canvasType: CanvasType, parentCanvas: Canvas | null, section: Section, item: SectionItem) {
+        const nameDescription = await getNameDescription(canvasType, section, item);
 
         const newCanvas = await createNewCanvas({
             name: nameDescription.name.trim(),

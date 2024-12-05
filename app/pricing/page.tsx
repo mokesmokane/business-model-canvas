@@ -1,9 +1,7 @@
 import { SiteHeader } from "@/components/site/SiteHeader"
-import { ExpandedProvider } from "@/contexts/ExpandedContext"
 
 export default function PricingPage() {
   return (
-    <ExpandedProvider>
       <div className="min-h-screen bg-gray-900"> 
         <SiteHeader />
         <div className="container mx-auto px-4 py-16">
@@ -95,7 +93,6 @@ export default function PricingPage() {
           </div>
         </div>
       </div>
-    </ExpandedProvider>
   )
 }
 

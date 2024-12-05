@@ -22,12 +22,31 @@ import CustomCanvasEditor from "@/components/CustomCanvas/CustomCanvasEditor";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { AIAgent } from "@/types/canvas"
 import { CanvasTypeCard } from "./CanvasTypeCards/CanvasTypeCardBig"
+import { MobileCanvasTypeSelector } from "./MobileCanvasTypeSelector"
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface CanvasTypeSelectorProps {
   selectedType: CanvasType | null;
+  isOpen?: boolean;
+  onClose?: () => void;
 }
 
-export function CanvasTypeSelector({ selectedType: initialType }: CanvasTypeSelectorProps) {
+export function CanvasTypeSelector({ 
+  selectedType: initialType,
+  isOpen,
+  onClose
+}: CanvasTypeSelectorProps) {
+  const isMobile = useIsMobile()
+  
+  if (isMobile) {
+    return (
+      <MobileCanvasTypeSelector
+        isOpen={isOpen || false}
+        onClose={onClose || (() => {})}
+      />
+    );
+  }
+
   const [selectedTypeLocal, setSelectedTypeLocal] = useState<CanvasType | null>(initialType);
   const [selectedLayout, setSelectedLayout] = useState<CanvasLayoutDetails | null>(null)
   const [showDialog, setShowDialog] = useState(false)

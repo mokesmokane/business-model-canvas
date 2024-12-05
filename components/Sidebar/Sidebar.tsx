@@ -29,7 +29,7 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
   const { isExpanded, isWide } = useExpanded()
   
   if (!user) return null;
-
+  console.log('isExpanded', isExpanded)
   const sidebarWidth = !isExpanded ? '4rem' : isWide ? '42rem' : '24rem'
   let component = (
       <div 
@@ -38,7 +38,7 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
         }`}
         style={{ width: sidebarWidth }}
       >
-        <div className="flex flex-col gap-4 w-full py-2">
+        <div className="flex flex-col gap-4 w-full py-2" style={{ maxHeight: 'calc(100vh / 3)' }}>
           <CanvasNavigation isExpanded={isExpanded} />
         </div>
         {isExpanded && <div className="border-t border-zinc-300/50 dark:border-zinc-700/50 my-2 w-full"></div>}
@@ -51,8 +51,6 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
       </div>
   )
   return (
-    <Providers>
-      {component}
-    </Providers>
+      component
   )
 }

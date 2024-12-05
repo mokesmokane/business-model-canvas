@@ -22,7 +22,7 @@ import { CanvasTypeCard } from "../CanvasTypeCards/CanvasTypeCard"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { TextSectionItem } from "@/types/canvas"
+import { SectionItem, TextSectionItem } from "@/types/canvas"
 import 'swiper/css'
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -143,7 +143,7 @@ export function MobileConfirmDiveInSheet({
     
     if (!selectedType) return;
 
-    const canvas = await createCanvas(selectedType, formData);
+    const canvas = await createCanvas(selectedType, formData, formData?.sections.get(sectionName) || { name: sectionName, gridIndex: 0, sectionItems: [], qAndAs: [] },{ content: itemContent } as TextSectionItem);
     if (!canvas) return;
 
     // Start the generation process and navigate immediately

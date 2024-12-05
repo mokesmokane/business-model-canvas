@@ -31,7 +31,7 @@ export function ChatHeader({ isWide, onNewChat, onChatHistory, onToggleWidth, on
   const { currentCanvas } = useCanvas()
   const { agentCache } = useAIAgents()
   const { isContextEnabled, setIsContextEnabled } = useCanvasContext()
-  console.log('ChatHeader isContextEnabled:', isContextEnabled)
+  
   const aiAgent = currentCanvas?.canvasType.id ? agentCache[currentCanvas.canvasType.id] : null
   return (
     <div className="flex items-center justify-between p-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -51,7 +51,6 @@ export function ChatHeader({ isWide, onNewChat, onChatHistory, onToggleWidth, on
                         !isContextEnabled ? 'text-muted-foreground' : ''
                       }`}
                       onClick={() => {
-                        console.log('toggling context enabled')
                         setIsContextEnabled(!isContextEnabled)
                       }}
                     >

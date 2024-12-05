@@ -11,7 +11,6 @@ import { CanvasContextProvider } from "@/contexts/ContextEnabledContext"
 export default function CanvasesPage() {
   return (
     <>
-      <Providers>
         <CanvasFoldersProvider>
           <CanvasContextProvider>
             <AIAgentProvider>
@@ -19,12 +18,11 @@ export default function CanvasesPage() {
                 <div className="h-[calc(100vh-4rem)]">
                   <UserCanvasSelector />    
                 </div>
+                <MobileBottomNav />
               </CanvasProvider>
             </AIAgentProvider>
           </CanvasContextProvider>
         </CanvasFoldersProvider>
-      </Providers>
-      <MobileBottomNav />
     </>
   )
 } 
