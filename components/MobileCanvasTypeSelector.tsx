@@ -16,18 +16,13 @@ import { useCanvas } from "@/contexts/CanvasContext"
 import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
 import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
 import { CanvasType, CanvasLayoutDetails } from "@/types/canvas-sections"
-import { NewCanvasDialog } from "./NewCanvasDialog"
 import { LayoutSelector } from "./LayoutSelector"
 import { useLayouts } from "@/contexts/LayoutContext"
 import { ArrowLeft, Bot, Layout, Plus } from "lucide-react"
 import DynamicIcon from "./Util/DynamicIcon"
 import { TAG_INFO } from "@/src/constants/tags"
 import { cn } from "@/lib/utils"
-import CustomCanvasEditor from "./CustomCanvas/CustomCanvasEditor"
-import { AIAgent } from "@/types/canvas"
-import { MobileBottomNav } from "./mobile/MobileBottomNav"
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { FreeMode } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/free-mode'
 import {
@@ -37,6 +32,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { ControlledCompanyEditDialog } from "./Canvas/ControlledCompnayEditDialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Textarea } from "./ui/textarea"
+import { DialogHeader } from "./ui/dialog"
+import { createNewCanvas } from "@/types/canvas"
+import { useRouter } from "next/dist/client/components/navigation"
 
 interface MobileCanvasTypeSelectorProps {
   isOpen: boolean
@@ -181,12 +181,18 @@ export function MobileCanvasTypeSelector({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
   const { theme } = useTheme();
-  const { userCanvases } = useCanvas();
+  const { createNewCanvas } = useCanvas();
   const { getLayoutsForSectionCount } = useLayouts();
   const { getCanvasTypes } = useCanvasTypes();
   const { currentFolder } = useCanvasFolders();
   const [canvasTypes, setCanvasTypes] = useState<Record<string, CanvasType>>({});
   const [compatibleLayouts, setCompatibleLayouts] = useState<CanvasLayoutDetails[]>([]);
+  const [newName, setNewName] = useState('');
+  const [newDescription, setNewDescription] = useState('');
+  const [isValid, setIsValid] = useState(false);
+  const router = useRouter();
+  const { rootFolderId } = useCanvasFolders();
+
 
   useEffect(() => {
     getCanvasTypes().then((types) => {
@@ -227,6 +233,41 @@ export function MobileCanvasTypeSelector({
       fetchLayouts();
     }
   }, [selectedType, getLayoutsForSectionCount]);
+
+
+  const handleSaveNewCanvas = async () => {
+    if (!newName.trim()) {
+      setIsValid(false)
+      return
+    }
+
+    try {
+      if (!selectedType) {
+        return
+      }
+
+      const newCanvas = await createNewCanvas({
+        name: newName.trim(),
+        description: newDescription.trim(),
+        canvasType: selectedType,
+        layout: selectedLayout?.layout,
+        folderId: currentFolder?.id || rootFolderId
+      })
+      
+      if (newCanvas) {
+        localStorage.setItem('lastCanvasId', newCanvas.id)
+        router.push(`/canvas/${newCanvas.id}`)
+      }
+      
+      // Reset form and close dialog
+      setNewName('')
+      setNewDescription('')
+      setShowDialog(false)
+    } catch (error) {
+      console.error('Failed to create canvas:', error)
+      // Optionally add error handling UI here
+    }
+  }
 
   const handleTagSelect = (tagName: string) => {
     setSelectedTags(prev => 
@@ -362,7 +403,11 @@ export function MobileCanvasTypeSelector({
         <div className="p-6 space-y-2">
           {selectedType && (
             <Button
-              onClick={() => setShowDialog(true)}
+              onClick={() => {
+                console.log('selectedLayout', selectedLayout)
+                setShowDialog(true)
+                onClose()
+              }}
               className="w-full gap-2"
               size="lg"
               disabled={!selectedLayout}
@@ -387,6 +432,38 @@ export function MobileCanvasTypeSelector({
           </Button>
         </div>
       </SheetContent>
+
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="top-[50%] translate-y-[-50%]">
+          <DialogHeader>
+            <DialogTitle>Create Canvas</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="name" className="text-sm font-medium">Name</label>
+              <Input
+                id="name"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Canvas name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="description" className="text-sm font-medium">Description</label>
+              <Textarea
+                id="description"
+                value={newDescription}
+                onChange={(e) => setNewDescription(e.target.value)}
+                placeholder="Add a description"
+                rows={3}
+              />
+            </div>
+            <Button onClick={handleSaveNewCanvas} className="w-full">
+              Create
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Sheet>
   );
 } 

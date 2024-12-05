@@ -224,7 +224,7 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
   const renderCanvasItem = (canvas: CanvasItem) => (
     <div 
       key={canvas.id} 
-      className="flex items-center group px-4 py-1 w-full"
+      className="flex items-center group px-2 py-1 w-full"
       draggable
       onDragStart={(e: DragEvent<HTMLDivElement>) => {
         e.dataTransfer.setData('canvasId', canvas.id)
@@ -266,12 +266,12 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
     if (!displayFolder) return null
     
     return (
-      <div className="space-y-1 overflow-y-auto">
+      <div className="space-y-1 overflow-y-auto overflow-x-hidden px-2">
         {displayFolder.children.map((folder) => (
           <div 
             key={folder.id} 
             className={cn(
-              "flex items-center group px-4 py-1",
+              "flex items-center group px-2 py-1",
               dragOverFolderId === folder.id && "bg-accent/50"
             )}
             onDragOver={(e: DragEvent<HTMLDivElement>) => {

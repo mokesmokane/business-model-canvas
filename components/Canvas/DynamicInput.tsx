@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Send } from 'lucide-react'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { Section } from '@/types/canvas'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface DynamicInputProps {
     onSubmit: (value: string) => void
@@ -36,6 +37,7 @@ interface DynamicInputProps {
     const { canvasTheme, formData } = useCanvas()
     const promptTimeoutRef = useRef<NodeJS.Timeout>()
     const currentSuggestion = suggestions[currentSuggestionIndex] || ''
+    const isMobile = useIsMobile()
     
     const handleSubmit = () => {
       if (inputValue.trim()) {
@@ -70,6 +72,15 @@ interface DynamicInputProps {
         setSuggestions([])
       } finally {
         setIsLoading(false)
+      }
+    }
+  
+    const handleSuggestionAction = async () => {
+      if ((showTabPrompt || inputValue.trim().length === 0) && !isLoading && suggestions.length === 0) {
+        setShowTabPrompt(false)
+        await getSuggestions(inputValue)
+      } else if (suggestions.length > 0) {
+        setCurrentSuggestionIndex((prev) => (prev + 1) % suggestions.length)
       }
     }
   
@@ -185,25 +196,18 @@ interface DynamicInputProps {
             {showTabPrompt && suggestions.length === 0 && !isLoading && (
               <div 
                 className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer"
-                onClick={async () => {
-                  setShowTabPrompt(false)
-                  await getSuggestions(inputValue)
-                }}
+                onClick={handleSuggestionAction}
               >
-                <kbd className="bg-background px-1 rounded">Tab</kbd>
+                <kbd className="bg-background px-1 rounded">{isMobile ? 'Tap' : 'Tab'}</kbd>
                 <span>suggest</span>
               </div>
             )}
             {suggestions.length > 0 && (
               <div 
                 className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer"
-                onClick={() => {
-                  setInputValue(prev => prev + currentSuggestion)
-                  setSuggestions([])
-                  setCurrentSuggestionIndex(0)
-                }}
+                onClick={handleSuggestionAction}
               >
-                <kbd className="bg-background px-1 rounded">Tab</kbd>
+                <kbd className="bg-background px-1 rounded">{isMobile ? 'Tap' : 'Tab'}</kbd>
                 <span>{currentSuggestionIndex + 1}/{suggestions.length}</span>
                 <kbd className="bg-background px-1 rounded">↵</kbd>
                 <span>accept</span>
@@ -215,8 +219,11 @@ interface DynamicInputProps {
               </div>
             )}
             {isFocused && !showTabPrompt && suggestions.length === 0 && !isLoading && (
-              <div className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1">
-                <kbd className="bg-background px-1 rounded">Tab</kbd>
+              <div 
+                className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer"
+                onClick={handleSuggestionAction}
+              >
+                <kbd className="bg-background px-1 rounded">{isMobile ? 'Tap' : 'Tab'}</kbd>
                 <span>suggest</span>
               </div>
             )}
