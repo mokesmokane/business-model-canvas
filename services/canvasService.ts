@@ -95,13 +95,14 @@ export class CanvasService {
     description: string, 
     canvasType: CanvasType, 
     folderId: string,
-    parentCanvasId: string | null
+    parentCanvasId: string | null,
+    canvasId: string | null
   }) {
     const userId = this.getUserId();
     const now = new Date();
     //to Section
     
-    const newCanvas = createNewCanvas(uuidv4(), data.name, data.description, data.canvasType, data.parentCanvasId);
+    const newCanvas = createNewCanvas(data.canvasId || uuidv4(), data.name, data.description, data.canvasType, data.parentCanvasId);
 
     const serializedCanvas = serializeCanvas(newCanvas);
 

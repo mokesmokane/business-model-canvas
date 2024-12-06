@@ -1,4 +1,4 @@
-import { ChevronRight, Home, LayoutDashboard, FolderPlus, Plus } from 'lucide-react'
+import { ChevronRight, Home, LayoutDashboard, FolderPlus, Plus, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NestedCanvasFolder } from '@/types/canvas'
 import {
@@ -22,6 +22,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { CanvasTypeSelector } from "@/components/CanvasTypeSelector"
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { useRouter } from 'next/navigation'
+import { DocumentDiveSelector } from '../DocumentDiveSelector'
+import { DocumentDiveSuggestionsProvider } from '@/contexts/DocumentDiveSuggestionsContext'
+import { DocumentAiGenerationProvider } from '@/contexts/DocumentAiGenerationContext'
 
 interface BreadcrumbNavProps {
   path: NestedCanvasFolder[]
@@ -41,6 +44,7 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
   const [dragOverFolderId, setDragOverFolderId] = React.useState<string | null>(null)
   const [pendingMove, setPendingMove] = React.useState<MoveOperation | null>(null)
   const [showTypeSelector, setShowTypeSelector] = React.useState(false)
+  const [showDocumentDiveSelector, setShowDocumentDiveSelector] = React.useState(false)
   const router = useRouter()
   const onAddFolder = () => {
     const currentFolder = (path.length > 0 ? path[path.length - 1] : null)?.id ?? 'root'
@@ -49,6 +53,10 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
 
   const onAddCanvas = () => {
     setShowTypeSelector(true)
+  }
+
+  const onAddCanvasFromDocument = () => {
+    setShowDocumentDiveSelector(true)
   }
 
   const onNav = (folder: NestedCanvasFolder | null) => {
@@ -190,6 +198,10 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
               <Plus className="h-4 w-4 mr-2" />
               New Canvas
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={onAddCanvasFromDocument}>
+              <FileText className="h-4 w-4 mr-2" />
+              From Document
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -206,6 +218,16 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
         <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
           <DialogTitle></DialogTitle>
           <CanvasTypeSelector selectedType={null} />
+        </DialogContent>
+      </Dialog>
+      <Dialog open={showDocumentDiveSelector} onOpenChange={setShowDocumentDiveSelector}>
+        <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
+          <DialogTitle></DialogTitle>
+          <DocumentAiGenerationProvider>
+            <DocumentDiveSuggestionsProvider>
+              <DocumentDiveSelector pdfContent={null} onClose={() => setShowDocumentDiveSelector(false)} onPdfLoaded={() => {}} onSuccess={() => setShowDocumentDiveSelector(false)} />
+          </DocumentDiveSuggestionsProvider>
+          </DocumentAiGenerationProvider>
         </DialogContent>
       </Dialog>
     </>

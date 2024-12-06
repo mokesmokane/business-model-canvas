@@ -47,8 +47,8 @@ interface CanvasContextType {
   updateItem: (sectionKey: string, item: SectionItem) => Promise<void>;
   updateQuestionAnswer: (question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<boolean>;
-  createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout, parentCanvasId?: string}) => Promise<Canvas | undefined>;
-  createNewCanvasAndNameIt: (data: { canvasType: CanvasType, folderId: string, parentCanvasId?: string, messageHistory: Message[]}) => Promise<Canvas | undefined>;
+  createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout, parentCanvasId?: string, canvasId?: string | null}) => Promise<Canvas | undefined>;
+  createNewCanvasAndNameIt: (data: { canvasType: CanvasType, folderId: string, parentCanvasId?: string, messageHistory: Message[], canvasId?: string | null}) => Promise<Canvas | undefined>;
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
   clearState: () => void;
@@ -56,6 +56,7 @@ interface CanvasContextType {
   setCanvasTheme: (theme: 'light' | 'dark') => void;
   hoveredItemId: string | null;
   setHoveredItemId: React.Dispatch<React.SetStateAction<string | null>>;
+  updateCanvas: (canvas: Canvas) => Promise<void>;
 }
 
 export const CanvasContext = createContext<CanvasContextType>({
@@ -82,6 +83,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   setCanvasTheme: () => { },
   hoveredItemId: null,
   setHoveredItemId: () => { },
+  updateCanvas: async () => {},
 });
 
   const AUTOSAVE_DELAY = 1000;
@@ -153,29 +155,36 @@ export const CanvasContext = createContext<CanvasContextType>({
   }, [saveToFirebase]);
 
   const updateItem = useCallback(async (sectionKey: string, item: SectionItem) => {
+    // First, prepare the updated data outside of setState
     const updatedData = await new Promise((resolve, reject) => {
       setState(prev => {
         if(!prev) {
           reject(new Error('No previous state'));
           return null;
         }
+        console.log('prev', prev)
         const sections = prev.formData.sections;
         const section = sections.get(sectionKey);
+        console.log('section', section)
         if (!section) {
           reject(new Error('Section not found'));
           return prev;
         }
+        console.log('section.sectionItems', section.sectionItems)
         
         const updatedSections = new Map(sections);
         const existingItem = section.sectionItems?.find(i => i.id === item.id);
+        console.log('existingItem', existingItem)
         if (existingItem) {
           const updatedItems = section.sectionItems?.map(i => i.id === item.id ? item : i);
           updatedSections.set(sectionKey, {
             ...section,
             sectionItems: updatedItems
           });
+          console.log('updatedSections', updatedSections)
         } else {
           section.sectionItems?.push(item);
+          console.log('updatedSections', updatedSections)
         }
 
         const updatedData = {
@@ -184,6 +193,7 @@ export const CanvasContext = createContext<CanvasContextType>({
           id: prev.currentCanvas?.id || prev.formData.id
         };
 
+        console.log('updatedData', updatedData)
         resolve(updatedData);
         
         return {
@@ -192,39 +202,54 @@ export const CanvasContext = createContext<CanvasContextType>({
         };
       });
     });
+    console.log('updatedData', updatedData)
+    // Then wait for Firebase save to complete
     await saveToFirebase(updatedData as Canvas);
+    console.log('updatedData saved')
+    // Finally, wait for React to complete the state update
     return new Promise<void>(resolve => {
+      // Use requestAnimationFrame to ensure we're after React's next render
       requestAnimationFrame(() => {
+        // Add a small delay to ensure state has updated
         setTimeout(resolve, 0);
       });
     });
   }, [saveToFirebase]);
 
   const updateSection = useCallback((sectionKey: string, items: SectionItem[]) => {
+    console.log('updateSection', sectionKey, items)
     setState(prev => {
       if(!prev) {
+        console.log('prev is null')
         return null
       }
       const sections = prev.formData.sections;
+      console.log('sections', sections)
       if (!sections.has(sectionKey)) return prev;
       
       const section = sections.get(sectionKey);
+      console.log('section', section)
       if (!section) return prev;
 
       const updatedSections = new Map(sections);
+      console.log('updatedSections', updatedSections)
       updatedSections.set(sectionKey, {
         ...section,
         sectionItems: items
       });
+      console.log('updatedSections', updatedSections)
       const updatedData = {
         ...prev.formData,
         sections: updatedSections,
         id: prev.currentCanvas?.id || prev.formData.id
       };
+      console.log('updatedData', updatedData)
+      // Before saving to Firebase, we need to serialize the Map
       const dataForFirebase = {
         ...updatedData,
         sections: deserializeSections(serializeSections(updatedData.sections))
       };
+      console.log('dataForFirebase', dataForFirebase)
       saveToFirebase(dataForFirebase);
 
       return {
@@ -316,6 +341,7 @@ export const CanvasContext = createContext<CanvasContextType>({
     folderId: string,
     parentCanvasId?: string,
     messageHistory: Message[],
+    canvasId?: string | null,
   }) => {
     let name = 'New Canvas'
     let description = ''
@@ -336,6 +362,7 @@ export const CanvasContext = createContext<CanvasContextType>({
     const canvas = await createNewCanvas({
       name,
       description,
+      canvasId: data.canvasId || null,  
       ...data
     })
     return canvas
@@ -346,6 +373,7 @@ export const CanvasContext = createContext<CanvasContextType>({
     description: string, 
     canvasType: CanvasType, 
     folderId: string,
+    canvasId?: string | null,
     parentCanvasId?: string,
   }) => {
     if (!user) return;
@@ -355,7 +383,8 @@ export const CanvasContext = createContext<CanvasContextType>({
       // Remove parentCanvasId if it's undefined
       const cleanData = {
         ...data,
-        parentCanvasId: data.parentCanvasId || null // Convert undefined to null
+        parentCanvasId: data.parentCanvasId || null, // Convert undefined to null
+        canvasId: data.canvasId || null, // Convert undefined to null
       };
       const canvas = await canvasService.createNewCanvas(cleanData);
       return canvas;
@@ -495,14 +524,17 @@ export const CanvasContext = createContext<CanvasContextType>({
 
       unsubscribeCanvases = onSnapshot(canvasesQuery, async (snapshot: DocumentData) => {
         const canvases = snapshot.docs.map((doc: DocumentData) => {
+          console.log('doc', doc)
           const data = deserializeCanvas({ ...doc.data(), id: doc.id } as SerializedCanvas);
           return {
             ...data,
             id: doc.id
           };
         });
+        console.log('canvases', canvases)
         setUserCanvases(canvases);
 
+        // Check for canvases without folders and add them to root
         for (const canvas of canvases) {
           const canvasItem: CanvasItem = {
             id: canvas.id,
@@ -510,6 +542,7 @@ export const CanvasContext = createContext<CanvasContextType>({
             canvasTypeId: canvas.canvasType.id
           };
 
+          // Check if canvas exists in any folder
           const foldersRef = collection(db, 'userFolders', user.uid, 'folders');
           const foldersSnapshot = await getDocs(foldersRef);
           let foundInFolder = false;
@@ -522,6 +555,7 @@ export const CanvasContext = createContext<CanvasContextType>({
             }
           }
 
+          // If not found in any folder, add to root folder
           if (!foundInFolder) {
             await onCanvasCreated(canvasItem, rootFolderId);
           }
@@ -614,6 +648,37 @@ export const CanvasContext = createContext<CanvasContextType>({
     return () => unsubscribe();
   }, [state?.formData?.canvasType?.id]);
 
+  const updateCanvas = useCallback(async (canvas: Canvas) => {
+    if (!user) return;
+    
+    try {
+      setStatus('saving');
+      const canvasRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), canvas.id);
+      
+      // Serialize the data before saving
+      const serializedData = serializeCanvas(canvas);
+      
+      await setDoc(canvasRef, serializedData);
+      
+      // Update local state
+      setState(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          currentCanvas: canvas,
+          formData: canvas,
+          status: 'idle',
+          error: null,
+        };
+      });
+
+      setStatus('idle');
+    } catch (error) {
+      setStatus('error', error instanceof Error ? error.message : 'Failed to save');
+      throw error;
+    }
+  }, [user, setStatus]);
+
   return (
     <CanvasContext.Provider
       value={{
@@ -640,6 +705,7 @@ export const CanvasContext = createContext<CanvasContextType>({
         setCanvasTheme,
         hoveredItemId,
         setHoveredItemId,
+        updateCanvas,
       }}
     >
       {children}

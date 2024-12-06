@@ -50,7 +50,7 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
               key={`${item.key}-${item.section.sectionItems?.length}`}
               title={item.config?.name || ''}
               sectionKey={item.key}
-              icon={item.config!.icon}
+              icon={item.config?.icon || 'LayoutGrid'}
               section={item.section}
               onChange={(value: SectionItem[]) => updateSection(item.key, value)}
               placeholder={item.config?.placeholder || ''}

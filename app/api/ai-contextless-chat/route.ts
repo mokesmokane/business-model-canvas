@@ -1,7 +1,7 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import { Message, MessageEnvelope } from '@/contexts/ChatContext'
+import { MessageEnvelope } from '@/contexts/ChatContext'
 import { CanvasSection, CanvasType } from '@/types/canvas-sections'
 import { CanvasTypeAdminService } from '@/services/canvasTypeAdminService'
 
