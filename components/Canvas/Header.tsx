@@ -250,6 +250,7 @@ export function Header() {
           </h1>
           <div className="flex items-center gap-2">
             <Input 
+              canvasTheme={canvasTheme}
               value={formData?.name || ''}
               className={`max-w-[200px] ${
                 canvasTheme === 'light' ? 'text-black' : 'text-white'
@@ -281,6 +282,7 @@ export function Header() {
         <div className="flex items-center gap-4">
           <Input
             id="designedFor"
+            canvasTheme={canvasTheme}
             className={`max-w-[150px] ${
               canvasTheme === 'light' 
                 ? 'text-black bg-white border-gray-200' 
@@ -293,6 +295,7 @@ export function Header() {
           />
           <Input
             id="designedBy"
+            canvasTheme={canvasTheme}
             className={`max-w-[150px] ${
               canvasTheme === 'light' 
                 ? 'text-black bg-white border-gray-200' 
@@ -305,6 +308,7 @@ export function Header() {
           />
           <Input
             id="date"
+            canvasTheme={canvasTheme}
             className={`max-w-[150px] ${
               canvasTheme === 'light' 
                 ? 'text-black bg-white border-gray-200' 
@@ -317,6 +321,7 @@ export function Header() {
           />
           <Input
             id="version"
+            canvasTheme={canvasTheme}
             className={`max-w-[150px] ${
               canvasTheme === 'light' 
                 ? 'text-black bg-white border-gray-200' 
@@ -342,16 +347,16 @@ export function Header() {
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem key="layout-editor" onClick={() => setShowLayoutEditor(true)}>
+            <DropdownMenuContent align="end" className="w-56" canvasTheme={canvasTheme}>
+              <DropdownMenuItem key="layout-editor" onClick={() => setShowLayoutEditor(true)} canvasTheme={canvasTheme}>
                 <Grid2x2 className="h-4 w-4 mr-2" />
                 Layout Editor
               </DropdownMenuItem>
-              <DropdownMenuItem key="screenshot" onClick={() => router.push(`/canvas/${formData.id}/screenshot`)}>
+              <DropdownMenuItem key="screenshot" onClick={() => router.push(`/canvas/${formData.id}/screenshot`)} canvasTheme={canvasTheme}>
                 <Printer className="h-4 w-4 mr-2" />
                 Screenshot
               </DropdownMenuItem>
-              <DropdownMenuItem key="toggle-theme" onClick={() => setCanvasTheme(canvasTheme === 'light' ? 'dark' : 'light')}>
+              <DropdownMenuItem key="toggle-theme" onClick={() => setCanvasTheme(canvasTheme === 'light' ? 'dark' : 'light')} canvasTheme={canvasTheme}>
                 {canvasTheme === 'light' ? (
                   <Moon className="h-4 w-4 mr-2" />
                 ) : (
@@ -366,6 +371,7 @@ export function Header() {
                     <DropdownMenuItem 
                       key="parent-canvas"
                       onClick={handleParentCanvasClick}
+                      canvasTheme={canvasTheme}
                     >
                       <ArrowUpRight className="h-4 w-4 mr-2" />
                       Parent Canvas
@@ -380,6 +386,7 @@ export function Header() {
                         return (
                           <DropdownMenuItem 
                             key={`child-canvas-${item.id}`}
+                            canvasTheme={canvasTheme}
                             onClick={() => {
                               localStorage.setItem('lastCanvasId', item.canvasLink!.canvasId)
                               router.push(`/canvas/${item.canvasLink!.canvasId}`)
@@ -409,10 +416,10 @@ export function Header() {
                       })}
                     </>
                   )}
-                  <DropdownMenuSeparator key="linked-canvases-separator" />
+                  <DropdownMenuSeparator key="linked-canvases-separator" canvasTheme={canvasTheme} />
                 </>
               )}
-              <DropdownMenuLabel key="documents-label" className="flex items-center justify-between">
+              <DropdownMenuLabel key="documents-label" className="flex items-center justify-between" canvasTheme={canvasTheme}>
                 Documents
                 <Button
                   variant="ghost"
@@ -433,7 +440,7 @@ export function Header() {
               />
 
               {isUploadingDoc && (
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem disabled canvasTheme={canvasTheme}>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Uploading...
                 </DropdownMenuItem>
@@ -447,6 +454,7 @@ export function Header() {
                       setUploadedDocument(doc);
                       setShowDocumentDialog(true);
                     }}
+                    canvasTheme={canvasTheme}
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     <div className="flex flex-col flex-1">
@@ -466,12 +474,12 @@ export function Header() {
                   </DropdownMenuItem>
                 ))
               ) : (
-                <DropdownMenuItem disabled>
+                <DropdownMenuItem disabled canvasTheme={canvasTheme}>
                   <span className="text-muted-foreground">No documents</span>
                 </DropdownMenuItem>
               )}
 
-              <DropdownMenuSeparator key="final-separator" />
+              <DropdownMenuSeparator key="final-separator" canvasTheme={canvasTheme} />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

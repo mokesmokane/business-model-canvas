@@ -1,33 +1,21 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { CanvasType } from "@/types/canvas-sections"
 import { useTheme } from "next-themes"
 import DynamicIcon from "./Util/DynamicIcon"
 import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
-import { Bot, Loader2, FileText, Upload } from "lucide-react"
+import { Bot, FileText, Upload } from "lucide-react"
 import { useCanvasTypes } from "@/contexts/CanvasTypeContext"
 import { CanvasTypeCardTags } from "./CanvasTypeCards/CanvasTypeCardTags"
 import { CanvasTypeCard } from "./CanvasTypeCards/CanvasTypeCardBig"
-import { useDiveSuggestions } from '@/contexts/DiveSuggestionsContext';
 import { useRecentCanvasTypes } from "@/contexts/RecentCanvasTypesContext"
-import { useAiGeneration } from '@/contexts/AiGenerationContext';
 import { useRouter } from 'next/navigation'
 import { useDocumentDiveSuggestions } from "@/contexts/DocumentDiveSuggestionsContext"
 import { useDocumentAiGeneration } from "@/contexts/DocumentAiGenerationContext"
-import mockContentString from "./Util/mock"
 import { DocumentService } from '@/services/document';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 import { useSwipeable } from 'react-swipeable';
 import { TAG_INFO } from "@/src/constants/tags"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -414,15 +402,6 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
       </div>
     );
   };
-
-  const swipeHandlers = useSwipeable({
-    onSwiping: (e) => {
-      if (newCanvasRef.current) {
-        newCanvasRef.current.scrollLeft += e.deltaX;
-      }
-    },
-    trackMouse: true
-  });
 
   const scrollableContentClass = "overflow-y-auto scrollbar-hide";
 

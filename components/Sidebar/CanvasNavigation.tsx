@@ -63,7 +63,7 @@ interface CanvasNavigationProps {
 
 export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
   const { folders, rootFolder, onCanvasDeleted, onFolderRename, onFolderDelete, onCanvasMoved } = useCanvasFolders()
-  const { loadCanvas, currentCanvas, deleteCanvas, clearState } = useCanvas()
+  const { currentCanvas, deleteCanvas, clearState } = useCanvas()
   const { canvasTypes } = useCanvasTypes()
   const [currentPath, setCurrentPath] = React.useState<NestedCanvasFolder[]>([])
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
@@ -265,9 +265,18 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
     const displayFolder = currentFolder || folders.find(f => f.id === 'root')
     if (!displayFolder) return null
     
+    // Sort folders alphabetically by name
+    const sortedFolders = [...displayFolder.children].sort((a, b) => 
+      a.name.localeCompare(b.name)
+    )
+    
+    // Sort canvases alphabetically by name
+    const sortedCanvases = Array.from(displayFolder.canvases.values())
+      .sort((a, b) => a.name.localeCompare(b.name))
+    
     return (
       <div className="space-y-1 overflow-y-auto overflow-x-hidden px-2">
-        {displayFolder.children.map((folder) => (
+        {sortedFolders.map((folder) => (
           <div 
             key={folder.id} 
             className={cn(
@@ -321,7 +330,7 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
             </DropdownMenu>
           </div>
         ))}
-        {Array.from(displayFolder.canvases.values()).map((canvas) =>
+        {sortedCanvases.map((canvas) =>
           renderCanvasItem(canvas)
         )}
       </div>

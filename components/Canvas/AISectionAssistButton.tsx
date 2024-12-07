@@ -32,7 +32,6 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
   const { formData, canvasTheme } = useCanvas()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isThisButtonLoading, setIsThisButtonLoading] = useState(false)
-
   const handleAction = async (action: string) => {
     setIsThisButtonLoading(true)
     onExpandSidebar()
@@ -72,7 +71,8 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
       </Button>
 
       <div className={`
-        absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-gray-900 border border-gray-800
+        absolute right-0 mt-2 w-48 rounded-md shadow-lg 
+        ${canvasTheme === 'dark' ? 'bg-gray-900 border border-gray-800' : 'bg-white border border-gray-200'}
         transform transition-all duration-200 ease-in-out origin-top-right z-50
         ${isDropdownOpen 
           ? 'opacity-100 scale-100 translate-y-0' 
@@ -84,7 +84,8 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
             <button
               key={key}
               onClick={() => handleAction(key)}
-              className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-gray-100"
+              className={`flex w-full items-center gap-2 px-4 py-2 text-sm 
+                ${canvasTheme === 'dark' ? 'text-gray-400 hover:bg-gray-800 hover:text-gray-100' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'}`}
             >
               <Icon className="h-4 w-4" />
               {label}

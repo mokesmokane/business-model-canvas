@@ -22,6 +22,8 @@ import { AIAgentService } from '@/services/aiAgentService';
 import { AIAgent } from '@/types/canvas';
 import { TAG_INFO } from '@/src/constants/tags';
 import { TagSuggesterService } from '@/services/tagSuggesterService';
+import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export default function AdminPage() {
   const { user, isAdminUser } = useAuth();
@@ -288,7 +290,16 @@ export default function AdminPage() {
                     </TableCell>
                     <TableCell>
                       {aiAgents[id] ? (
-                        <Bot className="h-4 w-4 text-green-500" />
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Bot className="h-4 w-4 text-green-500" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {aiAgents[id].name}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       ) : loading.has(id) ?<div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                       :(
                         <Button

@@ -7,6 +7,7 @@ import { useCanvas } from '@/contexts/CanvasContext';
 import { SectionItem as SectionItemType, TextSectionItem } from '@/types/canvas';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader, DialogFooter } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation'
+import ReactMarkdown from 'react-markdown';
 
 interface SectionItemProps {
   item: SectionItemType;
@@ -76,11 +77,13 @@ export function SectionItem({
           <Link className="h-4 w-4" />
         </Button>
       )}
-      <p className={`text-sm whitespace-pre-wrap mb-2 ${
+      <div className={`text-sm whitespace-pre-wrap mb-2 ${
         canvasTheme === 'light' ? 'text-gray-700' : 'text-gray-100'
       }`}>
-        {sectionItem.content}
-      </p>
+        <ReactMarkdown>
+          {sectionItem.content}
+        </ReactMarkdown>
+      </div>
 
       <div
         className={`

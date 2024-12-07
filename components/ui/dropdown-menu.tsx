@@ -190,30 +190,64 @@ const DropdownMenuLabel = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label> & {
     inset?: boolean
+    canvasTheme?: string
   }
->(({ className, inset, ...props }, ref) => (
-  <DropdownMenuPrimitive.Label
-    ref={ref}
-    className={cn(
-      "px-2 py-1.5 text-sm font-semibold",
-      inset && "pl-8",
-      className
+>(({ className, inset, canvasTheme, ...props }, ref) => {
+  let classStuff = "";
+  const baseClasses = "px-2 py-1.5 text-sm font-semibold";
+
+
+
+  if (canvasTheme) {
+    const classes = baseClasses.split(' ');
+    classStuff = classes
+      .filter(cls => cls.startsWith('dark:') ? canvasTheme === 'dark' : true)
+      .map(cls => cls.startsWith('dark:') ? cls.substring(5) : cls)
+      .join(' ');
+  } else {
+    classStuff = baseClasses;
+  }
+
+  return (
+    <DropdownMenuPrimitive.Label
+      ref={ref}
+      className={cn(
+        classStuff,
+        inset && "pl-8",
+        className
     )}
     {...props}
   />
-))
+  );
+})
 DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName
 
 const DropdownMenuSeparator = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator>
->(({ className, ...props }, ref) => (
-  <DropdownMenuPrimitive.Separator
-    ref={ref}
-    className={cn("-mx-1 my-1 h-px bg-gray-100 dark:bg-gray-800", className)}
-    {...props}
-  />
-))
+  React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Separator> & {
+    canvasTheme?: string
+  }
+>(({ className, canvasTheme, ...props }, ref) => {
+  let classStuff = "";
+  const baseClasses = "-mx-1 my-1 h-px bg-gray-100 dark:bg-gray-800";
+
+  if (canvasTheme) {
+      const classes = baseClasses.split(' ');
+    classStuff = classes
+      .filter(cls => cls.startsWith('dark:') ? canvasTheme === 'dark' : true)
+      .map(cls => cls.startsWith('dark:') ? cls.substring(5) : cls)
+      .join(' ');
+  } else {
+    classStuff = baseClasses;
+  }
+  return (
+    <DropdownMenuPrimitive.Separator
+      ref={ref}
+      className={cn(classStuff, className)}
+      {...props}
+    />
+  );
+})
 DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName
 
 const DropdownMenuShortcut = ({

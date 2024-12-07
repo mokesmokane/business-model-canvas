@@ -6,6 +6,7 @@ import { NewCanvasTypeSuggestion } from '@/app/api/ai-canvas-dive/types';
 import { sendCreateCanvasTypeFromDiveRequest } from '@/services/aiCreateCanvasService';
 import { useCanvas } from './CanvasContext';
 import { Canvas } from '@/types/canvas';
+import { DocumentDiveInRequest } from '@/app/api/ai-document-dive/types';
 
 interface DocumentDiveSuggestionsContextType {
     existingSuggestions: CanvasType[];
@@ -102,7 +103,7 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
         }
     }
 
-    async function startDiveAnalysis(textContent: string, fileName: string) {
+    async function startDiveAnalysis(documentText: string, fileName: string) {
         try {
             clearSuggestions();
 
@@ -110,7 +111,7 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
             const existingResponse = await fetch('/api/ai-document-dive/existing', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ textContent, fileName }),
+                body: JSON.stringify({ documentText, fileName } as DocumentDiveInRequest),
             })
 
             if (!existingResponse.ok) throw new Error('Failed to fetch existing suggestions');
@@ -126,7 +127,7 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
             const newResponse = await fetch('/api/ai-document-dive/new', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ textContent, fileName }),
+                body: JSON.stringify({ documentText, fileName } as DocumentDiveInRequest),
             })
 
             if (!newResponse.ok) throw new Error('Failed to fetch new suggestions');
