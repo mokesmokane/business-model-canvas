@@ -22,6 +22,7 @@ interface Section {
   name: string;
   items: string[];
   qAndAs: any[];
+  viewPreferences: any;
 }
 
 interface CanvasState {
@@ -59,6 +60,7 @@ interface CanvasContextType {
   hoveredItemId: string | null;
   setHoveredItemId: React.Dispatch<React.SetStateAction<string | null>>;
   updateCanvas: (canvas: Canvas) => Promise<void>;
+  updateSectionViewPreferences: (sectionKey: string, preferences: Section['viewPreferences']) => void;
 }
 
 export const CanvasContext = createContext<CanvasContextType>({
@@ -88,6 +90,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   hoveredItemId: null,
   setHoveredItemId: () => { },
   updateCanvas: async () => {},
+  updateSectionViewPreferences: () => { },
 });
 
   const AUTOSAVE_DELAY = 1000;
@@ -684,6 +687,36 @@ export const CanvasContext = createContext<CanvasContextType>({
     }
   }, [user, setStatus]);
 
+  const updateSectionViewPreferences = useCallback((sectionKey: string, preferences: Section['viewPreferences']) => {
+    setState(prev => {
+      if (!prev?.formData) return prev;
+
+      const sections = new Map(prev.formData.sections);
+      const section = sections.get(sectionKey);
+      
+      if (section) {
+        sections.set(sectionKey, {
+          ...section,
+          viewPreferences: preferences
+        });
+
+        const updatedData = {
+          ...prev.formData,
+          sections
+        };
+        console.log('updatedData mokes', updatedData)
+        // Save to Firebase
+        saveToFirebase(updatedData);
+
+        return {
+          ...prev,
+          formData: updatedData
+        };
+      }
+      return prev;
+    });
+  }, [saveToFirebase]);
+
   return (
     <CanvasContext.Provider
       value={{
@@ -713,6 +746,7 @@ export const CanvasContext = createContext<CanvasContextType>({
         hoveredItemId,
         setHoveredItemId,
         updateCanvas,
+        updateSectionViewPreferences,
       }}
     >
       {children}

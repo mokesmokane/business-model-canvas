@@ -62,6 +62,11 @@ export interface Section {
   gridIndex: number;
   sectionItems: SectionItem[];
   qAndAs: AIQuestion[];
+  viewPreferences?: {
+    type: 'list' | 'grid';
+    columns?: number;
+    showInput: boolean;
+  };
 }
 
 export interface AIQuestion {

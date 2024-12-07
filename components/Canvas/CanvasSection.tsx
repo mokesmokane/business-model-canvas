@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { LucideIcon, MoreVertical, Send } from 'lucide-react'
+import { LucideIcon, MoreVertical, Send, Grid2x2, List, Grid, Eye, EyeOff } from 'lucide-react'
 import { AISectionAssistButton } from './AISectionAssistButton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DynamicInput } from './DynamicInput'
@@ -26,6 +26,14 @@ import { useAiGeneration } from '@/contexts/AiGenerationContext';
 import { useRouter } from 'next/navigation'
 import { MobileConfirmDiveInSheet } from './MobileConfirmDiveInSheet'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu"
 
 interface AISuggestion {
   id: string;
@@ -52,7 +60,7 @@ export function CanvasSection({
   placeholder, 
   className 
 }: CanvasSectionProps) {
-  const { updateQuestions, canvasTheme, updateItem, loadCanvas, formData } = useCanvas();
+  const { updateQuestions, canvasTheme, updateItem, loadCanvas, formData, updateSectionViewPreferences } = useCanvas();
   const { generationStatus } = useAiGeneration();
   const isGenerating = formData?.id ? generationStatus[formData.id]?.isGenerating : false;
   const currentGeneratingSection = formData?.id ? generationStatus[formData.id]?.currentSection : null;
@@ -69,6 +77,45 @@ export function CanvasSection({
   const [letsDiveIn, setLetsDiveIn] = useState(false)
   const router = useRouter()
   const isMobile = useIsMobile()
+  const [viewType, setViewType] = useState<{ type: 'list' | 'grid', columns?: number }>(
+    section.viewPreferences?.type === 'grid' 
+      ? { type: 'grid', columns: section.viewPreferences.columns || 2 }
+      : { type: 'list' }
+  );
+  const [showInput, setShowInput] = useState(section.viewPreferences?.showInput ?? true);
+  const [isActive, setIsActive] = useState(false);
+
+  // Update preferences when they change
+  useEffect(() => {
+    updateSectionViewPreferences(sectionKey, {
+      type: viewType.type,
+      columns: viewType.columns,
+      showInput
+    });
+  }, [viewType, showInput, sectionKey, updateSectionViewPreferences]);
+
+  // Handle section click
+  const handleSectionClick = () => {
+    if (!showInput) {
+      setIsActive(true);
+    }
+  };
+
+  // Handle clicking outside the section
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const element = event.target as HTMLElement;
+      const isClickInside = element.closest(`[data-section-id="${sectionKey}"]`);
+      if (!isClickInside && !showInput) {
+        setIsActive(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [sectionKey, showInput]);
 
   const handleItemClick = (index: number) => {
     setExpandedItemIndex(expandedItemIndex === index ? null : index);
@@ -138,10 +185,25 @@ export function CanvasSection({
     }
   }
   
+  const getGridClass = (columns?: number) => {
+    switch (columns) {
+      case 2:
+        return 'grid-cols-2';
+      case 3:
+        return 'grid-cols-3';
+      case 4:
+        return 'grid-cols-4';
+      default:
+        return 'grid-cols-2';
+    }
+  };
+
   return (
     <Card 
+      data-section-id={sectionKey}
       canvasTheme={canvasTheme}
       className={`flex flex-col h-full max-h-full overflow-hidden ${isGenerating ? 'opacity-50' : ''} ${isCurrentSectionGenerating ? 'border-primary' : ''}`}
+      onClick={handleSectionClick}
     >
       <CardHeader className={`flex-shrink-0`}>
         <TooltipProvider>
@@ -160,6 +222,58 @@ export function CanvasSection({
                   </div>
                 )}
                 <div className="flex-1" />
+                {!isGenerating && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className={`${
+                          canvasTheme === 'light'
+                            ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+                            : 'bg-gray-950 text-gray-300 border-gray-800 hover:bg-gray-800'
+                        }`}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48" canvasTheme={canvasTheme}>
+                      <DropdownMenuLabel>View Options</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => setViewType({ type: 'list' })}>
+                        <List className="h-4 w-4 mr-2" />
+                        List View {viewType.type === 'list' && '✓'}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel>Grid Layout</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 2 })}>
+                        <Grid className="h-4 w-4 mr-2" />
+                        2 Columns {viewType.type === 'grid' && viewType.columns === 2 && '✓'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 3 })}>
+                        <Grid className="h-4 w-4 mr-2" />
+                        3 Columns {viewType.type === 'grid' && viewType.columns === 3 && '✓'}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 4 })}>
+                        <Grid className="h-4 w-4 mr-2" />
+                        4 Columns {viewType.type === 'grid' && viewType.columns === 4 && '✓'}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setShowInput(!showInput)}>
+                        {showInput ? (
+                          <>
+                            <EyeOff className="h-4 w-4 mr-2" />
+                            Hide Input
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="h-4 w-4 mr-2" />
+                            Show Input
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
                 {questionsArray.length > 0 && !isGenerating && (
                   <Button 
                     canvasTheme={canvasTheme}
@@ -190,11 +304,11 @@ export function CanvasSection({
         </TooltipProvider>
       </CardHeader>
       <CardContent className={`flex-1 flex flex-col overflow-hidden ${isGenerating ? 'pointer-events-none' : ''}`}>
-      <ScrollArea 
+        <ScrollArea 
           className="flex-1 relative"
           style={{ height: 'calc(100% - 60px)' }}
         >
-                    {sectionItemsArray.length === 0 && (
+          {sectionItemsArray.length === 0 && (
             <div className={`absolute top-0 left-0 pointer-events-none text-sm whitespace-pre-line ${
               canvasTheme === 'light' ? 'text-gray-600' : 'text-gray-400'
             }`}>
@@ -202,7 +316,10 @@ export function CanvasSection({
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className={viewType.type === 'grid' 
+            ? `grid ${getGridClass(viewType.columns)} gap-2` 
+            : 'space-y-2'
+          }>
             {sectionItemsArray.map((item, index) => (
               <SectionItem
                 key={index}
@@ -224,20 +341,22 @@ export function CanvasSection({
           </div>
         </ScrollArea>
         
-        <div className="flex-shrink-0 mt-auto pt-2">
-          <DynamicInput 
-            placeholder={`Add ${title}`}
-            section={section}
-            onSubmit={handleAddOrUpdateItem}
-            onCancel={() => {
-              handleEditCancel();
-              setEditingIndex(null);
-            }}
-            initialValue={editingIndex !== null ? (sectionItemsArray[editingIndex] as TextSectionItem).content : ''}
-            isEditing={editingIndex !== null}
-            key={`input-${editingIndex}`}
-          />
-        </div>
+        {(showInput || isActive) && (
+          <div className="flex-shrink-0 mt-auto pt-2">
+            <DynamicInput 
+              placeholder={`Add ${title}`}
+              section={section}
+              onSubmit={handleAddOrUpdateItem}
+              onCancel={() => {
+                handleEditCancel();
+                setEditingIndex(null);
+              }}
+              initialValue={editingIndex !== null ? (sectionItemsArray[editingIndex] as TextSectionItem).content : ''}
+              isEditing={editingIndex !== null}
+              key={`input-${editingIndex}`}
+            />
+          </div>
+        )}
       </CardContent>
       <QuestionsDialog
         open={isQuestionsDialogOpen}
