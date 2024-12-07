@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { Canvas, TextSectionItem, Section, SectionItem } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight, ArrowRight, FileText, Upload, Loader2 } from 'lucide-react'
+import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight, ArrowRight, FileText, Upload, Loader2, Minimize2, Maximize2 } from 'lucide-react'
 import LayoutEditor from './LayoutEditor'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -38,7 +38,7 @@ interface HeaderProps {
 }
 
 export function Header() {
-  const { canvasTheme, formData, updateField, setCanvasTheme, updateCanvas } = useCanvas();
+  const { canvasTheme, formData, updateField, setCanvasTheme, updateCanvas, viewMode, setViewMode } = useCanvas();
   const [showLayoutEditor, setShowLayoutEditor] = useState(false);
   const { setHoveredItemId } = useCanvas();
   const router = useRouter();
@@ -364,6 +364,21 @@ export function Header() {
                 )}
                 Toggle Theme
               </DropdownMenuItem>
+              <DropdownMenuSeparator canvasTheme={canvasTheme} />
+              <DropdownMenuLabel>View Mode</DropdownMenuLabel>
+              <DropdownMenuItem 
+                key="toggle-view" 
+                onClick={() => setViewMode(viewMode === 'fit-screen' ? 'fit-content' : 'fit-screen')} 
+                canvasTheme={canvasTheme}
+              >
+                {viewMode === 'fit-screen' ? (
+                  <Maximize2 className="h-4 w-4 mr-2" />
+                ) : (
+                  <Minimize2 className="h-4 w-4 mr-2" />
+                )}
+                {viewMode === 'fit-screen' ? 'Fit to Content' : 'Fit to Screen'}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator canvasTheme={canvasTheme} />
               {(formData?.parentCanvasId || getChildCanvases(formData).length > 0) && (
                 <>
                   <DropdownMenuLabel key="linked-canvases-label">Linked Canvases</DropdownMenuLabel>

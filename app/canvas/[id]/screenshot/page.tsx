@@ -101,7 +101,7 @@ function ScreenshotContent({ id }: { id: string }) {
           sections={formData.sections}
           canvasType={formData.canvasType}
           canvasLayout={formData.canvasLayout}
-          title={formData.name}
+          title={formData.canvasType.name}
           description={formData.description}
           designedFor={formData.designedFor}
           designedBy={formData.designedBy}

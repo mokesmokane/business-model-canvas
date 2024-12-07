@@ -113,7 +113,8 @@ export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvel
       description: nameDescription.description,
       canvasType: canvasType,
       folderId: "root",
-      parentCanvasId: null
+      parentCanvasId: null,
+      canvasId: null
     });
 
     yield {

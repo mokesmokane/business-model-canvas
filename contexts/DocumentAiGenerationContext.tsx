@@ -74,9 +74,12 @@ export function DocumentAiGenerationProvider({ children }: { children: ReactNode
           console.log('section', section)
           updateSectionStatus(canvas.id, section.sectionName, false);
           
-          const sectionItems: SectionItem[] = section.items.map((item: { content: string; rationale: string }) => ({
-            ...new TextSectionItem(uuidv4(), `**${item.content}**\n\n${item.rationale}`),
-          }));
+          const sectionItems: SectionItem[] = section.items.map((item: { content: string; rationale: string }) => {
+            const content = item.content.trim();
+            const isMarkdown = /[*_~`]/.test(content);
+            const formattedContent = isMarkdown ? content : `**${content}**`;
+            return new TextSectionItem(uuidv4(), `${formattedContent}\n\n${item.rationale.trim()}`);
+          });
 
           // Check if the section exists in the canvas before including it in updates
           if (canvas.sections.has(section.sectionName)) {

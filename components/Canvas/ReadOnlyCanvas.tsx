@@ -1,11 +1,11 @@
 import { Section, SectionItem, TextSectionItem } from '@/types/canvas'
 import { CanvasType } from '@/types/canvas-sections'
 import { CSSProperties } from 'react'
-import * as Icons from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { LucideIcon, LucideProps } from 'lucide-react'
+import {  LucideProps } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Canvas } from '@/types/canvas'
+import ReactMarkdown from 'react-markdown'
+import DynamicIcon from '../Util/DynamicIcon'
 
 interface ReadOnlyCanvasProps {
   sections: Map<string, Section>
@@ -55,10 +55,11 @@ function ReadOnlyHeader({ title, description, name, designedFor, designedBy, dat
         <div className="flex items-center gap-2">
           <Input 
             value={name}
-            className={`max-w-[200px] ${
+            className={`${
               canvasTheme === 'light' ? 'text-black' : 'text-white'
             }`}
             readOnly
+            style={{ width: `${name.length + 2}ch` }}
           />
         </div>
       </div>
@@ -114,7 +115,7 @@ function ReadOnlySection({
   items: SectionItem[]
   config?: {
     name: string
-    icon: IconType
+    icon: string
     color?: string
   }
 }) {
@@ -128,7 +129,7 @@ function ReadOnlySection({
             "rounded p-1",
             config.color || "bg-muted"
           )}>
-            <Icon className="h-4 w-4" />
+            <DynamicIcon name={config?.icon || ''} className="h-4 w-4" />
           </div>
         )}
         <h3 className="font-semibold text-card-foreground">{title}</h3>
@@ -139,15 +140,12 @@ function ReadOnlySection({
             return (
               <div 
                 key={index} 
-            className="rounded-md border border-border bg-background p-2 text-sm text-foreground whitespace-pre-wrap"
+                className="rounded-md border border-border bg-background p-2 text-sm text-foreground whitespace-pre-wrap"
               >
-                {item.content.split('\n').map((line, i) => (
-                  <span key={i}>
-                    {line}
-                    {i < item.content.split('\n').length - 1 && <br />}
-                  </span>
-                ))}
-            </div>
+                <ReactMarkdown>
+                  {item.content}
+                </ReactMarkdown>
+              </div>
             )
           }
         })}
@@ -180,7 +178,7 @@ function ReadOnlyContent({ sections, canvasType, canvasLayout }: ReadOnlyCanvasP
       <div className="h-full">
         <div style={containerStyle}>
           {sortedSections.map((item, index) => {
-            const Icon = item.config?.icon ? Icons[item.config.icon as keyof typeof Icons] : undefined
+            
             
             return (
               <div
@@ -190,9 +188,9 @@ function ReadOnlyContent({ sections, canvasType, canvasLayout }: ReadOnlyCanvasP
                 <ReadOnlySection
                   title={item.config?.name || ''}
                   items={item.section.sectionItems}
-                  config={Icon && {
+                  config={item.config && {
                     name: item.config!.name,
-                    icon: Icon as IconType
+                    icon: item.config?.icon || ''
                   }}
                 />
               </div>

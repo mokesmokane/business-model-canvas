@@ -9,12 +9,11 @@ interface CanvasContentProps {
 }
 
 export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
-  const { formData, canvasTheme, updateSection } = useCanvas();
+  const { formData, canvasTheme, updateSection, viewMode } = useCanvas();
   if(!formData) {
     return null
   }
   let canvasType = formData.canvasType;
-
 
   // Convert sections Map to array and sort by gridIndex
   const sortedSections = Array.from(formData.sections.entries())
@@ -24,8 +23,9 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
       config: canvasType.sections.find(s => s.name === key)
     }))
     .sort((a, b) => (a.section.gridIndex || 0) - (b.section.gridIndex || 0));
+
   return (
-    <div className={`flex flex-col flex-1 p-4 space-y-4 overflow-auto ${
+    <div className={`flex flex-col flex-1 p-4 space-y-4 ${viewMode === 'fit-content' ? 'overflow-auto' : 'overflow-hidden'} ${
       canvasTheme === 'light' ? 'bg-white text-black' : 'bg-gray-950 text-white'
     }`}>
       <div style={{
@@ -33,15 +33,16 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
         gridTemplateColumns: formData.canvasLayout.gridTemplate.columns,
         gridTemplateRows: formData.canvasLayout.gridTemplate.rows || 'auto auto auto',
         gap: '1rem',
-        minHeight: '100%',
+        minHeight: viewMode === 'fit-screen' ? '100%' : 'auto',
+        height: viewMode === 'fit-screen' ? '100%' : 'auto',
       }}>
         {sortedSections.map((item, index) => (
           <div 
             key={item.key} 
             style={{ 
               gridArea: formData.canvasLayout.areas?.[index] || 'auto',
-              minHeight: 0,
-              height: 'auto',
+              minHeight: viewMode === 'fit-screen' ? 0 : 'auto',
+              height: viewMode === 'fit-screen' ? 'auto' : 'auto',
               display: 'flex',
               flexDirection: 'column'
             }}
@@ -54,7 +55,7 @@ export function CanvasContent({ onExpandSidebar }: CanvasContentProps) {
               section={item.section}
               onChange={(value: SectionItem[]) => updateSection(item.key, value)}
               placeholder={item.config?.placeholder || ''}
-              className="h-full overflow-hidden"
+              className={`h-full ${viewMode === 'fit-screen' ? 'overflow-hidden' : ''}`}
             />
           </div>
         ))}

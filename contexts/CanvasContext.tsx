@@ -41,6 +41,7 @@ interface CanvasContextType {
   canvasTheme: 'light' | 'dark';
   canvasType: CanvasType | null;
   canvasLayout: CanvasLayout | null;
+  viewMode: 'fit-screen' | 'fit-content';
   updateField: (field: keyof Canvas, value: string) => void;
   updateLayout: (layout: string[], canvasLayout: CanvasLayout) => void;
   updateSection: (sectionKey: string, items: SectionItem[]) => void;
@@ -54,6 +55,7 @@ interface CanvasContextType {
   clearState: () => void;
   updateQuestions: (sectionKey: string, questions: any[]) => void;
   setCanvasTheme: (theme: 'light' | 'dark') => void;
+  setViewMode: (mode: 'fit-screen' | 'fit-content') => void;
   hoveredItemId: string | null;
   setHoveredItemId: React.Dispatch<React.SetStateAction<string | null>>;
   updateCanvas: (canvas: Canvas) => Promise<void>;
@@ -68,8 +70,9 @@ export const CanvasContext = createContext<CanvasContextType>({
   canvasTheme: 'light',
   canvasType: null,
   canvasLayout: null,
-  updateLayout: () => { },
+  viewMode: 'fit-screen',
   updateField: () => { },
+  updateLayout: () => { },
   updateSection: () => { },
   updateItem: () => { return Promise.resolve() },
   updateQuestionAnswer: () => { },
@@ -81,6 +84,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   clearState: () => { },
   updateQuestions: () => { },
   setCanvasTheme: () => { },
+  setViewMode: () => { },
   hoveredItemId: null,
   setHoveredItemId: () => { },
   updateCanvas: async () => {},
@@ -94,6 +98,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   const { setIsContextEnabled } = useCanvasContext()
   const { user, hasProFeatures } = useAuth();
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'fit-screen' | 'fit-content'>('fit-screen');
 
   // Initialize canvasService when user changes
   useEffect(() => {
@@ -688,6 +693,7 @@ export const CanvasContext = createContext<CanvasContextType>({
         error: state?.error || null,
         userCanvases,
         canvasTheme: state?.formData?.theme || 'light',
+        viewMode,
         canvasType: state?.formData?.canvasType || null,
         canvasLayout: state?.formData?.canvasLayout || null,
         updateField,
@@ -703,6 +709,7 @@ export const CanvasContext = createContext<CanvasContextType>({
         clearState,
         updateQuestions,
         setCanvasTheme,
+        setViewMode,
         hoveredItemId,
         setHoveredItemId,
         updateCanvas,

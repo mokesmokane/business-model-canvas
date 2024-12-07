@@ -61,8 +61,12 @@ export function AiGenerationProvider({ children }: { children: ReactNode }) {
           sectionToGenerate: section
         });
 
-        const sectionItems = suggestions.map((s: { content: string; rationale: string }) => (
-          new TextSectionItem(uuidv4(), `${s.content}\n\n${s.rationale}`)));
+        const sectionItems = suggestions.map((s: { content: string; rationale: string }) => {
+          const content = s.content.trim();
+          const isMarkdown = /[*_~`]/.test(content);
+          const formattedContent = isMarkdown ? content : `**${content}**`;
+          return new TextSectionItem(uuidv4(), `${formattedContent}\n\n${s.rationale.trim()}`);
+        });
         console.log('Current canvas state:', canvas);
         updateSection(section.name, sectionItems);
         
