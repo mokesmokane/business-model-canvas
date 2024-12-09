@@ -13,6 +13,7 @@ import { Loader2 } from 'lucide-react'
 import { Canvas, TextSectionItem } from '@/types/canvas'
 import { CanvasDocument, DocumentService } from '@/services/document'
 import { v4 as uuidv4 } from 'uuid';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface ProcessDocumentDialogProps {
   open: boolean;
@@ -31,6 +32,7 @@ export function ProcessDocumentDialog({
 }: ProcessDocumentDialogProps) {
   const [selectedSections, setSelectedSections] = useState<Set<string>>(new Set());
   const [isProcessing, setIsProcessing] = useState(false);
+  const { hasAccessToProFeatures, isFreeUser } = useSubscription();
 
   const handleProcessDocument = async (doc: CanvasDocument | null) => {
     if (!doc || selectedSections.size === 0) return;
@@ -87,7 +89,11 @@ export function ProcessDocumentDialog({
             Select which sections you'd like to populate with content from {document?.fileName}
           </DialogDescription>
         </DialogHeader>
-        
+        {isFreeUser && (
+          <DialogDescription>
+            You are currently in a free trial period. You can only process the first 3 pages of the document.
+          </DialogDescription>
+        )}
         <div className="space-y-4">
           {Array.from(canvas.sections.entries()).map(([sectionName, section]) => (
             <div key={sectionName} className="flex items-center space-x-2">

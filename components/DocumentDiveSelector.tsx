@@ -16,10 +16,12 @@ import { useDocumentDiveSuggestions } from "@/contexts/DocumentDiveSuggestionsCo
 import { useDocumentAiGeneration } from "@/contexts/DocumentAiGenerationContext"
 import { DocumentService } from '@/services/document';
 import { v4 as uuidv4 } from 'uuid';
-import { useSwipeable } from 'react-swipeable';
 import { TAG_INFO } from "@/src/constants/tags"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useSubscription } from "@/contexts/SubscriptionContext"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 interface DocumentDiveSelectorProps {
   pdfContent?: {
@@ -61,6 +63,7 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
   const [selectedTypeLocal, setSelectedTypeLocal] = useState<CanvasType | null>(null);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const [isCreatingCanvas, setIsCreatingCanvas] = useState(false);
+  const { hasAccessToProFeatures, isFreeUser } = useSubscription();
 
   const getAvailableTags = () => {
     const availableTags = new Set<string>();
@@ -431,8 +434,9 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
 
     try {
       const canvasId = uuidv4();
-      setCanvasId(canvasId);
-      const processedContent = await DocumentService.uploadAndProcess(file, canvasId);
+      setCanvasId(canvasId);  
+      const maxPages = isFreeUser ? 3 : undefined;
+      const processedContent = await DocumentService.uploadAndProcess(file, canvasId, maxPages);
       
       if (onPdfLoaded) {
         onPdfLoaded(processedContent);
@@ -467,42 +471,60 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
             <p className="text-sm text-muted-foreground">Extracting text from your document...</p>
           </div>
         ) : (
-          <div 
-            className="w-full max-w-[500px] h-64 border-2 border-dashed border-primary/20 rounded-lg 
-              flex flex-col items-center justify-center p-6 transition-colors
-              hover:border-primary/40 hover:bg-primary/5 cursor-pointer"
-            onClick={() => document.getElementById('file-upload')?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const files = e.dataTransfer.files;
-              if (files.length) handleFileSelect(files[0]);
-            }}
-          >
-            <input
-              type="file"
-              id="file-upload"
-              className="hidden"
-              accept=".pdf"
-              onChange={(e) => {
-                const files = e.target.files;
-                if (files?.length) handleFileSelect(files[0]);
+          <div className="flex flex-col items-center">
+            <div 
+              className="w-full max-w-[500px] h-64 border-2 border-dashed border-primary/20 rounded-lg 
+                flex flex-col items-center justify-center p-6 transition-colors
+                hover:border-primary/40 hover:bg-primary/5 cursor-pointer"
+              onClick={() => document.getElementById('file-upload')?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
               }}
-            />
-            <Upload className="w-12 h-12 text-primary/50 mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              Upload a PDF Document
-            </h3>
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Drag and drop your file here, or click to select
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Supported format: PDF
-            </p>
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const files = e.dataTransfer.files;
+                if (files.length) handleFileSelect(files[0]);
+              }}
+            >
+              <input
+                type="file"
+                id="file-upload"
+                className="hidden"
+                accept=".pdf"
+                onChange={(e) => {
+                  const files = e.target.files;
+                  if (files?.length) handleFileSelect(files[0]);
+                }}
+              />
+              <Upload className="w-12 h-12 text-primary/50 mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Upload a PDF Document
+              </h3>
+              <p className="text-sm text-muted-foreground text-center mb-4">
+                Drag and drop your file here, or click to select
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Supported format: PDF
+              </p>
+            </div>
+            
+            {true && (
+              <div className="mt-6 text-center">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Users in their trial period can analyze up to 3 pages
+                </p>
+                <Link href="/upgrade">
+                  <Button variant="outline" className="gap-2">
+                    <span>Upgrade to Pro</span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                      Unlimited Pages
+                    </span>
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -566,7 +588,37 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
           </div>
         ) : (
           <div className="h-full flex items-center justify-center">
-            {renderFileUploader()}
+            {hasAccessToProFeatures ? (
+              renderFileUploader()
+            ) : (
+              <div 
+                className="w-full max-w-[500px] h-64 border-2 border-dashed border-primary/20 rounded-lg 
+                  flex flex-col items-center justify-center p-8 transition-colors
+                  bg-card/50"
+              >
+                <div className="flex flex-col items-center">
+                  <div className="p-3 rounded-full bg-primary/10 mb-5">
+                    <FileText className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-3">
+                    Document Analysis
+                  </h3>
+                  <p className="text-sm text-muted-foreground text-center mb-6 max-w-[300px]">
+                    Upload PDFs and let AI analyze them to automatically create the perfect canvas for your needs.
+                  </p>
+                  <div className="mb-4">
+                    <Link href="/upgrade">
+                      <Button variant="default" size="lg" className="gap-2 font-medium">
+                        <span>Upgrade to Pro</span>
+                        <span className="text-xs bg-primary-foreground/20 px-2 py-0.5 rounded-full">
+                          Unlock Feature
+                        </span>
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>

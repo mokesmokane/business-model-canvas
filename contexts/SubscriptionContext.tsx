@@ -12,6 +12,8 @@ interface SubscriptionContextType {
   subscriptionPeriodEnd: Date | null;
   subscriptionData: DocumentData | null;
   isLoading: boolean;
+  hasAccessToProFeatures: boolean;
+  isFreeUser: boolean;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType>({
@@ -19,6 +21,8 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
   subscriptionPeriodEnd: null,
   subscriptionData: null,
   isLoading: true,
+  hasAccessToProFeatures: false,
+  isFreeUser: false,
 });
 
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
@@ -27,7 +31,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [subscriptionPeriodEnd, setSubscriptionPeriodEnd] = useState<Date | null>(null);
   const [subscriptionData, setSubscriptionData] = useState<DocumentData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [hasAccessToProFeatures, setHasAccessToProFeatures] = useState(false);
+  const [isFreeUser, setIsFreeUser] = useState(false);
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     if (user) {
@@ -39,22 +44,39 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
         
         if (!userData) {
           setSubscriptionStatus(null);
+          setHasAccessToProFeatures(false);
         } else {
           const isActive = userData.subscriptionStatus === 'active';
           const periodNotExpired = new Date(userData.subscriptionPeriodEnd).getTime() > new Date().getTime();
           setSubscriptionPeriodEnd(new Date(userData.subscriptionPeriodEnd));
+
+          // Calculate trial period
+          const createdAt = new Date(userData.createdAt);
+          const trialEndDate = new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+          const isInTrialPeriod = new Date() < trialEndDate;
+          console.log('isInTrialPeriod', isInTrialPeriod);
           if (!isActive || !periodNotExpired) {
+            setIsFreeUser(true);
+            console.log('isActive', isActive);
+            console.log('periodNotExpired', periodNotExpired);
             setSubscriptionStatus('free');
+            setHasAccessToProFeatures(isInTrialPeriod);
           } else {
+            setIsFreeUser(false);
+            console.log('userData.subscriptionPlan', userData.subscriptionPlan);
             switch (userData.subscriptionPlan) {
               case 'pro':
                 setSubscriptionStatus('pro');
+                setHasAccessToProFeatures(true);
                 break;
               case 'enterprise':
                 setSubscriptionStatus('enterprise');
+                setHasAccessToProFeatures(true);
                 break;
               default:
+                setIsFreeUser(true);
                 setSubscriptionStatus('free');
+                setHasAccessToProFeatures(isInTrialPeriod);
             }
           }
         }
@@ -63,6 +85,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } else {
       setSubscriptionStatus(null);
       setSubscriptionData(null);
+      setIsFreeUser(true);
+      setHasAccessToProFeatures(false);
       setIsLoading(false);
     }
 
@@ -78,7 +102,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       subscriptionStatus, 
       subscriptionPeriodEnd,
       subscriptionData,
-      isLoading 
+      isLoading,
+      hasAccessToProFeatures,
+      isFreeUser
     }}>
       {children}
     </SubscriptionContext.Provider>

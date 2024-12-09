@@ -32,6 +32,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { v4 as uuidv4 } from 'uuid';
 import { ProcessDocumentDialog } from './ProcessDocumentDialog'
+import { useSubscription } from '@/contexts/SubscriptionContext'
 
 interface HeaderProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void
@@ -52,7 +53,8 @@ export function Header() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showProcessDialog, setShowProcessDialog] = useState(false);
   const [pendingDocument, setPendingDocument] = useState<CanvasDocument | null>(null);
-
+  const { hasAccessToProFeatures, isFreeUser } = useSubscription();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   if (!formData) return null;
 
   useEffect(() => {
@@ -119,7 +121,8 @@ export function Header() {
 
     setIsUploadingDoc(true);
     try {
-      const uploadedDoc = await DocumentService.uploadAndProcess(file, formData.id);
+      const maxPages = isFreeUser ? 3 : undefined;
+      const uploadedDoc = await DocumentService.uploadAndProcess(file, formData.id, maxPages);
       await loadDocuments();
       // setUploadedDocument(uploadedDoc);
       setShowDocumentDialog(true);
@@ -476,7 +479,13 @@ export function Header() {
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8"
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => {
+                    if (!hasAccessToProFeatures) {
+                      setShowUpgradeDialog(true);
+                    } else {
+                      fileInputRef.current?.click();
+                    }
+                  }}
                 >
                   <Upload className="h-4 w-4" />
                 </Button>
@@ -587,6 +596,19 @@ export function Header() {
                 )}
               </Button>
             </div>
+          </DialogContent>
+        </Dialog>
+        <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Upgrade to Pro</DialogTitle>
+              <DialogDescription>
+                Uploading and analyzing documents is a Pro feature.
+              </DialogDescription>
+            </DialogHeader>
+            <Button onClick={() => router.push('/pricing')}>
+              Upgrade
+            </Button>
           </DialogContent>
         </Dialog>
         <ProcessDocumentDialog

@@ -66,7 +66,7 @@ export class DocumentService {
   }
   private static readonly PROCESSING_URL = '/api/document-process';
 
-  static async uploadAndProcess(file: File, canvasId: string): Promise<ProcessedDocument> {
+  static async uploadAndProcess(file: File, canvasId: string, maxPages?: number): Promise<ProcessedDocument> {
     const token = await getAuth().currentUser?.getIdToken();
     if (!token) {
       throw new Error('No authentication token available');
@@ -75,6 +75,10 @@ export class DocumentService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('canvasId', canvasId);
+    //add maxPages=3 if user is in trial period
+    if (maxPages) {
+      formData.append('maxPages', maxPages.toString());
+    }
 
     const response = await fetch(this.PROCESSING_URL, {
       method: 'POST',
