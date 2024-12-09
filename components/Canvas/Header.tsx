@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { Canvas, TextSectionItem, Section, SectionItem } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight, ArrowRight, FileText, Upload, Loader2, Minimize2, Maximize2 } from 'lucide-react'
+import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight, ArrowRight, FileText, Upload, Loader2, Minimize2, Maximize2, Eye, EyeOff } from 'lucide-react'
 import LayoutEditor from './LayoutEditor'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -38,7 +38,7 @@ interface HeaderProps {
 }
 
 export function Header() {
-  const { canvasTheme, formData, updateField, setCanvasTheme, updateCanvas, viewMode, setViewMode } = useCanvas();
+  const { canvasTheme, formData, updateField, setCanvasTheme, updateCanvas, viewMode, setViewMode, showInputs, setShowInputs } = useCanvas();
   const [showLayoutEditor, setShowLayoutEditor] = useState(false);
   const { setHoveredItemId } = useCanvas();
   const router = useRouter();
@@ -59,32 +59,46 @@ export function Header() {
     if (formData?.id) {
       loadDocuments();
     }
-  }, [formData?.id]);
+  }, [formData?.id, formData?.name]);
 
   useEffect(() => {
-    // Check for pending document when canvas loads
-    const pendingDocString = localStorage.getItem('pendingDocument');
-    if (pendingDocString && formData?.id) {
-      try {
-        const pendingDoc = JSON.parse(pendingDocString);
-        if (pendingDoc.canvasId === formData.id) {
-          setPendingDocument({
-            textContent: pendingDoc.textContent,
-            fileName: pendingDoc.fileName,
-            id: uuidv4(),
-            pageCount: 1,
-            size: 0,
-            uploadedAt: new Date(),
-            contentType: 'application/pdf',
-          } as CanvasDocument);
-          setShowProcessDialog(true);
-          // Clear the pending document
-          localStorage.removeItem('pendingDocument');
+    const checkPendingDocument = () => {
+      const pendingDocString = localStorage.getItem('pendingDocument');
+      if (pendingDocString && formData?.id) {
+        try {
+          const pendingDoc = JSON.parse(pendingDocString);
+          if (pendingDoc.canvasId === formData.id) {
+            setPendingDocument({
+              textContent: pendingDoc.textContent,
+              fileName: pendingDoc.fileName,
+              id: uuidv4(),
+              pageCount: 1,
+              size: 0,
+              uploadedAt: new Date(),
+              contentType: 'application/pdf',
+            } as CanvasDocument);
+            setShowProcessDialog(true);
+            // Clear the pending document
+            localStorage.removeItem('pendingDocument');
+          }
+        } catch (error) {
+          console.error('Error parsing pending document:', error);
         }
-      } catch (error) {
-        console.error('Error parsing pending document:', error);
       }
-    }
+    };
+
+    // Check immediately and then every 1 second
+    checkPendingDocument();
+    const intervalId = setInterval(checkPendingDocument, 1000);
+
+    // Stop checking after 5 seconds
+    const timeoutId = setTimeout(() => clearInterval(intervalId), 5000);
+
+    // Cleanup on component unmount
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
   }, [formData?.id]);
 
   const loadDocuments = async () => {
@@ -348,43 +362,66 @@ export function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56" canvasTheme={canvasTheme}>
-              <DropdownMenuItem key="layout-editor" onClick={() => setShowLayoutEditor(true)} canvasTheme={canvasTheme}>
+            <DropdownMenuItem key="screenshot" onClick={() => router.push(`/canvas/${formData.id}/screenshot`)}>
+                <Printer className="h-4 w-4 mr-2" />
+                Print View
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>View Options</DropdownMenuLabel>
+
+              <DropdownMenuItem key="layout-editor" onClick={() => setShowLayoutEditor(true)}>
                 <Grid2x2 className="h-4 w-4 mr-2" />
                 Layout Editor
               </DropdownMenuItem>
-              <DropdownMenuItem key="screenshot" onClick={() => router.push(`/canvas/${formData.id}/screenshot`)} canvasTheme={canvasTheme}>
-                <Printer className="h-4 w-4 mr-2" />
-                Screenshot
-              </DropdownMenuItem>
-              <DropdownMenuItem key="toggle-theme" onClick={() => setCanvasTheme(canvasTheme === 'light' ? 'dark' : 'light')} canvasTheme={canvasTheme}>
-                {canvasTheme === 'light' ? (
-                  <Moon className="h-4 w-4 mr-2" />
-                ) : (
-                  <Sun className="h-4 w-4 mr-2" />
-                )}
-                Toggle Theme
-              </DropdownMenuItem>
-              <DropdownMenuSeparator canvasTheme={canvasTheme} />
-              <DropdownMenuLabel>View Mode</DropdownMenuLabel>
               <DropdownMenuItem 
-                key="toggle-view" 
                 onClick={() => setViewMode(viewMode === 'fit-screen' ? 'fit-content' : 'fit-screen')} 
-                canvasTheme={canvasTheme}
               >
                 {viewMode === 'fit-screen' ? (
-                  <Maximize2 className="h-4 w-4 mr-2" />
+                  <>
+                    <Maximize2 className="h-4 w-4 mr-2" />
+                    Fit To Content
+                  </>
                 ) : (
-                  <Minimize2 className="h-4 w-4 mr-2" />
+                  <>
+                    <Minimize2 className="h-4 w-4 mr-2" />
+                    Fit To Screen
+                  </>
                 )}
-                {viewMode === 'fit-screen' ? 'Fit to Content' : 'Fit to Screen'}
               </DropdownMenuItem>
-              <DropdownMenuSeparator canvasTheme={canvasTheme} />
+              <DropdownMenuItem onClick={() => setCanvasTheme(canvasTheme === 'light' ? 'dark' : 'light')}>
+                {canvasTheme === 'light' ? (
+                  <>
+                    <Moon className="h-4 w-4 mr-2" />
+                    Dark Mode
+                  </>
+                ) : (
+                  <>
+                    <Sun className="h-4 w-4 mr-2" />
+                    Light Mode
+                  </>
+                )}
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => setShowInputs(!showInputs)}>
+                {showInputs ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    Hide Inputs
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Show Inputs
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              
               {(formData?.parentCanvasId || getChildCanvases(formData).length > 0) && (
                 <>
-                  <DropdownMenuLabel key="linked-canvases-label">Linked Canvases</DropdownMenuLabel>
+                  <DropdownMenuLabel>Linked Canvases</DropdownMenuLabel>
                   {formData?.parentCanvasId && (
                     <DropdownMenuItem 
-                      key="parent-canvas"
                       onClick={handleParentCanvasClick}
                       canvasTheme={canvasTheme}
                     >
@@ -412,7 +449,7 @@ export function Header() {
                           >
                             <ArrowDownRight className="h-4 w-4 mr-2" />
                             <div className="flex flex-col flex-1">
-                            {sectionName && (
+                              {sectionName && (
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
                                   <DynamicIcon 
                                     name={formData.canvasType?.sections.find(section => section.name === sectionName)?.icon || 'Square'} 
@@ -424,17 +461,16 @@ export function Header() {
                               <span className="line-clamp-1">
                                 {item instanceof TextSectionItem ? item.content : `Child Canvas ${index + 1}`}
                               </span>
-                              
                             </div>
                           </DropdownMenuItem>
                         );
                       })}
                     </>
                   )}
-                  <DropdownMenuSeparator key="linked-canvases-separator" canvasTheme={canvasTheme} />
+                  <DropdownMenuSeparator />
                 </>
               )}
-              <DropdownMenuLabel key="documents-label" className="flex items-center justify-between" canvasTheme={canvasTheme}>
+              <DropdownMenuLabel className="flex items-center justify-between">
                 Documents
                 <Button
                   variant="ghost"
@@ -455,7 +491,7 @@ export function Header() {
               />
 
               {isUploadingDoc && (
-                <DropdownMenuItem disabled canvasTheme={canvasTheme}>
+                <DropdownMenuItem disabled>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Uploading...
                 </DropdownMenuItem>
@@ -469,7 +505,6 @@ export function Header() {
                       setUploadedDocument(doc);
                       setShowDocumentDialog(true);
                     }}
-                    canvasTheme={canvasTheme}
                   >
                     <FileText className="h-4 w-4 mr-2" />
                     <div className="flex flex-col flex-1">
@@ -489,12 +524,10 @@ export function Header() {
                   </DropdownMenuItem>
                 ))
               ) : (
-                <DropdownMenuItem disabled canvasTheme={canvasTheme}>
+                <DropdownMenuItem disabled>
                   <span className="text-muted-foreground">No documents</span>
                 </DropdownMenuItem>
               )}
-
-              <DropdownMenuSeparator key="final-separator" canvasTheme={canvasTheme} />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

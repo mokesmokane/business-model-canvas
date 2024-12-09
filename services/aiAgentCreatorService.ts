@@ -2,12 +2,13 @@ import { AIAgent } from "@/types/canvas";
 import { CanvasType } from "@/types/canvas-sections";
 
 export class AIAgentCreatorService {
-  async createAIAgent(canvasType: CanvasType): Promise<AIAgent | null> {
+  async createAIAgent(canvasType: CanvasType, idToken: string): Promise<AIAgent | null> {
     try {
       const response = await fetch('/api/ai-agent-creator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({ canvasType }),
       });

@@ -2,6 +2,8 @@ import { OpenAI } from 'openai'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import { CanvasSection, CanvasType } from '@/types/canvas-sections'
 import { Canvas, Section } from '@/types/canvas'
+import { verifySubscriptionStatus } from '@/utils/subscription-check'
+import { createSubscriptionRequiredMessage } from '@/contexts/ChatContext'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -31,6 +33,13 @@ const completionFunction = {
 export const runtime = 'edge'
 
 export async function POST(req: Request) {
+  // Get the authorization header from the request
+  const authHeader = req.headers.get('authorization');
+  const isSubscribed = await verifySubscriptionStatus(authHeader || '');
+  if (!isSubscribed) {
+    return createSubscriptionRequiredMessage()
+  }
+
   try {
     const { text, canvas, section }: { 
       text: string, 

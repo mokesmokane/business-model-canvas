@@ -36,15 +36,27 @@ export interface ProcessedDocument {
 
 export class DocumentService {
   static async processDocumentContent(textContent: string | undefined, canvasType: CanvasType, sections: string[]) {
+    console.log('processDocumentContent', textContent, canvasType, sections)
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) throw new Error('No user');
+    const idToken = await user?.getIdToken();
+    if (!idToken) throw new Error('No idToken');
+    
     if (!textContent) return;
     const requestData: SuggestionRequest = {
       documentText: textContent,
       canvasType: canvasType,
       sections: sections
     }
+    console.log('idToken', idToken)
+
     const response = await fetch('/api/ai-document-dive/suggestions', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`
+      },
       body: JSON.stringify(requestData),
     })
 

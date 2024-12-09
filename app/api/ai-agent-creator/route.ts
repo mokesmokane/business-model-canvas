@@ -1,6 +1,8 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
+import { createSubscriptionRequiredMessage } from '@/contexts/ChatContext';
+import { verifySubscriptionStatus } from '@/utils/subscription-check';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -44,6 +46,13 @@ const aiAgentSchema = {
 
 
 export async function POST(request: Request) {
+  // Get the authorization header from the request
+  const authHeader = request.headers.get('authorization');
+  const isSubscribed = await verifySubscriptionStatus(authHeader || '');
+  if (!isSubscribed) {
+    return createSubscriptionRequiredMessage()
+  }
+
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
       { error: 'OpenAI API key not configured' }, 

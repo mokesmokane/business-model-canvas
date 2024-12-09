@@ -7,7 +7,7 @@ import { Send } from 'lucide-react'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { Section } from '@/types/canvas'
 import { useIsMobile } from '@/hooks/useIsMobile'
-
+import { useAuth } from '@/contexts/AuthContext';
 interface DynamicInputProps {
     onSubmit: (value: string) => void
     onCancel?: () => void
@@ -38,7 +38,7 @@ interface DynamicInputProps {
     const promptTimeoutRef = useRef<NodeJS.Timeout>()
     const currentSuggestion = suggestions[currentSuggestionIndex] || ''
     const isMobile = useIsMobile()
-    
+    const { user } = useAuth();
     const handleSubmit = () => {
       if (inputValue.trim()) {
         onSubmit(inputValue.trim())
@@ -53,12 +53,15 @@ interface DynamicInputProps {
       onCancel?.()
     }
     const getSuggestions = async (text: string) => {
+      const idToken = await user?.getIdToken()
+      if (!idToken) throw new Error('No idToken');
       try {
         setIsLoading(true)
         const response = await fetch('/api/complete', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${idToken}`
           },
           body: JSON.stringify({ text, canvas: formData, section: section })
         })

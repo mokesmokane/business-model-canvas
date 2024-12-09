@@ -4,6 +4,8 @@ import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import { CanvasType } from '@/types/canvas-sections'
 import { CanvasTypeAdminService } from '@/services/canvasTypeAdminService'
 import { DiveInRequest, DocumentDiveInRequest, NewCanvasDiveResponse, NewCanvasTypeSuggestion } from '../types'
+import { verifySubscriptionStatus } from '@/utils/subscription-check'
+import { createSubscriptionRequiredMessage } from '@/contexts/ChatContext'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -26,6 +28,13 @@ async function getCanvasTypes(): Promise<Record<string, CanvasType>> {
 }
 
 export async function POST(request: Request) {
+  // Get the authorization header from the request
+  const authHeader = request.headers.get('authorization');
+  const isSubscribed = await verifySubscriptionStatus(authHeader || '');
+  if (!isSubscribed) {
+    return createSubscriptionRequiredMessage()
+  } 
+
   if (!process.env.OPENAI_API_KEY) {
     return NextResponse.json(
       { error: 'OpenAI API key not configured' }, 

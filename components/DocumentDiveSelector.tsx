@@ -19,6 +19,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useSwipeable } from 'react-swipeable';
 import { TAG_INFO } from "@/src/constants/tags"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface DocumentDiveSelectorProps {
   pdfContent?: {
@@ -58,6 +59,8 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
   const [canvasId, setCanvasId] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedTypeLocal, setSelectedTypeLocal] = useState<CanvasType | null>(null);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const [isCreatingCanvas, setIsCreatingCanvas] = useState(false);
 
   const getAvailableTags = () => {
     const availableTags = new Set<string>();
@@ -77,6 +80,44 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
   }, [searchTerm, canvasTypes, selectedTags]);
 
   const renderSelectedCanvasType = () => {
+    if (isCreatingNewType ) {
+      return (
+        <div className="w-full flex flex-col items-center">
+          <div className="w-full max-w-[800px] mx-auto px-6 flex flex-col items-center">
+            <div className="w-full flex justify-center">
+              <div className="border rounded-lg p-6 bg-card shadow-sm w-full max-w-[600px]">
+                <div className="flex flex-col items-center gap-4">
+                  <Skeleton className="h-12 w-12 rounded-md animate-pulse" />
+                  <div className="space-y-2 text-center w-full">
+                    <Skeleton className="h-8 w-48 mx-auto animate-pulse" />
+                    <Skeleton className="h-4 w-96 mx-auto animate-pulse" />
+                    <Skeleton className="h-4 w-80 mx-auto animate-pulse" />
+                  </div>
+                  <div className="flex gap-2 mt-4">
+                    <Skeleton className="h-10 w-32 rounded-md animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="w-full flex justify-center mt-6"><button
+              className="px-6 py-3 rounded-lg bg-primary/50 text-primary-foreground/50
+                font-medium text-lg shadow-lg transition-all duration-200 
+                relative group overflow-hidden cursor-not-allowed"
+              disabled
+              onClick={async () => {
+              
+              }}
+            >
+              <span className="relative z-10">Create Canvas</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-foreground/0 via-primary-foreground/5 to-primary-foreground/0 
+                translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     if (!selected) return null;
 
     const selectedType = canvasTypes[selected] || 
@@ -97,24 +138,47 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
           </div>
           <div className="flex justify-center gap-4 w-full mt-6">
             <button
-              className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
+              className="px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 
+                font-medium text-lg shadow-lg transition-all duration-200 
+                hover:shadow-primary/25 hover:scale-[1.02] active:scale-[0.98]
+                relative group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isCreatingCanvas}
               onClick={async () => {
                 if (!content) return;
-                const canvas = await createCanvas(selectedType, content.text, content.fileName, null, canvasId);
-                if(canvas) {
-                  localStorage.setItem('pendingDocument', JSON.stringify({
-                    textContent: content.text,
-                    fileName: content.fileName,
-                    canvasId: canvas.id
-                  }));
-                  localStorage.setItem('lastCanvasId', canvas.id);
-                  router.push(`/canvas/${canvas.id}`);
-                  onSuccess(canvas.id, selectedType.id);
+                setIsCreatingCanvas(true);
+                try {
+                  const canvas = await createCanvas(selectedType, content.text, content.fileName, null, canvasId);
+                  if (canvas) {
+                    localStorage.setItem('pendingDocument', JSON.stringify({
+                      textContent: content.text,
+                      fileName: content.fileName,
+                      canvasId: canvas.id
+                    }));
+                    localStorage.setItem('lastCanvasId', canvas.id);
+                    onSuccess(canvas.id, selectedType.id);
+                  }
+                } catch (error) {
+                  console.error('Error creating canvas', error);
+                } finally {
+                  setIsCreatingCanvas(false);
                 }
-                onClose();
               }}
             >
-              Create Canvas
+              <span className="relative z-10 flex items-center gap-2">
+                {isCreatingCanvas ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating Canvas...
+                  </>
+                ) : (
+                  'Create Canvas'
+                )}
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary-foreground/0 via-primary-foreground/5 to-primary-foreground/0 
+                translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
             </button>
           </div>
           <div className="w-full flex justify-center mt-6">
@@ -235,46 +299,86 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
     }
 
     return (
-      <>
-        {existingSuggestions.length > 0 && (
-          <div className="w-full px-6">
-            <h3 className="text-lg font-semibold mb-4 text-center">Use an existing canvas type</h3>
-            <div className="relative flex flex-wrap gap-6 w-full justify-center">
-              <AnimatePresence>
-                {existingSuggestions.map((ct) => (
-                  <CanvasTypeCardTags
-                    key={ct.id}
-                    type={ct}
-                    isSelected={false}
-                    onClick={() => setSelected(ct.id)}
-                  />
-                ))}
-              </AnimatePresence>
+      <div className="w-full px-6">
+        {/* Existing Canvas Type Suggestions */}
+        <div>
+          {existingSuggestions.length > 0 ? 
+          <h3 className="text-lg font-semibold text-center">
+            Use an existing canvas type
+          </h3>
+          :
+            <div className="flex items-center gap-3 justify-center m-4">
+              <Bot className="w-6 h-6 text-primary" />
+              <div className="relative">
+                <span className="text-transparent bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-clip-text bg-[length:200%_100%] animate-shimmer">
+                  {statusMessage}
+                </span>
+              </div>
             </div>
+          }
+          <div className="flex justify-center gap-6">
+            {existingSuggestions.length > 0 ? (
+              existingSuggestions.map((ct) => (
+                <CanvasTypeCardTags
+                  key={ct.id}
+                  type={ct}
+                  isSelected={false}
+                  onClick={() => setSelected(ct.id)}
+                />
+              ))
+            ) : (
+              // Loading skeletons for existing suggestions
+              [1, 2, 3].map((i) => (
+                <div key={i} className="w-[300px] p-6 rounded-lg border border-border bg-card">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Skeleton className="h-6 w-6 rounded-md" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                  <Skeleton className="h-3 w-full mb-2" />
+                  <Skeleton className="h-3 w-4/5" />
+                  <div className="flex gap-1.5 mt-4">
+                    <Skeleton className="h-3 w-16 rounded-full" />
+                    <Skeleton className="h-3 w-20 rounded-full" />
+                    <Skeleton className="h-3 w-14 rounded-full" />
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        )}
+        </div>
 
-        {newSuggestions.length > 0 && !isCreatingNewType && (
-          <div className="w-full px-6 mt-6">
-            <h3 className="text-lg font-semibold mb-4 text-center">Or create a new canvas type</h3>
-            <div className="flex items-center justify-center w-full">
-              <div className="flex flex-row gap-6">
-                {newSuggestions.map((newCanvasType) => (
+        {/* New Canvas Type Suggestions */}
+        {((isLoadingSuggestions || newSuggestions.length > 0) && existingSuggestions.length > 0) && (
+          <div>
+            {newSuggestions.length > 0 ? 
+              <h3 className="text-lg font-semibold text-center">
+                Or create a new canvas type
+              </h3>
+              :
+                <div className="flex items-center gap-3 justify-center m-4">
+                  <Bot className="w-6 h-6 text-primary" />
+                  <div className="relative">
+                    <span className="text-transparent bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-clip-text bg-[length:200%_100%] animate-shimmer">
+                      {statusMessage}
+                    </span>
+                  </div>
+                </div>
+              }
+            <div className="flex justify-center gap-6">
+              {newSuggestions.length > 0 ? (
+                newSuggestions.map((newCanvasType) => (
                   <motion.div
                     key={newCanvasType.name}
                     initial={{ opacity: 0, y: 20, scale: 1 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
-                    className="relative w-[300px] p-6 rounded-lg border border-border bg-card hover:border-primary/50 cursor-pointer group"
+                    className="w-[300px] mt-2 p-6 rounded-lg border border-border bg-card hover:border-primary/50 cursor-pointer group"
                     onClick={async () => {
-                      try {
-                        setIsCreatingNewType(true);
-                        await createNewCanvasType(newCanvasType);
-                      } catch (error) {
-                        console.error('Error creating canvas:', error);
-                        setIsCreatingNewType(false);
-                      }
+                      setSelected(newCanvasType.name);
+                      setIsCreatingNewType(true);
+                      await createNewCanvasType(newCanvasType);
+                      setIsCreatingNewType(false);
                     }}
                   >
                     <div className="flex items-center gap-3 mb-4">
@@ -295,26 +399,29 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
                       ))}
                     </div>
                   </motion.div>
-                ))}
-              </div>
+                ))
+              ) : (
+                // Loading skeletons for new suggestions
+                [1, 2, 3].map((i) => (
+                  <div key={i} className="w-[300px] p-6 rounded-lg border border-border bg-card">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Skeleton className="h-6 w-6 rounded-md" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                    <Skeleton className="h-3 w-full mb-2" />
+                    <Skeleton className="h-3 w-4/5" />
+                    <div className="flex gap-1.5 mt-4">
+                      <Skeleton className="h-3 w-16 rounded-full" />
+                      <Skeleton className="h-3 w-20 rounded-full" />
+                      <Skeleton className="h-3 w-14 rounded-full" />
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
-
-        {isCreatingNewType && newSuggestions.length > 0 && (
-          <div className="w-full px-6 mt-6">
-            <div className="flex justify-center">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="relative w-[400px] p-8 rounded-lg bg-card shadow-lg overflow-hidden"
-              >
-                {/* Loading state UI remains the same */}
-              </motion.div>
-            </div>
-          </div>
-        )}
-      </>
+      </div>
     );
   };
 
@@ -349,13 +456,12 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
             <div className="w-full max-w-[500px]">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-muted-foreground">Processing PDF...</span>
-                <span className="text-sm text-muted-foreground">{Math.round(loadingProgress)}%</span>
-              </div>
-              <div className="w-full h-2 bg-primary/10 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all duration-300 ease-in-out"
-                  style={{ width: `${loadingProgress}%` }}
-                />
+                <div className="animate-spin">
+                  <svg className="w-5 h-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
               </div>
             </div>
             <p className="text-sm text-muted-foreground">Extracting text from your document...</p>
@@ -455,16 +561,7 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
       <div className={`flex-1 min-h-0 ${scrollableContentClass} ${selected ? 'flex items-center justify-center' : ''}`}>
         {content ? (
           <div className={`h-full w-full ${selected ? 'flex items-center justify-center' : ''}`}>
-            {statusMessage && !isCreatingNewType && (
-              <div className="flex items-center gap-3 justify-center mt-4">
-                <Bot className="w-6 h-6 text-primary" />
-                <div className="relative">
-                  <span className="text-transparent bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-clip-text bg-[length:200%_100%] animate-shimmer">
-                    {statusMessage}
-                  </span>
-                </div>
-              </div>
-            )}
+            
             {renderContent()}
           </div>
         ) : (
@@ -483,9 +580,11 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
                 className="relative flex items-center gap-3 px-6 py-3 rounded-lg bg-background border border-primary/20 hover:border-primary/40 shadow-lg"
                 onClick={() => {
                   if (!content) return;
-                  startDiveAnalysis(content.text, content.fileName)
-                  setShowAISuggestions(true)
-                  setSelected(null)
+                  setIsLoadingSuggestions(true);
+                  Promise.resolve(startDiveAnalysis(content.text, content.fileName))
+                    .finally(() => setIsLoadingSuggestions(false));
+                  setShowAISuggestions(true);
+                  setSelected(null);
                 }}
               >
                 <Bot className="w-6 h-6 text-primary" />

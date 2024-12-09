@@ -16,13 +16,13 @@ interface ChatRequest {
 export async function* sendCanvasSelectorRequest(messageEnvelope: MessageEnvelope) {
   const auth = getAuth();
   const user = auth.currentUser;
-  
+  if (!user) throw new Error('No user');
   let headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
-  if (user) {
-    const idToken = await user.getIdToken();
+  const idToken = await user?.getIdToken();
+  if (idToken) {
     headers = {
       ...headers,
       'Authorization': `Bearer ${idToken}`
@@ -60,7 +60,7 @@ export async function* sendCanvasSelectorRequest(messageEnvelope: MessageEnvelop
       messageHistory: messageEnvelope.messageHistory,
       action: 'suggestCanvasTypes',
       newMessage: createTextMessage(data.newCanvasType)
-      })
+    }, idToken) 
 
     yield {
       role: 'assistant',
@@ -75,12 +75,12 @@ export async function* sendCanvasSelectorRequest(messageEnvelope: MessageEnvelop
   }
 }
 
-export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvelope) {
+export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvelope, idToken: string) {
   yield {
     role: 'thinking',
     content: 'Creating new canvas type...',
   }
-  const newCanvasTypeResponse = await sendAdminChatRequest(messageEnvelope)
+  const newCanvasTypeResponse = await sendAdminChatRequest(messageEnvelope, idToken)
   yield {
     role: 'thinking',
     content: "Saving new canvas type...",
@@ -106,7 +106,7 @@ export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvel
       content: `Creating canvas`,
     }
 
-    const nameDescription = await sendNameDescriptionRequest(messageEnvelope)
+    const nameDescription = await sendNameDescriptionRequest(messageEnvelope, idToken)
 
     const canvasId = await canvasService.createNewCanvas({
       name: nameDescription.name,
@@ -122,7 +122,7 @@ export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvel
       content: `Creating AI agent for canvas`,
     }
 
-    const aiAgent = await aiAgentService.createandSaveAIAgent(canvasType)
+    const aiAgent = await aiAgentService.createandSaveAIAgent(canvasType, idToken)
 
     yield {
       role: 'assistant',
@@ -137,8 +137,8 @@ export async function* sendCreateCanvasTypeRequest(messageEnvelope: MessageEnvel
   }
 }
 
-export async function sendCreateCanvasTypeFromDiveRequest(messageEnvelope: MessageEnvelope) {
-  const newCanvasTypeResponse = await sendAdminChatRequest(messageEnvelope)
+export async function sendCreateCanvasTypeFromDiveRequest(messageEnvelope: MessageEnvelope, idToken: string) {
+  const newCanvasTypeResponse = await sendAdminChatRequest(messageEnvelope, idToken)
   console.log('newCanvasTypeResponse', newCanvasTypeResponse)
   if(newCanvasTypeResponse.canvasTypeSuggestions && newCanvasTypeResponse.canvasTypeSuggestions.length > 0) {
     const suggestion = newCanvasTypeResponse.canvasTypeSuggestions[0]
@@ -155,17 +155,18 @@ export async function sendCreateCanvasTypeFromDiveRequest(messageEnvelope: Messa
     console.log('canvasType', canvasType)
     await canvasTypeService.saveUserCanvasType(canvasType);
     console.log('saving aiAgent')
-    const aiAgent = await aiAgentService.createandSaveAIAgent(canvasType)
+    const aiAgent = await aiAgentService.createandSaveAIAgent(canvasType, idToken)
     console.log('aiAgent', aiAgent)
     return canvasType
   }
 }
 
-export async function sendNameDescriptionRequest(messageEnvelope: MessageEnvelope) {
+export async function sendNameDescriptionRequest(messageEnvelope: MessageEnvelope, idToken: string) {
   const response = await fetch('/api/ai-name-description', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
     },
     body: JSON.stringify({ messageEnvelope }),
  
@@ -176,12 +177,13 @@ export async function sendNameDescriptionRequest(messageEnvelope: MessageEnvelop
   return data
 }
 
-export async function sendAdminChatRequest(messageEnvelope: MessageEnvelope) {
+export async function sendAdminChatRequest(messageEnvelope: MessageEnvelope, idToken: string) {
   
   const response = await fetch('/api/ai-admin-chat', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json', 
+      'Authorization': `Bearer ${idToken}`
     },
     body: JSON.stringify({ messageEnvelope }),
   })
@@ -218,10 +220,16 @@ export async function generateSectionSuggestions({
   diveItem: SectionItem;
   sectionToGenerate: CanvasSection;
 }) {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error('No user');
+  const idToken = await user?.getIdToken();
+  if (!idToken) throw new Error('No idToken');
   const response = await fetch('/api/ai-canvas-dive/suggestions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
     },
     body: JSON.stringify({
       parentCanvas,
@@ -233,36 +241,6 @@ export async function generateSectionSuggestions({
 
   if (!response.ok) {
     throw new Error('Failed to generate suggestions');
-  }
-
-  return response.json();
-}
-
-export async function updateCanvasSection(
-  canvasId: string,
-  sectionId: string,
-  suggestions: Array<{ content: string; rationale: string }>
-) {
-  // Implement the logic to update the canvas section with the new suggestions
-  // This might involve a database call or API request
-  const response = await fetch(`/api/canvas/${canvasId}/section/${sectionId}`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      items: suggestions.map(s => ({
-        type: 'text',
-        content: s.content,
-        metadata: {
-          rationale: s.rationale
-        }
-      }))
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to update canvas section');
   }
 
   return response.json();

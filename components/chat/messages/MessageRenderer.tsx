@@ -1,4 +1,4 @@
-import { Message, CanvasTypeSuggestionMessage, SuggestionMessage, QuestionMessage, AdminMessage, useChat, TrailPeroidEndedMessage } from "@/contexts/ChatContext"
+import { Message, CanvasTypeSuggestionMessage, SuggestionMessage, QuestionMessage, AdminMessage, useChat, TrailPeroidEndedMessage, SubscriptionRequiredMessage } from "@/contexts/ChatContext"
 import { Bot, User, AlertTriangle } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { motion, AnimatePresence } from "framer-motion"
@@ -41,7 +41,6 @@ export function MessageRenderer({ message, messageIndex, messageHistory}: Messag
 
   // Render additional content based on message type
   const renderAdditionalContent = () => {
-    console.log('message', message)
     if (message.type === 'canvasType') {
       return <CanvasTypeSuggestionMessageDetails message={message as CanvasTypeSuggestionMessage} messageHistory={messageHistory} />
     }
@@ -58,11 +57,14 @@ export function MessageRenderer({ message, messageIndex, messageHistory}: Messag
       return <TrailPeroidEndedMessageDetails message={message as TrailPeroidEndedMessage} />
     }
 
+    if (message.type === 'subscriptionRequired') {
+      return <SubscriptionRequiredMessageDetails message={message as SubscriptionRequiredMessage} />
+    }
+
     return null
   }
 
   return (
-    console.log('message', message),
     <div className={`flex gap-2 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
       {message.role === 'assistant' && (
         <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
@@ -195,9 +197,21 @@ export function QuestionMessageDetails({ message }: { message: QuestionMessage})
 export function TrailPeroidEndedMessageDetails({ message }: { message: TrailPeroidEndedMessage }) {
     return (
       <div className="mt-2">
+        <p>{message.content}</p>
         <Button variant="outline" onClick={() => {
           window.location.href = '/pricing'
         }}>Upgrade</Button>
       </div>
+    )
+}
+
+export function SubscriptionRequiredMessageDetails({ message }: { message: SubscriptionRequiredMessage }) {
+    return (
+        <div className="mt-2">
+            <p>{message.content}</p>
+            <Button variant="outline" onClick={() => {
+                window.location.href = '/pricing'
+            }}>Upgrade</Button>
+        </div>
     )
 }

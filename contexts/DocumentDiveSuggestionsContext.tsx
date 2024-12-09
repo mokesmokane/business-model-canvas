@@ -7,6 +7,7 @@ import { sendCreateCanvasTypeFromDiveRequest } from '@/services/aiCreateCanvasSe
 import { useCanvas } from './CanvasContext';
 import { Canvas } from '@/types/canvas';
 import { DocumentDiveInRequest } from '@/app/api/ai-document-dive/types';
+import { useAuth } from './AuthContext';
 
 interface DocumentDiveSuggestionsContextType {
     existingSuggestions: CanvasType[];
@@ -32,7 +33,8 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
     const [newSuggestions, setNewSuggestions] = useState<NewCanvasTypeSuggestion[]>([]);
     const [statusMessage, setStatusMessage] = useState('');
     const [folderId, setFolderId] = useState<string | null>(null);
-    const { createNewCanvas } = useCanvas();
+    const { createNewCanvas, updateCanvas } = useCanvas();
+    const { user } = useAuth();
     const [selected, setSelected] = useState<string | null>(null);
 
     const clearSuggestions = () => {
@@ -42,6 +44,7 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
     };
 
     async function getNameDescription(canvasType: CanvasType, content: string, fileName: string) {
+        const idToken = await user?.getIdToken()
         const messageEnvelope = {
             messageHistory: [
                 {
@@ -64,6 +67,7 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
             },
             body: JSON.stringify({ messageEnvelope }),
         })
@@ -74,6 +78,8 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
 
     async function createNewCanvasType(newCanvasType: NewCanvasTypeSuggestion) {
         try {
+            const idToken = await user?.getIdToken()
+            if (!idToken) throw new Error('No idToken');
             setStatusMessage('Creating new canvas type...');
             setExistingSuggestions([]);
             setNewSuggestions([newCanvasType]);
@@ -88,7 +94,7 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
                 action: 'suggestCanvasTypes'
             };
 
-            const canvasType = await sendCreateCanvasTypeFromDiveRequest(messageEnvelope);
+            const canvasType = await sendCreateCanvasTypeFromDiveRequest(messageEnvelope, idToken);
 
             if (canvasType) {
                 setNewSuggestions([]);
@@ -108,9 +114,15 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
             clearSuggestions();
 
             setStatusMessage('Exploring existing canvas types...');
+
+            const idToken = await user?.getIdToken()
+            if (!idToken) throw new Error('No idToken');
+
             const existingResponse = await fetch('/api/ai-document-dive/existing', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
                 body: JSON.stringify({ documentText, fileName } as DocumentDiveInRequest),
             })
 
@@ -126,7 +138,9 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
 
             const newResponse = await fetch('/api/ai-document-dive/new', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
                 body: JSON.stringify({ documentText, fileName } as DocumentDiveInRequest),
             })
 
@@ -142,30 +156,26 @@ export function DocumentDiveSuggestionsProvider({ children }: { children: ReactN
     };
 
     async function createCanvas(canvasType: CanvasType, content: string, fileName: string, folderId: string | null, canvasId: string | null) {
-        const nameDescription = await getNameDescription(canvasType, content, fileName);
-
         const newCanvas = await createNewCanvas({
-            name: nameDescription.name.trim(),
-            description: nameDescription.description.trim(),
+            name: canvasType.name,
+            description: "",
             canvasType: canvasType,
             layout: canvasType.defaultLayout?.layout,
             folderId: folderId || "root",
             canvasId: canvasId,
-            // sourceDocument: {
-            //     content,
-            //     fileName
-            // }
-        })
+        });
+
+        if (!newCanvas) return;
+
+        const nameDescription = await getNameDescription(canvasType, content, fileName);
+
+        await updateCanvas({
+            ...newCanvas,
+            name: nameDescription.name.trim(),
+            description: nameDescription.description.trim(),
+        });
 
         return newCanvas;
-    }
-
-    async function generateCanvasSuggestions(canvasType: CanvasType, content: string) {
-        const response = await fetch('/api/ai-document-dive/suggestions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ canvasType, content }),
-        })
     }
 
     return (

@@ -14,6 +14,7 @@ import { useCanvasContext } from './ContextEnabledContext';
 import { useAIAgents } from './AIAgentContext';
 import { doc, collection, addDoc, getDocs, query, where, orderBy, updateDoc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { getAuth } from 'firebase/auth';
 
 export type MessageType = 
   | 'text' 
@@ -24,6 +25,7 @@ export type MessageType =
   | 'error'
   | 'createCanvasType'
   | 'trailPeriodEnded'
+  | 'subscriptionRequired'
   | 'newCanvasType'
   | 'thinking';
 
@@ -36,6 +38,16 @@ export interface BaseMessage {
 export interface TextMessage extends BaseMessage {
   type: 'text';
 }
+
+export interface SubscriptionRequiredMessage extends BaseMessage {
+  type: 'subscriptionRequired';
+}
+
+export const createSubscriptionRequiredMessage = (): SubscriptionRequiredMessage => ({
+  type: 'subscriptionRequired',
+  role: 'assistant',
+  content: 'Your subscription has expired. Please upgrade your subscription to continue.'
+});
 
 export const createTextMessage = (content: string, role: 'user' | 'assistant' = 'assistant'): TextMessage => ({
   type: 'text',
@@ -321,17 +333,27 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       return
     }
 
+    const auth = getAuth();
+    const user = auth.currentUser;
+    
+    if (!user) {
+      throw new Error('No user logged in');
+    }
+
+    const idToken = await user.getIdToken();
+
     if(interaction?.interaction === 'admin') {
       if(userMessage.content.trim()) {
         setInput('')
         setIsLoading(true)
 
         try {
-          const aiResponse = await sendAdminChatRequest({
-            messageHistory: currentMessages,
-            newMessage: userMessage,
-            action: action || activeTool || undefined
-          })
+          const aiResponse = await sendAdminChatRequest(
+            {
+              messageHistory: currentMessages,
+              newMessage: userMessage,
+              action: action || activeTool || undefined
+          }, idToken)
           const formattedResponse: AdminMessage = {
             type: 'admin',
             role: 'assistant',
@@ -375,20 +397,30 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true)
 
       try {
+        const auth = getAuth();
+        const user = auth.currentUser;
+        
+        if (!user) {
+          throw new Error('No user logged in');
+        }
+
         const envelope: MessageEnvelope = {
           messageHistory: currentMessages,
           newMessage: userMessage,
           action: action || activeTool || undefined
         }
+
         console.log('sending message', envelope)
         console.log('interaction', interaction)
         console.log('formData', formData)
         console.log('isContextEnabled', isContextEnabled)
+
         const send = 
           interaction ? routeInteraction(envelope)
           : formData && isContextEnabled ? sendChatRequest
           : sendContextlessChatRequest
-        const aiResponse = send(envelope, formData, aiAgent)
+
+        const aiResponse = send(envelope, formData, aiAgent, idToken)
         for await (const message of aiResponse) {
           if(message.role === 'thinking') { 
             setLoadingMessage(message.content)

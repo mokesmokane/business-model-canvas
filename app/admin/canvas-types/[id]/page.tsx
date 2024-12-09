@@ -41,7 +41,7 @@ export default function TabbedEditCanvasTypePage() {
   const aiAgentService = new AIAgentService();
   const [loading, setLoading] = useState<boolean>(false);
   const tagSuggesterService = new TagSuggesterService();
-
+  const { user } = useAuth();
   useEffect(() => {
     if (!isAdminUser) {
       router.push('/');
@@ -121,12 +121,14 @@ export default function TabbedEditCanvasTypePage() {
   };
 
   const fetchSuggestedAIAgent = async () => {
+    const idToken = await user?.getIdToken()
     setLoading(true);
     try {
       const response = await fetch('/api/ai-agent-creator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({ canvasType }),
       });

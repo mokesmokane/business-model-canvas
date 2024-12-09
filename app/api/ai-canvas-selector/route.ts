@@ -6,6 +6,8 @@ import { CanvasSection, CanvasType } from '@/types/canvas-sections'
 import { CanvasTypeAdminService } from '@/services/canvasTypeAdminService'
 import { auth } from '@/lib/firebase-admin'
 import { headers } from 'next/headers'
+import { verifySubscriptionStatus } from '@/utils/subscription-check'
+import { createSubscriptionRequiredMessage } from '@/contexts/ChatContext'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -66,7 +68,7 @@ const canvasTypeSchema = {
                       },
                       rows: { 
                         type: "string",
-                        description: "CSS grid-template-rows value ie '1fr 1fr 1fr' or '1fr 2fr' YOU MUST NOT USE REPEAT FUNCTIONS" 
+                        description: "CSS grid-template-rows value"
                       }
                     },
                     required: ["columns", "rows"],
@@ -218,6 +220,11 @@ export async function POST(request: Request) {
       { status: 401 }
     )
   }
+
+  const isSubscribed = await verifySubscriptionStatus(authHeader || '');
+  if (!isSubscribed) {
+    return createSubscriptionRequiredMessage()
+  } 
 
   try {
     // Verify the Firebase token

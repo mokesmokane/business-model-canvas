@@ -1,8 +1,10 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import { Message, MessageEnvelope, QuestionMessage, SuggestionMessage } from '@/contexts/ChatContext'
+import { createSubscriptionRequiredMessage, Message, MessageEnvelope, QuestionMessage, SuggestionMessage } from '@/contexts/ChatContext'
 import { AIAgent, Canvas } from '@/types/canvas'
+import { CanvasSection } from '@/types/canvas-sections'
+import { verifySubscriptionStatus } from '@/utils/subscription-check'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
@@ -85,16 +87,23 @@ function questionSchema(sections:string[],canvasName:string) {
 }
 }
 export async function POST(request: Request) {
-  if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json(
-      { error: 'OpenAI API key not configured' }, 
-      { status: 500 }
-    )
-  }
-
   try {
+    // Get the authorization header from the request
+    const authHeader = request.headers.get('authorization');
+    const isSubscribed = await verifySubscriptionStatus(authHeader || '');
+    if (!isSubscribed) {
+      return createSubscriptionRequiredMessage()
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return NextResponse.json(
+        { error: 'OpenAI API key not configured' }, 
+        { status: 500 }
+      )
+    }
+
     const { currentContent, messageEnvelope, aiAgent }: { currentContent: Canvas, messageEnvelope: MessageEnvelope, aiAgent: AIAgent } = await request.json()
-    const sections = Object.keys(currentContent?.sections || {})
+    const sections = currentContent?.canvasType?.sections.map((section:CanvasSection) => section.name) || []
 
     const canvasName = currentContent?.canvasType?.name || ''
     const messages = [...messageEnvelope.messageHistory, messageEnvelope.newMessage]
@@ -169,11 +178,13 @@ export async function POST(request: Request) {
 
       ${canvasInfo}
       `
+      tool_call = 'none'
     } else if (action === 'research') {
       systemPrompt.content = `${researchPrompt}
 
       ${canvasInfo}
       `
+      tool_call = 'none'
     } else if (action === 'suggest') {
       systemPrompt.content = `${suggestPrompt}
 
@@ -186,7 +197,7 @@ export async function POST(request: Request) {
       systemPrompt,
       ...expanded_messages
     ]
-
+    console.log('sections list', sections)
     let questionTool = {
       type: "function" as const,
       function: {
@@ -222,6 +233,7 @@ export async function POST(request: Request) {
 
     // Handle either tool response or regular chat
     if (response.tool_calls) {
+      console.log('response.tool_calls', response.tool_calls)
       const toolResponse = JSON.parse(response.tool_calls[0].function.arguments)
       if (response.tool_calls[0].function.name === "suggestions") {
       return NextResponse.json({ 
@@ -249,6 +261,22 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error('AI assist error:', error)
+    
+    if (error instanceof Error) {
+      if (error.message.includes('Subscription required')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 403 }
+        )
+      }
+      if (error.message.includes('Unauthorized')) {
+        return NextResponse.json(
+          { error: error.message },
+          { status: 401 }
+        )
+      }
+    }
+    
     return NextResponse.json(
       { 
         error: 'Failed to get AI assistance',

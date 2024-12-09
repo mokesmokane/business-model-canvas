@@ -6,6 +6,7 @@ import { NewCanvasTypeSuggestion, ExistingCanvasTypeSuggestion } from '@/app/api
 import { sendCreateCanvasTypeFromDiveRequest } from '@/services/aiCreateCanvasService';
 import { useCanvas } from './CanvasContext';
 import { Canvas, Section, SectionItem } from '@/types/canvas';
+import { useAuth } from './AuthContext';
 
 interface DiveSuggestionsContextType {
     existingSuggestions: CanvasType[];
@@ -35,6 +36,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
     const [folderId, setFolderId] = useState<string | null>(null);
     const { createNewCanvas } = useCanvas();
     const [selected, setSelected] = useState<string | null>(null);
+    const { user } = useAuth();
     const clearSuggestions = () => {
         setExistingSuggestions([]);
         setNewSuggestions([]);
@@ -42,7 +44,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
     };
 
     async function getNameDescription(canvasType: CanvasType, section: Section, item: SectionItem) {
-
+        const idToken = await user?.getIdToken()
         const messageEnvelope = {
             messageHistory: [
                 {
@@ -68,12 +70,13 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
                 role: 'user' as const,
                 content: `lets name our new canvas and give it a description based off what we are digging into (${JSON.stringify(item)})`
             }
-        };
+        };  
 
         const response = await fetch('/api/ai-name-description', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`
             },
             body: JSON.stringify({ messageEnvelope }),
 
@@ -86,6 +89,8 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
 
     async function createNewCanvasType(newCanvasType: NewCanvasTypeSuggestion) {
         try {
+            const idToken = await user?.getIdToken()
+            if (!idToken) throw new Error('No idToken');
             setStatusMessage('Creating new canvas type...');
             setExistingSuggestions([]);
             setNewSuggestions([newCanvasType]);
@@ -99,7 +104,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
                 action: 'suggestCanvasTypes'
             };
 
-            const canvasType = await sendCreateCanvasTypeFromDiveRequest(messageEnvelope);
+            const canvasType = await sendCreateCanvasTypeFromDiveRequest(messageEnvelope, idToken);
             console.log('canvasType', canvasType)
 
             if (canvasType) {
@@ -128,6 +133,7 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
             setFolderId(params.folderId);
             console.log('startDiveAnalysis')
             clearSuggestions();
+            const idToken = await user?.getIdToken()
 
             // Handle existing canvas suggestions
             setStatusMessage('Exploring existing canvas types...');
@@ -135,7 +141,9 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
             const existingResponse = await
                 fetch('/api/ai-canvas-dive/existing', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    },
                     body: JSON.stringify(params),
                 })
 
@@ -154,7 +162,9 @@ export function DiveSuggestionsProvider({ children }: { children: ReactNode }) {
 
             const newResponse = await fetch('/api/ai-canvas-dive/new', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}`
+                },
                 body: JSON.stringify(params),
             })
 

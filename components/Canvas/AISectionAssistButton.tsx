@@ -12,7 +12,6 @@ import {
 import { useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { sendChatRequest } from '@/services/aiService'
 
 const actions = [
   { key: 'suggest', label: 'Suggest', icon: Lightbulb },

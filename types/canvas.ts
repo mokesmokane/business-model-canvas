@@ -65,7 +65,6 @@ export interface Section {
   viewPreferences?: {
     type: 'list' | 'grid';
     columns?: number;
-    showInput: boolean;
   };
 }
 
@@ -116,6 +115,7 @@ export interface Canvas {
   updatedAt?: Date;
   theme?: 'light' | 'dark';
   parentCanvasId: string | null;
+  showInputs?: boolean;
 }
 
 export const createNewCanvas = (id: string, name: string, description: string, canvasType: CanvasType, parentCanvasId: string | null): Canvas => {

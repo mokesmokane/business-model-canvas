@@ -43,6 +43,7 @@ interface CanvasContextType {
   canvasType: CanvasType | null;
   canvasLayout: CanvasLayout | null;
   viewMode: 'fit-screen' | 'fit-content';
+  showInputs: boolean;
   updateField: (field: keyof Canvas, value: string) => void;
   updateLayout: (layout: string[], canvasLayout: CanvasLayout) => void;
   updateSection: (sectionKey: string, items: SectionItem[]) => void;
@@ -50,13 +51,14 @@ interface CanvasContextType {
   updateQuestionAnswer: (question: AIQuestion) => void;
   loadCanvas: (id: string) => Promise<boolean>;
   createNewCanvas: (data: { name: string, description: string, canvasType: CanvasType, folderId: string, layout?: CanvasLayout, parentCanvasId?: string, canvasId?: string | null}) => Promise<Canvas | undefined>;
-  createNewCanvasAndNameIt: (data: { canvasType: CanvasType, folderId: string, parentCanvasId?: string, messageHistory: Message[], canvasId?: string | null}) => Promise<Canvas | undefined>;
+  createNewCanvasAndNameIt: (data: { canvasType: CanvasType, folderId: string, parentCanvasId?: string, messageHistory: Message[], canvasId?: string | null}) => Promise<Canvas | undefined>
   resetForm: () => void;
   deleteCanvas: (id: string) => Promise<void>;
   clearState: () => void;
   updateQuestions: (sectionKey: string, questions: any[]) => void;
   setCanvasTheme: (theme: 'light' | 'dark') => void;
   setViewMode: (mode: 'fit-screen' | 'fit-content') => void;
+  setShowInputs: (show: boolean) => void;
   hoveredItemId: string | null;
   setHoveredItemId: React.Dispatch<React.SetStateAction<string | null>>;
   updateCanvas: (canvas: Canvas) => Promise<void>;
@@ -73,6 +75,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   canvasType: null,
   canvasLayout: null,
   viewMode: 'fit-screen',
+  showInputs: true,
   updateField: () => { },
   updateLayout: () => { },
   updateSection: () => { },
@@ -87,6 +90,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   updateQuestions: () => { },
   setCanvasTheme: () => { },
   setViewMode: () => { },
+  setShowInputs: () => { },
   hoveredItemId: null,
   setHoveredItemId: () => { },
   updateCanvas: async () => {},
@@ -102,6 +106,7 @@ export const CanvasContext = createContext<CanvasContextType>({
   const { user, hasProFeatures } = useAuth();
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'fit-screen' | 'fit-content'>('fit-screen');
+  const [showInputs, setShowInputs] = useState(true);
 
   // Initialize canvasService when user changes
   useEffect(() => {
@@ -201,7 +206,6 @@ export const CanvasContext = createContext<CanvasContextType>({
           id: prev.currentCanvas?.id || prev.formData.id
         };
 
-        console.log('updatedData', updatedData)
         resolve(updatedData);
         
         return {
@@ -210,10 +214,10 @@ export const CanvasContext = createContext<CanvasContextType>({
         };
       });
     });
-    console.log('updatedData', updatedData)
+    
     // Then wait for Firebase save to complete
     await saveToFirebase(updatedData as Canvas);
-    console.log('updatedData saved')
+    
     // Finally, wait for React to complete the state update
     return new Promise<void>(resolve => {
       // Use requestAnimationFrame to ensure we're after React's next render
@@ -251,7 +255,7 @@ export const CanvasContext = createContext<CanvasContextType>({
         sections: updatedSections,
         id: prev.currentCanvas?.id || prev.formData.id
       };
-      console.log('updatedData', updatedData)
+      
       // Before saving to Firebase, we need to serialize the Map
       const dataForFirebase = {
         ...updatedData,
@@ -355,6 +359,7 @@ export const CanvasContext = createContext<CanvasContextType>({
     let description = ''
     if (!user) return;
       if(hasProFeatures) {
+        const idToken = await user.getIdToken()
         const env: MessageEnvelope = {
           messageHistory: data.messageHistory,
           newMessage: {
@@ -363,7 +368,7 @@ export const CanvasContext = createContext<CanvasContextType>({
             content: 'Please suggest a name and description for the new canvas'
           }
         }   
-        const nameDescription = await sendNameDescriptionRequest(env)
+        const nameDescription = await sendNameDescriptionRequest(env, idToken)
         name = nameDescription.name
         description = nameDescription.description
       }
@@ -663,18 +668,35 @@ export const CanvasContext = createContext<CanvasContextType>({
       setStatus('saving');
       const canvasRef = doc(collection(db, 'userCanvases', user.uid, 'canvases'), canvas.id);
       
-      // Serialize the data before saving
-      const serializedData = serializeCanvas(canvas);
+      // Create a deep copy of the canvas to modify
+      const canvasCopy = { ...canvas };
+      
+      // Ensure viewPreferences exists and has no undefined values for each section
+      canvasCopy.sections.forEach((section) => {
+        if (section.viewPreferences === undefined) {
+          section.viewPreferences = {
+            type: "list"
+          };
+        }
+        
+        // If columns is undefined, set it to a default value or remove it
+        if (section.viewPreferences.columns === undefined) {
+          delete section.viewPreferences.columns;
+        }
+      });
+      
+      // Serialize the sanitized data before saving
+      const serializedData = serializeCanvas(canvasCopy);
       
       await setDoc(canvasRef, serializedData);
       
-      // Update local state
+      // Update local state with the sanitized canvas
       setState(prev => {
         if (!prev) return null;
         return {
           ...prev,
-          currentCanvas: canvas,
-          formData: canvas,
+          currentCanvas: canvasCopy,
+          formData: canvasCopy,
           status: 'idle',
           error: null,
         };
@@ -704,7 +726,7 @@ export const CanvasContext = createContext<CanvasContextType>({
           ...prev.formData,
           sections
         };
-        console.log('updatedData mokes', updatedData)
+        
         // Save to Firebase
         saveToFirebase(updatedData);
 
@@ -714,6 +736,24 @@ export const CanvasContext = createContext<CanvasContextType>({
         };
       }
       return prev;
+    });
+  }, [saveToFirebase]);
+
+  const setShowInputsState = useCallback((show: boolean) => {
+    setState(prev => {
+      if(!prev) {
+        return null
+      }
+      const updatedData = {
+        ...prev.formData,
+        showInputs: show,
+        id: prev.currentCanvas?.id || prev.formData.id
+      };
+      saveToFirebase(updatedData);
+      return {
+        ...prev,
+        formData: updatedData
+      };
     });
   }, [saveToFirebase]);
 
@@ -727,6 +767,7 @@ export const CanvasContext = createContext<CanvasContextType>({
         userCanvases,
         canvasTheme: state?.formData?.theme || 'light',
         viewMode,
+        showInputs: state?.formData?.showInputs ?? true,
         canvasType: state?.formData?.canvasType || null,
         canvasLayout: state?.formData?.canvasLayout || null,
         updateField,
@@ -743,6 +784,7 @@ export const CanvasContext = createContext<CanvasContextType>({
         updateQuestions,
         setCanvasTheme,
         setViewMode,
+        setShowInputs: setShowInputsState,
         hoveredItemId,
         setHoveredItemId,
         updateCanvas,

@@ -108,12 +108,14 @@ export default function AdminPage() {
   };
 
   const handleGenerateAIAgent = async (typeId: string) => {
+    const idToken = await user?.getIdToken()
     setLoading(new Set([...loading, typeId]));
     try {
       const response = await fetch('/api/ai-agent-creator', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({ canvasType: typeId }),
       });

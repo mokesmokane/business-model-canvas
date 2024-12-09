@@ -46,8 +46,8 @@ export class AIAgentService {
     }
   }
 
-  async createandSaveAIAgent(canvasType: CanvasType): Promise<AIAgent | null> {
-    const agent= await aiAgentCreatorService.createAIAgent(canvasType);
+  async createandSaveAIAgent(canvasType: CanvasType, idToken: string): Promise<AIAgent | null> {
+    const agent= await aiAgentCreatorService.createAIAgent(canvasType, idToken);
     if (agent && this.userId) {
       await this.saveCustomAIAgent(canvasType.id, agent, this.userId);
     }

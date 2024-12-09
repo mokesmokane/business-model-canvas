@@ -11,15 +11,15 @@ export const createCanvasInteractionRouter: InteractionRouter = {
         let interaction
         if(messageEnvelope.messageHistory.length === 0) {
             console.log('sending canvas selector request')
-            interaction = (messageEnvelope: MessageEnvelope) => sendCanvasSelectorRequest(messageEnvelope) as AsyncGenerator<Message, void, unknown>
+            interaction = (messageEnvelope: MessageEnvelope, idToken: string) => sendCanvasSelectorRequest(messageEnvelope) as AsyncGenerator<Message, void, unknown>
         }
         else if (messageEnvelope.newMessage.type === 'createCanvasType') {
             console.log('sending create canvas type request')
-            interaction = (messageEnvelope: MessageEnvelope) => sendCreateCanvasTypeRequest(messageEnvelope) as AsyncGenerator<Message, void, unknown>
+            interaction = (messageEnvelope: MessageEnvelope, idToken: string) => sendCreateCanvasTypeRequest(messageEnvelope, idToken) as AsyncGenerator<Message, void, unknown>
         }
         else {
             console.log('sending chat request')
-            interaction = (messageEnvelope: MessageEnvelope) => sendChatRequest(messageEnvelope, formData, aiAgent!) as AsyncGenerator<Message, void, unknown>
+            interaction = (messageEnvelope: MessageEnvelope, idToken: string) => sendChatRequest(messageEnvelope, formData, aiAgent!, idToken) as AsyncGenerator<Message, void, unknown>
         }
         return interaction
     }

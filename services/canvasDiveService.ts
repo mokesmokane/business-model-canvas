@@ -1,5 +1,6 @@
 import { Canvas, Section } from '@/types/canvas'
 import { CanvasType } from '@/types/canvas-sections'
+import { getAuth } from 'firebase/auth'
 import { v4 as uuidv4 } from 'uuid'
 
 interface DiveInResponse {
@@ -45,10 +46,17 @@ export async function getCanvasDiveSuggestions(
     throw new Error('Item not found')
   }
 
+  const auth = getAuth();
+  const user = auth.currentUser;
+  if (!user) throw new Error('No user');
+  const idToken = await user?.getIdToken();
+  if (!idToken) throw new Error('No idToken');
+
   const response = await fetch('/api/ai-canvas-dive', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${idToken}`
     },
     body: JSON.stringify({
       parentCanvas: {

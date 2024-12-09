@@ -23,7 +23,7 @@ export function CanvasTypeCardTags({ type, isSelected, onClick }: CanvasTypeCard
         transition: { duration: 0.3 }
       }}
       transition={{ duration: 0.2 }}
-      className="w-[300px] flex-shrink-0 py-6"
+      className="w-[300px] flex-shrink-0 py-2"
     >
       <Card   
         className={`cursor-pointer hover:shadow-xl transition-all duration-300 relative group h-[280px] ${isSelected ? 'shadow-lg' : ''}`}

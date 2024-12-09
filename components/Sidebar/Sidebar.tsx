@@ -29,7 +29,6 @@ export function Sidebar({setShowAuthDialog}: SidebarProps) {
   const { isExpanded, isWide } = useExpanded()
   
   if (!user) return null;
-  console.log('isExpanded', isExpanded)
   const sidebarWidth = !isExpanded ? '4rem' : isWide ? '42rem' : '24rem'
   let component = (
       <div 

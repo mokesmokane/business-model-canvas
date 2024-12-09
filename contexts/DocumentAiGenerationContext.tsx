@@ -5,7 +5,7 @@ import { CanvasType } from '@/types/canvas-sections';
 import { Canvas, SectionItem, TextSectionItem } from '@/types/canvas';
 import { useCanvas } from './CanvasContext';
 import { v4 as uuidv4 } from 'uuid';
-
+import { useAuth } from './AuthContext';
 interface DocumentGenerationStatus {
   isGenerating: boolean;
   completedSections: string[];
@@ -32,7 +32,7 @@ const DocumentAiGenerationContext = createContext<DocumentAiGenerationContextTyp
 export function DocumentAiGenerationProvider({ children }: { children: ReactNode }) {
   const [generationStatus, setGenerationStatus] = useState<Record<string, DocumentGenerationStatus>>({});
   const { updateSection, updateCanvas } = useCanvas();
-
+  const { user } = useAuth();
   const startGeneration = async ({ canvas, selectedType, documentContent, fileName }: {
     canvas: Canvas,
     selectedType: CanvasType,
@@ -48,10 +48,13 @@ export function DocumentAiGenerationProvider({ children }: { children: ReactNode
     }));
 
     try {
+    const idToken = await user?.getIdToken()
+    if (!idToken) throw new Error('No idToken');
       const response = await fetch('/api/ai-document-dive/suggestions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({
           pdfContent: documentContent,

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { LucideIcon, MoreVertical, Send, Grid2x2, List, Grid, Eye, EyeOff } from 'lucide-react'
+import { LucideIcon, MoreVertical, Send, Grid2x2, List, Grid, Eye, EyeOff, MessageCircleQuestion } from 'lucide-react'
 import { AISectionAssistButton } from './AISectionAssistButton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { DynamicInput } from './DynamicInput'
@@ -60,7 +60,7 @@ export function CanvasSection({
   placeholder, 
   className 
 }: CanvasSectionProps) {
-  const { updateQuestions, canvasTheme, updateItem, loadCanvas, formData, updateSectionViewPreferences } = useCanvas();
+  const { updateQuestions, canvasTheme, updateItem, loadCanvas, formData, updateSectionViewPreferences, showInputs } = useCanvas();
   const { generationStatus } = useAiGeneration();
   const isGenerating = formData?.id ? generationStatus[formData.id]?.isGenerating : false;
   const currentGeneratingSection = formData?.id ? generationStatus[formData.id]?.currentSection : null;
@@ -82,21 +82,19 @@ export function CanvasSection({
       ? { type: 'grid', columns: section.viewPreferences.columns || 2 }
       : { type: 'list' }
   );
-  const [showInput, setShowInput] = useState(section.viewPreferences?.showInput ?? true);
   const [isActive, setIsActive] = useState(false);
 
   // Update preferences when they change
   useEffect(() => {
     updateSectionViewPreferences(sectionKey, {
       type: viewType.type,
-      columns: viewType.columns,
-      showInput
+      columns: viewType.columns
     });
-  }, [viewType, showInput, sectionKey, updateSectionViewPreferences]);
+  }, [viewType, sectionKey, updateSectionViewPreferences]);
 
   // Handle section click
   const handleSectionClick = () => {
-    if (!showInput) {
+    if (!showInputs) {
       setIsActive(true);
     }
   };
@@ -106,7 +104,7 @@ export function CanvasSection({
     const handleClickOutside = (event: MouseEvent) => {
       const element = event.target as HTMLElement;
       const isClickInside = element.closest(`[data-section-id="${sectionKey}"]`);
-      if (!isClickInside && !showInput) {
+      if (!isClickInside && !showInputs) {
         setIsActive(false);
       }
     };
@@ -115,7 +113,7 @@ export function CanvasSection({
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [sectionKey, showInput]);
+  }, [sectionKey, showInputs]);
 
   const handleItemClick = (index: number) => {
     setExpandedItemIndex(expandedItemIndex === index ? null : index);
@@ -234,7 +232,7 @@ export function CanvasSection({
                             : 'bg-gray-950 text-gray-300 border-gray-800 hover:bg-gray-800'
                         }`}
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <Grid2x2 className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48" canvasTheme={canvasTheme}>
@@ -257,20 +255,6 @@ export function CanvasSection({
                         <Grid className="h-4 w-4 mr-2" />
                         4 Columns {viewType.type === 'grid' && viewType.columns === 4 && '✓'}
                       </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={() => setShowInput(!showInput)}>
-                        {showInput ? (
-                          <>
-                            <EyeOff className="h-4 w-4 mr-2" />
-                            Hide Input
-                          </>
-                        ) : (
-                          <>
-                            <Eye className="h-4 w-4 mr-2" />
-                            Show Input
-                          </>
-                        )}
-                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
@@ -281,7 +265,7 @@ export function CanvasSection({
                     size="icon"
                     onClick={() => setIsQuestionsDialogOpen(true)}
                   >
-                    <MoreVertical />
+                    <MessageCircleQuestion />
                   </Button>
                 )}
                 {!isGenerating && (
@@ -341,7 +325,7 @@ export function CanvasSection({
           </div>
         </ScrollArea>
         
-        {(showInput || isActive) && (
+        {(showInputs || isActive) && (
           <div className="flex-shrink-0 mt-auto pt-2">
             <DynamicInput 
               placeholder={`Add ${title}`}
