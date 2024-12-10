@@ -8,7 +8,7 @@ import {
   MessageCircle,
   ArrowRight
 } from 'lucide-react'
-import { useChat } from '@/contexts/ChatContext'
+import { createRequestSuggestEditMessage, createTextMessage, useChat } from '@/contexts/ChatContext'
 import { Message } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { sendChatRequest } from '@/services/aiService'
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 interface AIItemAssistButtonProps {
-  sectionName: string
+  content: string
   item?: SectionItemType
   onExpandSidebar: () => void
   onDiveIn: () => void
@@ -30,7 +30,7 @@ interface AIItemAssistButtonProps {
 }
 
 export function AIItemAssistButton({ 
-  sectionName, 
+  content, 
   item,
   onExpandSidebar,
   onDiveIn,
@@ -51,19 +51,15 @@ export function AIItemAssistButton({
     } else {
       onExpandSidebar()
       const actionMessage = action === 'question' 
-        ? `Question me about ${sectionName}` 
+        ? createTextMessage(`Question me about ${content}`) 
         : action === 'critique' 
-        ? `Critique the ${sectionName}` 
-        : action === 'research' 
-        ? `Research the ${sectionName}` 
-        : `Suggest things for ${sectionName}`
+        ? createTextMessage(`Critique the ${content}`) 
+        : action === 'suggestEdit' && item?.id
+        ? createRequestSuggestEditMessage(`Research the ${content}`, content, item?.id) 
+        : createTextMessage(`Suggest things for ${content}`)
 
-      const message = {
-        role: 'user',
-        content: actionMessage,
-      } as Message
 
-      await sendMessage(message, action)
+      await sendMessage(actionMessage, action)
     }
   }
 

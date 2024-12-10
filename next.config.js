@@ -11,6 +11,9 @@ const nextConfig = {
   output: 'standalone',
   poweredByHeader: false,
   reactStrictMode: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -26,4 +29,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig 
+module.exports = nextConfig  

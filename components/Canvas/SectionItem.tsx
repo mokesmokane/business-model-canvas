@@ -95,7 +95,7 @@ export function SectionItem({
         <div className="flex items-center space-x-2 mt-2 justify-end">
           <AIItemAssistButton
             item={item}
-            sectionName={sectionItem.content}
+            content={sectionItem.content}
             onExpandSidebar={() => {}}
             onDropdownStateChange={() => {}}
             onDiveIn={() => onDiveIn(sectionItem)}

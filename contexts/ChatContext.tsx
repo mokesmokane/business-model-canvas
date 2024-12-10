@@ -27,6 +27,7 @@ export type MessageType =
   | 'trailPeriodEnded'
   | 'subscriptionRequired'
   | 'newCanvasType'
+  | 'requestSuggestEdit'
   | 'thinking';
 
 export interface BaseMessage {
@@ -54,6 +55,8 @@ export const createTextMessage = (content: string, role: 'user' | 'assistant' = 
   role,
   content
 });
+
+
 
 export interface SuggestionMessage extends BaseMessage {
   type: 'suggestion';
@@ -140,6 +143,22 @@ export const createAdminMessage = (
 export interface TrailPeroidEndedMessage extends BaseMessage {
   type: 'trailPeriodEnded';   
 }
+
+export interface RequestSuggestEditMessage extends BaseMessage {
+  type: 'requestSuggestEdit';
+  content: string;
+  section: string;
+  item: string;
+}
+
+
+export const createRequestSuggestEditMessage = (content: string, section: string, item: string): RequestSuggestEditMessage => ({
+  type: 'requestSuggestEdit',
+  role: 'user',
+  content,
+  section,
+  item
+});
 
 export const createTrialEndedMessage = (): TrailPeroidEndedMessage => ({
   type: 'trailPeriodEnded',
