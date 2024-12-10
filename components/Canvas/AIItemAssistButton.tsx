@@ -9,10 +9,7 @@ import {
   ArrowRight
 } from 'lucide-react'
 import { createRequestSuggestEditMessage, createTextMessage, useChat } from '@/contexts/ChatContext'
-import { Message } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { sendChatRequest } from '@/services/aiService'
-import { ConfirmDiveInDialog } from './ConfirmDiveInDialog'
 import { SectionItem as SectionItemType } from '@/types/canvas'
 import {
   DropdownMenu,
@@ -55,7 +52,7 @@ export function AIItemAssistButton({
         : action === 'critique' 
         ? createTextMessage(`Critique the ${content}`) 
         : action === 'suggestEdit' && item?.id
-        ? createRequestSuggestEditMessage(`Research the ${content}`, content, item?.id) 
+        ? createRequestSuggestEditMessage(`Suggest edits for...`, content, item?.id) 
         : createTextMessage(`Suggest things for ${content}`)
 
 

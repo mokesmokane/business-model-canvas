@@ -94,7 +94,10 @@ export async function POST(request: Request) {
     const authHeader = request.headers.get('authorization');
     const isSubscribed = await verifySubscriptionStatus(authHeader || '');
     if (!isSubscribed) {
-      return createSubscriptionRequiredMessage()
+      return NextResponse.json(
+        createSubscriptionRequiredMessage(),
+        { status: 403 }
+      )
     }
 
     if (!process.env.OPENAI_API_KEY) {
@@ -124,7 +127,10 @@ export async function POST(request: Request) {
     })
     //if the last message is an action, chaneg the system prompt accordingly
     const action = messageEnvelope.action
-    console.log('action', action)
+
+    if(action === 'suggestEdit') {
+      
+    }
     let spromt = aiAgent.systemPrompt 
     let questionPrompt = aiAgent.questionPrompt
     let critiquePrompt = aiAgent.critiquePrompt
@@ -193,6 +199,12 @@ export async function POST(request: Request) {
       ${canvasInfo}
       `
       tool_call = { type: 'function', function: { name: 'suggestions' } }
+    } else if (action === 'suggestEdit') {
+      systemPrompt.content = `${suggestEditPrompt}
+
+      ${canvasInfo}
+      `
+      tool_call = { type: 'function', function: { name: 'suggestEdit' } }
     }
 
     let messages_list = [

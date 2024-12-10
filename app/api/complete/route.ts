@@ -37,7 +37,10 @@ export async function POST(req: Request) {
   const authHeader = req.headers.get('authorization');
   const isSubscribed = await verifySubscriptionStatus(authHeader || '');
   if (!isSubscribed) {
-    return createSubscriptionRequiredMessage()
+    return NextResponse.json(
+      createSubscriptionRequiredMessage(),
+      { status: 403 }
+    )
   }
 
   try {

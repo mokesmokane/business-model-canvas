@@ -31,7 +31,10 @@ export async function POST(request: Request) {
   const authHeader = request.headers.get('authorization');
   const isSubscribed = await verifySubscriptionStatus(authHeader || '');
   if (!isSubscribed) {
-    return createSubscriptionRequiredMessage()
+    return NextResponse.json(
+      createSubscriptionRequiredMessage(),
+      { status: 403 }
+    )
   }
 
   if (!process.env.OPENAI_API_KEY) {

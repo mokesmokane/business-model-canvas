@@ -225,7 +225,10 @@ export async function POST(request: Request) {
 
   const isSubscribed = await verifySubscriptionStatus(authHeader || '');
   if (!isSubscribed) {
-    return createSubscriptionRequiredMessage()
+    return NextResponse.json(
+      createSubscriptionRequiredMessage(),
+      { status: 403 }
+    )
   } 
 
   try {
