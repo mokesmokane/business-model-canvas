@@ -28,6 +28,7 @@ export type MessageType =
   | 'subscriptionRequired'
   | 'newCanvasType'
   | 'requestSuggestEdit'
+  | 'suggestEdit'
   | 'thinking';
 
 export interface BaseMessage {
@@ -151,6 +152,14 @@ export interface RequestSuggestEditMessage extends BaseMessage {
   item: string;
 }
 
+export interface SuggestEditMessage extends BaseMessage {
+  type: 'suggestEdit';
+  content: string;
+  itemEdit: string;
+  rationale: string;
+  section: string;
+  item: string;
+}
 
 export const createRequestSuggestEditMessage = (content: string, section: string, item: string): RequestSuggestEditMessage => ({
   type: 'requestSuggestEdit',
@@ -429,10 +438,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           action: action || activeTool || undefined
         }
 
-        console.log('sending message', envelope)
-        console.log('interaction', interaction)
-        console.log('formData', formData)
-        console.log('isContextEnabled', isContextEnabled)
+        if (userMessage.type === 'requestSuggestEdit') {
+          userMessage.content = `
+          Please edit the following item:
+
+          Section - ${(userMessage as RequestSuggestEditMessage).section}
+          Item - ${(userMessage as RequestSuggestEditMessage).item}`
+        }
 
         const send = 
           interaction ? routeInteraction(envelope)

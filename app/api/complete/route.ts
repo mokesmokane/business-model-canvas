@@ -4,6 +4,7 @@ import { CanvasSection, CanvasType } from '@/types/canvas-sections'
 import { Canvas, Section } from '@/types/canvas'
 import { verifySubscriptionStatus } from '@/utils/subscription-check'
 import { createSubscriptionRequiredMessage } from '@/contexts/ChatContext'
+import { NextResponse } from 'next/server'
 
 export const runtime = 'nodejs'
 

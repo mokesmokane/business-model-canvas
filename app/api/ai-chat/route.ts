@@ -1,7 +1,7 @@
 import { OpenAI } from 'openai'
 import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
-import { createSubscriptionRequiredMessage, Message, MessageEnvelope, QuestionMessage, SuggestionMessage } from '@/contexts/ChatContext'
+import { createSubscriptionRequiredMessage, Message, MessageEnvelope, QuestionMessage, RequestSuggestEditMessage, SuggestEditMessage, SuggestionMessage } from '@/contexts/ChatContext'
 import { AIAgent, Canvas } from '@/types/canvas'
 import { CanvasSection } from '@/types/canvas-sections'
 import { verifySubscriptionStatus } from '@/utils/subscription-check'
@@ -35,6 +35,25 @@ function suggestionsToolSchema(sections:string[],canvasName:string) {
       }
     },
     required: ["suggestions"],
+    additionalProperties: false
+  }
+}
+
+function suggestEditToolSchema(sections:string[],canvasName:string) {
+  return {
+    type: "object",
+    properties: {
+      itemEdit: {
+        type: "object",
+        properties: {
+          newContent: { type: "string", description: "The new content for the item, edited and based on the original content" },
+          rationale: { type: "string", description: "Brief explanation of why this edit is preferred" }
+        },
+        required: ["newContent", "rationale"],
+        additionalProperties: false
+      }
+    },
+    required: ["itemEdit"],
     additionalProperties: false
   }
 }
@@ -94,10 +113,10 @@ export async function POST(request: Request) {
     const authHeader = request.headers.get('authorization');
     const isSubscribed = await verifySubscriptionStatus(authHeader || '');
     if (!isSubscribed) {
-      return NextResponse.json(
-        createSubscriptionRequiredMessage(),
-        { status: 403 }
-      )
+    return NextResponse.json(
+      createSubscriptionRequiredMessage(),
+      { status: 403 }
+    )
     }
 
     if (!process.env.OPENAI_API_KEY) {
@@ -111,7 +130,8 @@ export async function POST(request: Request) {
     const sections = currentContent?.canvasType?.sections.map((section:CanvasSection) => section.name) || []
 
     const canvasName = currentContent?.canvasType?.name || ''
-    const messages = [...messageEnvelope.messageHistory, messageEnvelope.newMessage]
+    const messages = [...messageEnvelope.messageHistory, ]
+    
     const expanded_messages = messages.flatMap((msg: Message) => {
       if (msg.type === 'suggestion') {
 
@@ -128,9 +148,6 @@ export async function POST(request: Request) {
     //if the last message is an action, chaneg the system prompt accordingly
     const action = messageEnvelope.action
 
-    if(action === 'suggestEdit') {
-      
-    }
     let spromt = aiAgent.systemPrompt 
     let questionPrompt = aiAgent.questionPrompt
     let critiquePrompt = aiAgent.critiquePrompt
@@ -200,7 +217,7 @@ export async function POST(request: Request) {
       `
       tool_call = { type: 'function', function: { name: 'suggestions' } }
     } else if (action === 'suggestEdit') {
-      systemPrompt.content = `${suggestEditPrompt}
+      systemPrompt.content = `${systemPrompt.content}
 
       ${canvasInfo}
       `
@@ -231,6 +248,15 @@ export async function POST(request: Request) {
       }
     }
 
+    let suggestEditTool = {
+      type: "function" as const,
+      function: {
+        name: "suggestEdit",
+        description: 'Provide a new version of the item that is more accurate and complete in befitting the section',
+        parameters: suggestEditToolSchema(sections, canvasName)
+      }
+    }
+
     console.log('messages_list', messages_list)
 
     const completion = await openai.chat.completions.create({
@@ -239,6 +265,7 @@ export async function POST(request: Request) {
       tools: 
         action === 'suggest' ? [suggestTool]
         : action === 'question' ? [questionTool]
+        : action === 'suggestEdit' ? [suggestEditTool]
         : [suggestTool, questionTool],
       tool_choice: tool_call
     })
@@ -264,6 +291,16 @@ export async function POST(request: Request) {
           content: "Here are the questions I came up with:",
           questions: toolResponse.questions 
         })
+      } else if (response.tool_calls[0].function.name === "suggestEdit") {
+        return NextResponse.json({ 
+          type: 'suggestEdit',
+          role: 'assistant',
+          content: "Here is the edited item:",
+          itemEdit: toolResponse.itemEdit.newContent,
+          rationale: toolResponse.itemEdit.rationale,
+          section: (messageEnvelope.newMessage as RequestSuggestEditMessage).section,
+          item: (messageEnvelope.newMessage as RequestSuggestEditMessage).item
+        } as SuggestEditMessage)
       }
     }
 

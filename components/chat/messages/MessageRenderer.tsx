@@ -1,4 +1,4 @@
-import { Message, CanvasTypeSuggestionMessage, SuggestionMessage, QuestionMessage, AdminMessage, useChat, TrailPeroidEndedMessage, SubscriptionRequiredMessage } from "@/contexts/ChatContext"
+import { Message, CanvasTypeSuggestionMessage, SuggestionMessage, QuestionMessage, AdminMessage, useChat, TrailPeroidEndedMessage, SubscriptionRequiredMessage, SuggestEditMessage } from "@/contexts/ChatContext"
 import { Bot, User, AlertTriangle } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { motion, AnimatePresence } from "framer-motion"
@@ -59,6 +59,10 @@ export function MessageRenderer({ message, messageIndex, messageHistory}: Messag
 
     if (message.type === 'subscriptionRequired') {
       return <SubscriptionRequiredMessageDetails message={message as SubscriptionRequiredMessage} />
+    }
+
+    if (message.type === 'suggestEdit') {
+      return <SuggestEditMessageDetails message={message as SuggestEditMessage} />
     }
 
     return null
@@ -212,6 +216,21 @@ export function SubscriptionRequiredMessageDetails({ message }: { message: Subsc
             <Button variant="outline" onClick={() => {
                 window.location.href = '/pricing'
             }}>Upgrade</Button>
+        </div>
+    )
+}
+
+export function SuggestEditMessageDetails({ message }: { message: SuggestEditMessage }) {
+    return (
+        <div className="mt-2">
+            <p>{message.content}</p>
+            <p>{message.itemEdit}</p>
+            <p>{message.rationale}</p>
+            <Button variant="outline" onClick={() => {
+                // updateSection(message.section, message.item, message.itemEdit)
+            }}>Accept</Button>
+            <Button variant="outline" onClick={() => {
+            }}>Reject</Button>
         </div>
     )
 }
