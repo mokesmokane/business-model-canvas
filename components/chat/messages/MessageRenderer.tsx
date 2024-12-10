@@ -1,5 +1,5 @@
 import { Message, CanvasTypeSuggestionMessage, SuggestionMessage, QuestionMessage, AdminMessage, useChat, TrailPeroidEndedMessage, SubscriptionRequiredMessage, SuggestEditMessage } from "@/contexts/ChatContext"
-import { Bot, User, AlertTriangle } from "lucide-react"
+import { Bot, User, AlertTriangle, X, Check, ThumbsUp } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { motion, AnimatePresence } from "framer-motion"
 import AISuggestionItem from "../AISuggestionItem"
@@ -13,6 +13,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { CanvasType } from "@/types/canvas-sections"
 import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
 import { useRouter } from 'next/navigation'
+import { Card, CardContent } from "@/components/ui/card"
+import { useState } from 'react'
 
 
 interface MessageRendererProps {
@@ -221,16 +223,69 @@ export function SubscriptionRequiredMessageDetails({ message }: { message: Subsc
 }
 
 export function SuggestEditMessageDetails({ message }: { message: SuggestEditMessage }) {
+    const { formData, updateItem } = useCanvas()
+    const [isRemoving, setIsRemoving] = useState(false)
+    const [isAccepted, setIsAccepted] = useState(false)
+    const [isDismissed, setIsDismissed] = useState(false)
+
     return (
-        <div className="mt-2">
-            <p>{message.content}</p>
-            <p>{message.itemEdit}</p>
-            <p>{message.rationale}</p>
-            <Button variant="outline" onClick={() => {
-                // updateSection(message.section, message.item, message.itemEdit)
-            }}>Accept</Button>
-            <Button variant="outline" onClick={() => {
-            }}>Reject</Button>
+        <div className="mt-2 space-y-3">
+            <Card className={`border-2 dark:bg-gray-900 bg-white dark:border-gray-800 border-gray-200 ${
+                isRemoving
+                    ? isAccepted
+                        ? 'opacity-50'
+                        : isDismissed
+                            ? 'opacity-50 line-through'
+                            : ''
+                    : ''
+                } transition-all duration-500`}
+            >
+                <CardContent className="p-3 relative">
+                    <div className="flex items-start gap-2">
+                        <div className="flex-1">
+                            <p className="text-sm mb-1 dark:text-gray-200 text-gray-700">
+                                {message.itemEdit}
+                            </p>
+                            <p className="text-xs dark:text-gray-400 text-gray-500">
+                                {message.rationale}
+                            </p>
+                        </div>
+                    </div>
+                    <div className={`flex gap-1 mt-2 justify-end transition-opacity duration-300 ${
+                        isRemoving ? 'opacity-0' : 'opacity-100'
+                    }`}>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className={`${
+                                isAccepted 
+                                    ? 'text-green-600 dark:text-green-400' 
+                                    : 'dark:text-gray-400 text-gray-500 dark:hover:text-gray-100 hover:text-gray-900'
+                            }`}
+                            onClick={() => {
+                                updateItem(message.section, new TextSectionItem(message.item, message.itemEdit))
+                                setIsAccepted(true)
+                                setIsRemoving(true)
+                            }}
+                            disabled={isRemoving}
+                        >
+                            <ThumbsUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="dark:text-gray-400 text-gray-500 dark:hover:text-gray-100 hover:text-gray-900"
+                            onClick={() => {
+                                setIsDismissed(true)
+                                setIsRemoving(true)
+                            }}
+                            disabled={isRemoving}
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     )
 }

@@ -439,11 +439,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (userMessage.type === 'requestSuggestEdit') {
-          userMessage.content = `
-          Please edit the following item:
-
-          Section - ${(userMessage as RequestSuggestEditMessage).section}
-          Item - ${(userMessage as RequestSuggestEditMessage).item}`
+          userMessage.content = `Please edit the following item...\n\nSection: ${(userMessage as RequestSuggestEditMessage).section}\n\nItem: ${(userMessage as RequestSuggestEditMessage).content}`
         }
 
         const send = 

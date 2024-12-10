@@ -130,7 +130,7 @@ export async function POST(request: Request) {
     const sections = currentContent?.canvasType?.sections.map((section:CanvasSection) => section.name) || []
 
     const canvasName = currentContent?.canvasType?.name || ''
-    const messages = [...messageEnvelope.messageHistory, ]
+    const messages = [...messageEnvelope.messageHistory, messageEnvelope.newMessage ]
     
     const expanded_messages = messages.flatMap((msg: Message) => {
       if (msg.type === 'suggestion') {
@@ -217,10 +217,6 @@ export async function POST(request: Request) {
       `
       tool_call = { type: 'function', function: { name: 'suggestions' } }
     } else if (action === 'suggestEdit') {
-      systemPrompt.content = `${systemPrompt.content}
-
-      ${canvasInfo}
-      `
       tool_call = { type: 'function', function: { name: 'suggestEdit' } }
     }
 

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 interface AIItemAssistButtonProps {
+  section: string
   content: string
   item?: SectionItemType
   onExpandSidebar: () => void
@@ -27,6 +28,7 @@ interface AIItemAssistButtonProps {
 }
 
 export function AIItemAssistButton({ 
+  section,
   content, 
   item,
   onExpandSidebar,
@@ -52,7 +54,7 @@ export function AIItemAssistButton({
         : action === 'critique' 
         ? createTextMessage(`Critique the ${content}`) 
         : action === 'suggestEdit' && item?.id
-        ? createRequestSuggestEditMessage(`Suggest edits for...`, content, item?.id) 
+        ? createRequestSuggestEditMessage(content, section, item?.id) 
         : createTextMessage(`Suggest things for ${content}`)
 
 

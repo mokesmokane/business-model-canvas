@@ -308,6 +308,7 @@ export function CanvasSection({
               <SectionItem
                 key={index}
                 item={item}
+                section={sectionKey}
                 onDiveIn={handleDiveIn}
                 isActive={activeItemIndex === index}  
                 isExpanded={expandedItemIndex === index}

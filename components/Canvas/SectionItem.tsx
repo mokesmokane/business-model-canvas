@@ -11,6 +11,7 @@ import ReactMarkdown from 'react-markdown';
 
 interface SectionItemProps {
   item: SectionItemType;
+  section: string;
   onDelete: () => void;
   isEditing: boolean;
   isActive: boolean;
@@ -25,6 +26,7 @@ interface SectionItemProps {
 
 export function SectionItem({
   item,
+  section,
   onDelete,
   isEditing,
   isActive,
@@ -96,6 +98,7 @@ export function SectionItem({
           <AIItemAssistButton
             item={item}
             content={sectionItem.content}
+            section={section}
             onExpandSidebar={() => {}}
             onDropdownStateChange={() => {}}
             onDiveIn={() => onDiveIn(sectionItem)}
