@@ -92,8 +92,10 @@ export default function CustomCanvasEditor({ canvasTypeTemplate, onCancel, onCon
 
   const fetchSuggestedAIAgent = async () => {
     setLoading(true);
+    const idToken = await user?.getIdToken();
+    if (!idToken) return;
     try {
-      const newAiAgent = await aiAgentCreatorService.createAIAgent(canvasType!);
+      const newAiAgent = await aiAgentCreatorService.createAIAgent(canvasType!, idToken);
       if (newAiAgent) {
         setAiAgent(newAiAgent);
       } else {

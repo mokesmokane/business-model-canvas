@@ -14,7 +14,7 @@ import { useRecentCanvasTypes } from "@/contexts/RecentCanvasTypesContext"
 import { useRouter } from 'next/navigation'
 import { useDocumentDiveSuggestions } from "@/contexts/DocumentDiveSuggestionsContext"
 import { useDocumentAiGeneration } from "@/contexts/DocumentAiGenerationContext"
-import { DocumentService } from '@/services/document';
+import { DocumentService, ProcessedDocument } from '@/services/document';
 import { v4 as uuidv4 } from 'uuid';
 import { TAG_INFO } from "@/src/constants/tags"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -22,12 +22,15 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useSubscription } from "@/contexts/SubscriptionContext"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface DocumentDiveSelectorProps {
-  pdfContent?: {
-    text: string;
-    fileName: string;
-  } | null;
+  pdfContent?: ProcessedDocument | null;
   onClose: () => void;
   onSuccess: (canvasId: string, canvasTypeId: string) => void;
   onPdfLoaded: (content: { text: string; fileName: string }) => void;
@@ -42,7 +45,7 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
   const [searchTerm, setSearchTerm] = useState('');
   const { canvasIdFolderMap } = useCanvasFolders();
   const [filteredCanvasTypes, setFilteredCanvasTypes] = useState<[string, CanvasType][]>([]);
-  const [content, setContent] = useState<{ text: string; fileName: string } | null>(pdfContent || null);
+  const [content, setContent] = useState<ProcessedDocument | null>(pdfContent || null);
   const newCanvasRef = useRef<HTMLDivElement | null>(null);
   const {
     existingSuggestions,
@@ -155,6 +158,8 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
                     localStorage.setItem('pendingDocument', JSON.stringify({
                       textContent: content.text,
                       fileName: content.fileName,
+                      processedPages: content.processedPages,
+                      pageCount: content.pageCount,
                       canvasId: canvas.id
                     }));
                     localStorage.setItem('lastCanvasId', canvas.id);
@@ -436,6 +441,7 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
       const canvasId = uuidv4();
       setCanvasId(canvasId);  
       const maxPages = isFreeUser ? 3 : undefined;
+      console.log('maxPages', maxPages)
       const processedContent = await DocumentService.uploadAndProcess(file, canvasId, maxPages);
       
       if (onPdfLoaded) {
@@ -545,10 +551,42 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
         <div className="flex-none space-y-4 p-4">
           <div className="flex justify-center w-full">
             <div className="inline-block bg-primary/5 rounded-lg p-3 border border-primary/20 relative overflow-hidden">
-              <div className="flex items-start gap-3">
-                <FileText className="text-primary h-5 w-5 flex-shrink-0 mt-0.5" />
+              <div className="flex items-center gap-3 mb-1">
+                <FileText className="text-primary h-5 w-5 flex-shrink-0" />
                 <div className="font-medium text-foreground">{content.fileName}</div>
               </div>
+              
+              {content.processedPages && content.pageCount && (
+                <div className="text-sm text-muted-foreground pl-0.5 flex items-center">
+                  {content.processedPages}/{content.pageCount} pages
+                  {isFreeUser && content.pageCount > 3 && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            className="ml-1.5 inline-flex items-center text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              className="w-4 h-4"
+                            >
+                              <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                              <path d="M12 16v-4" strokeWidth="2" strokeLinecap="round" />
+                              <path d="M12 8h.01" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Free trial limited to first 3 pages</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </div>
+              )}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent to-primary/5 pointer-events-none" />
             </div>
           </div>

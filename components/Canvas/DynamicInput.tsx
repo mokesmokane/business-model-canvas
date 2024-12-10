@@ -8,6 +8,9 @@ import { useCanvas } from '@/contexts/CanvasContext'
 import { Section } from '@/types/canvas'
 import { useIsMobile } from '@/hooks/useIsMobile'
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext'
+import { cn } from "@/lib/utils"
+
 interface DynamicInputProps {
     onSubmit: (value: string) => void
     onCancel?: () => void
@@ -39,6 +42,8 @@ interface DynamicInputProps {
     const currentSuggestion = suggestions[currentSuggestionIndex] || ''
     const isMobile = useIsMobile()
     const { user } = useAuth();
+    var { hasAccessToProFeatures } = useSubscription()
+    const [flashUpgrade, setFlashUpgrade] = useState(false)
     const handleSubmit = () => {
       if (inputValue.trim()) {
         onSubmit(inputValue.trim())
@@ -79,6 +84,11 @@ interface DynamicInputProps {
     }
   
     const handleSuggestionAction = async () => {
+      if (!hasAccessToProFeatures) {
+        //i thinbk heer we want the component
+        return
+      }
+
       if ((showTabPrompt || inputValue.trim().length === 0) && !isLoading && suggestions.length === 0) {
         setShowTabPrompt(false)
         await getSuggestions(inputValue)
@@ -109,7 +119,14 @@ interface DynamicInputProps {
   
     const handleKeyDown = async (e: React.KeyboardEvent) => {
       if (e.key === 'Tab' && !e.shiftKey) {
+        if (!hasAccessToProFeatures) {
+          e.preventDefault()
+          setFlashUpgrade(true)
+          setTimeout(() => setFlashUpgrade(false), 1000)
+          return
+        }
         e.preventDefault()
+
         if ((showTabPrompt || inputValue.trim().length === 0) && !isLoading && suggestions.length === 0) {
           setShowTabPrompt(false)
           await getSuggestions(inputValue)
@@ -196,13 +213,16 @@ interface DynamicInputProps {
             />
           </div>
           <div className="absolute left-2 bottom-2 flex items-center gap-2">
-            {showTabPrompt && suggestions.length === 0 && !isLoading && (
+            {(showTabPrompt || (isFocused && !showTabPrompt && suggestions.length === 0 && !isLoading)) && (
               <div 
-                className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer"
+                className={cn(
+                  "bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer transition-all duration-300",
+                  !hasAccessToProFeatures && flashUpgrade && "bg-primary text-primary-foreground animate-pulse"
+                )}
                 onClick={handleSuggestionAction}
               >
                 <kbd className="bg-background px-1 rounded">{isMobile ? 'Tap' : 'Tab'}</kbd>
-                <span>suggest</span>
+                <span>{hasAccessToProFeatures ? 'suggest' : 'upgrade for AI suggestions'}</span>
               </div>
             )}
             {suggestions.length > 0 && (
@@ -219,15 +239,6 @@ interface DynamicInputProps {
             {isLoading && (
               <div className="text-muted-foreground">
                 <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"/>
-              </div>
-            )}
-            {isFocused && !showTabPrompt && suggestions.length === 0 && !isLoading && (
-              <div 
-                className="bg-muted text-muted-foreground text-xs px-2 py-1 rounded-full flex items-center gap-1 cursor-pointer"
-                onClick={handleSuggestionAction}
-              >
-                <kbd className="bg-background px-1 rounded">{isMobile ? 'Tap' : 'Tab'}</kbd>
-                <span>suggest</span>
               </div>
             )}
           </div>

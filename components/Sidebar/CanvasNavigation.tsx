@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { File, Folder, LayoutDashboard, MoreVertical, Plus, Trash2 } from 'lucide-react'
+import { Folder, MoreVertical, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useCanvas } from '@/contexts/CanvasContext'
 import { useCanvasFolders } from '@/contexts/CanvasFoldersContext'

@@ -11,6 +11,7 @@ interface DocumentProcessingResponse {
     fileName: string;
     contentType: string;
     pageCount: number;
+    processedPages: number;
     size: number;
     storagePath: string;
     canvasId: string;
@@ -32,6 +33,8 @@ export interface CanvasDocument {
 export interface ProcessedDocument {
   text: string;
   fileName: string;
+  processedPages: number;
+  pageCount: number;
 }
 
 export class DocumentService {
@@ -64,9 +67,11 @@ export class DocumentService {
     console.log('result', result)
     return result;
   }
+
   private static readonly PROCESSING_URL = '/api/document-process';
 
   static async uploadAndProcess(file: File, canvasId: string, maxPages?: number): Promise<ProcessedDocument> {
+    console.log('uploadAndProcess', file, canvasId, maxPages)
     const token = await getAuth().currentUser?.getIdToken();
     if (!token) {
       throw new Error('No authentication token available');
@@ -100,7 +105,9 @@ export class DocumentService {
 
     return {
       text: result.metadata.textContent,
-      fileName: result.metadata.fileName
+      fileName: result.metadata.fileName,
+      processedPages: result.metadata.processedPages,
+      pageCount: result.metadata.pageCount
     };
   }
 

@@ -122,6 +122,7 @@ export function Header() {
     setIsUploadingDoc(true);
     try {
       const maxPages = isFreeUser ? 3 : undefined;
+      console.log('maxPages', maxPages)
       const uploadedDoc = await DocumentService.uploadAndProcess(file, formData.id, maxPages);
       await loadDocuments();
       // setUploadedDocument(uploadedDoc);

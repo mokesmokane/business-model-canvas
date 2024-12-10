@@ -31,6 +31,7 @@ export function ChatHeader({ isWide, onNewChat, onChatHistory, onToggleWidth, on
   const { currentCanvas } = useCanvas()
   const { agentCache } = useAIAgents()
   const { isContextEnabled, setIsContextEnabled } = useCanvasContext()
+
   
   const aiAgent = currentCanvas?.canvasType.id ? agentCache[currentCanvas.canvasType.id] : null
   return (
@@ -47,21 +48,21 @@ export function ChatHeader({ isWide, onNewChat, onChatHistory, onToggleWidth, on
                     <Button
                       size="sm"
                       variant={isContextEnabled ? 'secondary' : 'ghost'}
-                      className={`px-2 py-1 h-7 text-xs font-medium ${
+                      className={`px-2 py-1 h-7 text-xs font-medium truncate ${
                         !isContextEnabled ? 'text-muted-foreground' : ''
-                      }`}
+                      } ${isWide ? 'max-w-[250px]' : 'max-w-[150px]'}`}
                       onClick={() => {
                         setIsContextEnabled(!isContextEnabled)
                       }}
                     >
                       <DynamicIcon name={currentCanvas.canvasType.icon} className="h-4 w-4 mr-1" />
-                      <span className={!isContextEnabled ? 'line-through' : ''}>
+                      <span className="truncate">
                         {currentCanvas.name}
                       </span>
                       {isContextEnabled ? (
-                        <Check className="h-3 w-3 mr-1 text-primary" />
+                        <Check className="h-3 w-3 ml-1" />
                       ) : (
-                        <X className="h-3 w-3 mr-1 text-muted-foreground" />
+                        <X className="h-3 w-3 ml-1" />
                       )}
                     </Button>
               </TooltipTrigger>

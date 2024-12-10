@@ -305,7 +305,9 @@ export default function CustomCanvasManager({ canvasTypeId, onClose }: CustomCan
                   onClick={async () => {
                     setIsLoading(true);
                     try {
-                      const newAiAgent = await aiAgentCreatorService.createAIAgent(canvasType);
+                      const idToken = await user?.getIdToken();
+                      if (!idToken) return;
+                      const newAiAgent = await aiAgentCreatorService.createAIAgent(canvasType, idToken);
                       if (newAiAgent) {
                         setAiAgent(newAiAgent);
                       } else {
