@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server'
 import { ChatCompletionMessageParam } from 'openai/resources/index.mjs'
 import { createSubscriptionRequiredMessage, MessageEnvelope } from '@/contexts/ChatContext'
 import { verifySubscriptionStatus } from '@/utils/subscription-check'
+
+export const runtime = 'nodejs'
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })

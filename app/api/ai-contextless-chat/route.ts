@@ -6,6 +6,8 @@ import { CanvasSection, CanvasType } from '@/types/canvas-sections'
 import { CanvasTypeAdminService } from '@/services/canvasTypeAdminService'
 import { verifySubscriptionStatus } from '@/utils/subscription-check'
 
+export const runtime = 'nodejs'
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })

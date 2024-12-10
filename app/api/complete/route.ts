@@ -5,6 +5,8 @@ import { Canvas, Section } from '@/types/canvas'
 import { verifySubscriptionStatus } from '@/utils/subscription-check'
 import { createSubscriptionRequiredMessage } from '@/contexts/ChatContext'
 
+export const runtime = 'nodejs'
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })
@@ -29,8 +31,6 @@ const completionFunction = {
     required: ['completions']
   }
 }
-
-export const runtime = 'edge'
 
 export async function POST(req: Request) {
   // Get the authorization header from the request

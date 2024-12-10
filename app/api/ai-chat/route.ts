@@ -6,6 +6,8 @@ import { AIAgent, Canvas } from '@/types/canvas'
 import { CanvasSection } from '@/types/canvas-sections'
 import { verifySubscriptionStatus } from '@/utils/subscription-check'
 
+export const runtime = 'nodejs'
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })

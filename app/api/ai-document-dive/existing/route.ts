@@ -7,6 +7,8 @@ import { DiveInRequest, DocumentDiveInRequest, ExistingCanvasDiveResponse, Exist
 import { verifySubscriptionStatus } from '@/utils/subscription-check'
 import { createSubscriptionRequiredMessage } from '@/contexts/ChatContext'
 
+export const runtime = 'nodejs'
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })

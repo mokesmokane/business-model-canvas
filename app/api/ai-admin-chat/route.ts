@@ -5,6 +5,8 @@ import { CanvasTypeSuggestionMessage, createSubscriptionRequiredMessage, Message
 import { CanvasTypeSuggestion } from '@/types/canvas-sections'
 import { verifySubscriptionStatus } from '@/utils/subscription-check'
 
+export const runtime = 'nodejs'
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || ''
 })
@@ -127,7 +129,6 @@ const canvasTypeSchema = {
 const canvasLayoutSchema = {
 
 }
-
 
 export async function POST(request: Request) {
   // Get the authorization header from the request
