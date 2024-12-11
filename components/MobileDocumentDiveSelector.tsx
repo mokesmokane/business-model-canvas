@@ -214,6 +214,50 @@ function CompactSuggestionCard({ suggestion, onClick }: {
   );
 }
 
+// Add this new component at the top level
+function NewSuggestionSkeleton() {
+  return (
+    <SwiperSlide className="!w-[85%]">
+      <div className="flex flex-col gap-2 p-4 rounded-lg border h-[180px]">
+        <div className="flex items-center gap-2">
+          <Skeleton className="w-5 h-5 rounded" />
+          <Skeleton className="w-32 h-4" />
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="w-full h-3" />
+          <Skeleton className="w-[90%] h-3" />
+          <Skeleton className="w-[85%] h-3" />
+          <Skeleton className="w-[70%] h-3" />
+        </div>
+        <div className="flex gap-1.5 mt-auto">
+          <Skeleton className="w-20 h-4 rounded-full" />
+          <Skeleton className="w-24 h-4 rounded-full" />
+          <Skeleton className="w-16 h-4 rounded-full" />
+        </div>
+      </div>
+    </SwiperSlide>
+  );
+}
+
+// Add this new component at the top level of the file
+function SuggestionSkeleton() {
+  return (
+    <div className="w-full p-6 rounded-lg border border-border bg-card">
+      <div className="flex items-center gap-3 mb-3">
+        <Skeleton className="h-6 w-6 rounded-md" />
+        <Skeleton className="h-4 w-32" />
+      </div>
+      <Skeleton className="h-3 w-full mb-2" />
+      <Skeleton className="h-3 w-4/5" />
+      <div className="flex gap-1.5 mt-4">
+        <Skeleton className="h-3 w-16 rounded-full" />
+        <Skeleton className="h-3 w-20 rounded-full" />
+        <Skeleton className="h-3 w-14 rounded-full" />
+      </div>
+    </div>
+  );
+}
+
 export function MobileDocumentDiveSelector({
   isOpen,
   onClose,
@@ -240,6 +284,24 @@ export function MobileDocumentDiveSelector({
     createNewCanvasType 
   } = useDocumentDiveSuggestions()
   const [isCreatingNewType, setIsCreatingNewType] = useState(false)
+  const [skeletonCount, setSkeletonCount] = useState(1);
+
+  // Add this effect to incrementally show more skeletons
+  useEffect(() => {
+    if (isLoadingSuggestions && skeletonCount < 3) {
+      const timer = setInterval(() => {
+        setSkeletonCount(prev => Math.min(prev + 1, 3));
+      }, 800);
+      return () => clearInterval(timer);
+    }
+  }, [isLoadingSuggestions, skeletonCount]);
+
+  // Reset skeleton count when suggestions are loaded
+  useEffect(() => {
+    if (!isLoadingSuggestions) {
+      setSkeletonCount(1);
+    }
+  }, [isLoadingSuggestions]);
 
   const getAvailableTags = () => {
     const availableTags = new Set<string>()
@@ -388,15 +450,31 @@ export function MobileDocumentDiveSelector({
                   </div>
                 </div>
                 <div className="flex justify-center">
-                  <button
-                    className="text-sm text-muted-foreground hover:text-foreground"
-                    onClick={() => {
+                <button
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
+              onClick={() => {
                       setSelected(null);
                       setIsCreatingNewType(false);
-                    }}
-                  >
-                    Back to selection
-                  </button>
+              }}
+            >
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 16 16" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="rotate-180"
+              >
+                <path 
+                  d="M6.66667 4L10.6667 8L6.66667 12" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Back to selection
+            </button>
                 </div>
               </div>
             </div>
@@ -453,13 +531,30 @@ export function MobileDocumentDiveSelector({
                   'Create Canvas'
                 )}
               </Button>
-              
+              <div className="flex justify-center">
               <button
-                className="w-full text-sm text-muted-foreground hover:text-foreground"
-                onClick={() => setSelected(null)}
+              className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
+              onClick={() => setSelected(null)}
+            >
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 16 16" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                className="rotate-180"
               >
-                Back to selection
-              </button>
+                <path 
+                  d="M6.66667 4L10.6667 8L6.66667 12" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Back to selection
+            </button>
+              </div>
             </div>
           </ScrollArea>
         </div>
@@ -468,11 +563,12 @@ export function MobileDocumentDiveSelector({
 
     if (showAISuggestions) {
       return (
-        <div className="flex flex-col h-full">
-          <div className="flex-1 overflow-hidden">
-            <div className="p-4">
+        <div className="flex-1 overflow-hidden">
+          <div className="p-4">
+            {/* Existing Canvas Type Suggestions */}
+            <div className="space-y-4">
               {existingSuggestions.length > 0 ? (
-                <div className="space-y-4">
+                <>
                   <h3 className="text-lg font-semibold">
                     Use an existing canvas type
                   </h3>
@@ -491,7 +587,7 @@ export function MobileDocumentDiveSelector({
                       </SwiperSlide>
                     ))}
                   </Swiper>
-                </div>
+                </>
               ) : (
                 <div className="flex items-center gap-3 justify-center py-4">
                   <Bot className="w-6 h-6 text-primary" />
@@ -503,34 +599,77 @@ export function MobileDocumentDiveSelector({
                 </div>
               )}
 
-              {newSuggestions.length > 0 && (
-                <div className="space-y-4 mt-8">
-                  <h3 className="text-lg font-semibold">
-                    Or create a new canvas type
-                  </h3>
+              {/* Loading skeletons for existing suggestions */}
+              {isLoadingSuggestions && existingSuggestions.length === 0 && (
+                <Swiper
+                  slidesPerView="auto"
+                  spaceBetween={12}
+                  className="w-full"
+                >
+                  {[1, 2, 3].map((i) => (
+                    <SwiperSlide key={`skeleton-${i}`} className="!w-[85%]">
+                      <SuggestionSkeleton />
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              )}
+            </div>
+
+            {/* New Canvas Type Suggestions */}
+            {((isLoadingSuggestions || newSuggestions.length > 0) && existingSuggestions.length > 0) && (
+              <div className="space-y-4 mt-8">
+                {newSuggestions.length > 0 ? (
+                  <>
+                    <h3 className="text-lg font-semibold">
+                      Or create a new canvas type
+                    </h3>
+                    <Swiper
+                      slidesPerView="auto"
+                      spaceBetween={12}
+                      className="w-full"
+                    >
+                      {newSuggestions.map((newCanvasType) => (
+                        <SwiperSlide key={newCanvasType.name} className="!w-[85%]">
+                          <CompactSuggestionCard
+                            suggestion={newCanvasType}
+                            onClick={async () => {
+                              setSelected(newCanvasType.name);
+                              setIsCreatingNewType(true);
+                              await createNewCanvasType(newCanvasType);
+                              setIsCreatingNewType(false);
+                            }}
+                          />
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-3 justify-center py-4">
+                    <Bot className="w-6 h-6 text-primary" />
+                    <div className="relative">
+                      <span className="text-transparent bg-gradient-to-r from-muted-foreground via-foreground to-muted-foreground bg-clip-text bg-[length:200%_100%] animate-shimmer">
+                        {statusMessage}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Loading skeletons for new suggestions */}
+                {isLoadingSuggestions && newSuggestions.length === 0 && (
                   <Swiper
                     slidesPerView="auto"
                     spaceBetween={12}
                     className="w-full"
                   >
-                    {newSuggestions.map((newCanvasType) => (
-                      <SwiperSlide key={newCanvasType.name} className="!w-[85%]">
-                        <CompactSuggestionCard
-                          suggestion={newCanvasType}
-                          onClick={async () => {
-                            setSelected(newCanvasType.name);
-                            setIsCreatingNewType(true);
-                            await createNewCanvasType(newCanvasType);
-                            setIsCreatingNewType(false);
-                          }}
-                        />
+                    {[1, 2, 3].map((i) => (
+                      <SwiperSlide key={`new-skeleton-${i}`} className="!w-[85%]">
+                        <SuggestionSkeleton />
                       </SwiperSlide>
                     ))}
                   </Swiper>
-                </div>
-              )}
-            </div>
-          </div>
+                )}
+              </div>
+            )}
           <div className="p-4 bg-background flex justify-center">
             <button
               className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"
@@ -557,9 +696,10 @@ export function MobileDocumentDiveSelector({
               </svg>
               Back to all canvas types
             </button>
+            </div>
           </div>
         </div>
-      )
+      );
     }
 
     return (
