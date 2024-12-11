@@ -28,6 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { SelectedCanvasTypeCard } from "./CanvasTypeCards/SelectedCanvasTypeCard"
 
 interface DocumentDiveSelectorProps {
   pdfContent?: ProcessedDocument | null;
@@ -86,7 +87,7 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
   }, [searchTerm, canvasTypes, selectedTags]);
 
   const renderSelectedCanvasType = () => {
-    if (isCreatingNewType ) {
+    if (isCreatingNewType) {
       return (
         <div className="w-full flex flex-col items-center">
           <div className="w-full max-w-[800px] mx-auto px-6 flex flex-col items-center">
@@ -134,14 +135,9 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
 
     return (
       <div className="w-full flex flex-col items-center">
-        <div className="w-full max-w-[800px] mx-auto px-6 flex flex-col items-center ">
-          <div className="w-full flex justify-center">
-            <CanvasTypeCard
-              type={selectedType}
-              onClick={() => {}}
-              isSelected={true}
-            />
-          </div>
+        <div className="w-full max-w-[800px] mx-auto px-6 flex flex-col items-center">
+          <SelectedCanvasTypeCard type={selectedType} />
+          
           <div className="flex justify-center gap-4 w-full mt-6">
             <button
               className="px-6 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 
@@ -189,6 +185,7 @@ export function DocumentDiveSelector({ pdfContent, onClose, onSuccess, onPdfLoad
                 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
             </button>
           </div>
+          
           <div className="w-full flex justify-center mt-6">
             <button
               className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-2"

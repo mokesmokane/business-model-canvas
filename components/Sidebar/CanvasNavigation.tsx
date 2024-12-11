@@ -18,9 +18,9 @@ import {
 import { DeleteFolderDialog } from '../DeleteFolderDialog'
 import { useState } from 'react'
 import { RenameFolderDialog } from '../RenameFolderDialog'
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import { useAuth } from '@/contexts/AuthContext';
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
+import { useAuth } from '@/contexts/AuthContext'
 import { DragEvent } from 'react'
 import { MoveCanvasDialog } from "@/components/modals/MoveCanvasDialog"
 import DynamicIcon from '../Util/DynamicIcon'
@@ -72,7 +72,7 @@ export function CanvasNavigation({ isExpanded }: CanvasNavigationProps) {
   const [folderToDelete, setFolderToDelete] = React.useState<{ id: string, name: string } | null>(null)
   const [renameDialogOpen, setRenameDialogOpen] = useState(false)
   const [folderToRename, setFolderToRename] = useState<{ id: string, name: string } | null>(null)
-  const { user } = useAuth();
+  const { user } = useAuth()
   const currentFolder = currentPath.length > 0 ? currentPath[currentPath.length - 1] : rootFolder
   const [draggedCanvas, setDraggedCanvas] = useState<CanvasItem | null>(null)
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null)

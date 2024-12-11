@@ -25,6 +25,8 @@ import { useRouter } from 'next/navigation'
 import { DocumentDiveSelector } from '../DocumentDiveSelector'
 import { DocumentDiveSuggestionsProvider } from '@/contexts/DocumentDiveSuggestionsContext'
 import { DocumentAiGenerationProvider } from '@/contexts/DocumentAiGenerationContext'
+import { MobileDocumentDiveSelector } from '../MobileDocumentDiveSelector'
+import { useMediaQuery } from '@/hooks/use-media-query'
 
 interface BreadcrumbNavProps {
   path: NestedCanvasFolder[]
@@ -46,6 +48,8 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
   const [showTypeSelector, setShowTypeSelector] = React.useState(false)
   const [showDocumentDiveSelector, setShowDocumentDiveSelector] = React.useState(false)
   const router = useRouter()
+  const isMobile = useMediaQuery("(max-width: 768px)")
+
   const onAddFolder = () => {
     const currentFolder = (path.length > 0 ? path[path.length - 1] : null)?.id ?? 'root'
     onCreateFolder(currentFolder, 'New Folder')
@@ -102,6 +106,11 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
     const { canvasId, targetFolderId } = pendingMove
     await handleCanvasMove(canvasId, targetFolderId)
     setPendingMove(null)
+  }
+
+  const handleDocumentSelectorSuccess = (canvasId: string) => {
+    setShowDocumentDiveSelector(false)
+    router.push(`/canvas/${canvasId}`)
   }
 
   if (!isExpanded) {
@@ -220,16 +229,33 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
           <CanvasTypeSelector selectedType={null} />
         </DialogContent>
       </Dialog>
-      <Dialog open={showDocumentDiveSelector} onOpenChange={setShowDocumentDiveSelector}>
-        <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
-          <DialogTitle></DialogTitle>
-          <DocumentAiGenerationProvider>
-            <DocumentDiveSuggestionsProvider>
-              <DocumentDiveSelector pdfContent={null} onClose={() => setShowDocumentDiveSelector(false)} onPdfLoaded={() => {}} onSuccess={() => setShowDocumentDiveSelector(false)} />
+      {!isMobile ? (
+        <Dialog open={showDocumentDiveSelector} onOpenChange={setShowDocumentDiveSelector}>
+          <DialogContent className="!max-w-[80vw] !w-[80vw] sm:!max-w-[80vw] h-[85vh] overflow-hidden rounded-md border">
+            <DialogTitle></DialogTitle>
+            <DocumentAiGenerationProvider>
+              <DocumentDiveSuggestionsProvider>
+                <DocumentDiveSelector 
+                  pdfContent={null} 
+                  onClose={() => setShowDocumentDiveSelector(false)} 
+                  onPdfLoaded={() => {}} 
+                  onSuccess={handleDocumentSelectorSuccess} 
+                />
+              </DocumentDiveSuggestionsProvider>
+            </DocumentAiGenerationProvider>
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <DocumentAiGenerationProvider>
+          <DocumentDiveSuggestionsProvider>
+            <MobileDocumentDiveSelector
+              isOpen={showDocumentDiveSelector}
+              onClose={() => setShowDocumentDiveSelector(false)}
+              onSuccess={handleDocumentSelectorSuccess}
+            />
           </DocumentDiveSuggestionsProvider>
-          </DocumentAiGenerationProvider>
-        </DialogContent>
-      </Dialog>
+        </DocumentAiGenerationProvider>
+      )}
     </>
   )
 } 
