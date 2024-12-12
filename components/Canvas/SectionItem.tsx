@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader, Di
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown';
 import { useSectionItemAIEdit } from '@/contexts/SectionItemAIEditContext';
+import { useExpanded } from '@/contexts/ExpandedContext';
 
 interface SectionItemProps {
   item: SectionItemType;
@@ -16,7 +17,7 @@ interface SectionItemProps {
   onDelete: () => void;
   isEditing: boolean;
   isActive: boolean;
-  isExpanded: boolean;
+  isItemExpanded: boolean;
   onClick: () => void;
   onEditStart: () => void;
   onEditEnd: () => void;
@@ -31,7 +32,7 @@ export function SectionItem({
   onDelete,
   isEditing,
   isActive,
-  isExpanded,
+  isItemExpanded,
   onClick,
   onEditStart,
   onEditEnd,
@@ -41,7 +42,8 @@ export function SectionItem({
 }: SectionItemProps) {
   const { loadCanvas, canvasTheme, hoveredItemId } = useCanvas();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const showControls = isExpanded || isEditing;
+  const {isExpanded, setIsExpanded, setIsWide } = useExpanded()
+  const showControls = isItemExpanded || isEditing;
   const sectionItem = item as TextSectionItem;
   const isHovered = hoveredItemId === item.id;
   const router = useRouter()
@@ -154,7 +156,10 @@ export function SectionItem({
             item={item}
             content={sectionItem.content}
             section={section}
-            onExpandSidebar={() => {}}
+            onExpandSidebar={() => {
+              setIsExpanded(true)
+              setIsWide(true)
+            }}
             onDropdownStateChange={() => {}}
             onDiveIn={() => onDiveIn(sectionItem)}
           />

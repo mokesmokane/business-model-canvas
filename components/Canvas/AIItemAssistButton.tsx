@@ -31,6 +31,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 
 interface AIItemAssistButtonProps {
   section: string
@@ -64,8 +65,8 @@ export function AIItemAssistButton({
   const [showEditOptions, setShowEditOptions] = useState(false)
   const [lengthValue, setLengthValue] = useState([4])
   const [readingLevelValue, setReadingLevelValue] = useState([3])
-  const [selectedEmojiOption, setSelectedEmojiOption] = useState<string>('words')
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [customInstruction, setCustomInstruction] = useState('')
 
   const mainActions: ActionItem[] = [
     { key: 'critique', label: 'Critique', icon: MessageCircle },
@@ -90,7 +91,31 @@ export function AIItemAssistButton({
     'Graduate School'
   ]
 
-  const editActions = [
+  const editActions: ActionItem[] = [
+    { 
+      key: 'customInstruct', 
+      label: 'Custom Instruction', 
+      icon: MessageCircle,
+      subMenu: true,
+      renderContent: () => (
+        <div className="p-2 space-y-2 w-[250px]">
+          <DropdownMenuLabel>Custom Instruction</DropdownMenuLabel>
+          <Input
+            value={customInstruction}
+            onChange={(e) => setCustomInstruction(e.target.value)}
+            placeholder="Enter your instruction..."
+            className="mb-2"
+          />
+          <Button 
+            onClick={() => handleAction('customInstruct', customInstruction)}
+            className="w-full"
+            disabled={!customInstruction.trim()}
+          >
+            Apply
+          </Button>
+        </div>
+      )
+    },
     { 
       key: 'addEmojis', 
       label: 'Add Emojis', 
@@ -245,6 +270,17 @@ Elaborate significantly—extend this to about 100% longer`
         section: section,
         item: item,
         instruction: instruction
+      })
+    } else if (action === 'customInstruct') {
+      if(!formData || !item) {
+        return
+      }
+
+      requestSuggestions({
+        currentContent: formData,
+        section: section,
+        item: item,
+        instruction: args
       })
     }
       

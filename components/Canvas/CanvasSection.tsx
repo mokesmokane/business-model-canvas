@@ -313,7 +313,7 @@ export function CanvasSection({
                   section={sectionKey}
                   onDiveIn={handleDiveIn}
                   isActive={activeItemIndex === index}  
-                  isExpanded={expandedItemIndex === index}
+                  isItemExpanded={expandedItemIndex === index}
                   onClick={() => handleItemClick(index)}
                   onDelete={() => handleDeleteItem(index)}
                   isEditing={editingIndex === index}
