@@ -26,6 +26,7 @@ import { useAiGeneration } from '@/contexts/AiGenerationContext';
 import { useRouter } from 'next/navigation'
 import { MobileConfirmDiveInSheet } from './MobileConfirmDiveInSheet'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { SectionItemAIEditProvider } from '@/contexts/SectionItemAIEditContext'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -305,23 +306,25 @@ export function CanvasSection({
             : 'space-y-2'
           }>
             {sectionItemsArray.map((item, index) => (
-              <SectionItem
-                key={index}
-                item={item}
-                section={sectionKey}
-                onDiveIn={handleDiveIn}
-                isActive={activeItemIndex === index}  
-                isExpanded={expandedItemIndex === index}
-                onClick={() => handleItemClick(index)}
-                onDelete={() => handleDeleteItem(index)}
-                isEditing={editingIndex === index}
-                onEditStart={() => handleEditStart(index)}
-                onDeleteLink={() => handleDeleteLink(index)}
-                onEditEnd={() => handleEditCancel()}
-                className={`cursor-pointer ${
-                  expandedItemIndex === index ? 'bg-gray-200' : ''
-                } hover:bg-gray-100`}
-              />
+              <SectionItemAIEditProvider>
+                <SectionItem
+                  key={index}
+                  item={item}
+                  section={sectionKey}
+                  onDiveIn={handleDiveIn}
+                  isActive={activeItemIndex === index}  
+                  isExpanded={expandedItemIndex === index}
+                  onClick={() => handleItemClick(index)}
+                  onDelete={() => handleDeleteItem(index)}
+                  isEditing={editingIndex === index}
+                  onEditStart={() => handleEditStart(index)}
+                  onDeleteLink={() => handleDeleteLink(index)}
+                  onEditEnd={() => handleEditCancel()}
+                  className={`cursor-pointer ${
+                    expandedItemIndex === index ? 'bg-gray-200' : ''
+                  } hover:bg-gray-100`}
+                />
+              </SectionItemAIEditProvider>
             ))}
           </div>
         </ScrollArea>

@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AIItemAssistButton } from './AIItemAssistButton';
-import { Edit2, Link, Trash2 } from 'lucide-react';
+import { Edit2, Link, Trash2, Check, X } from 'lucide-react';
 import { useCanvas } from '@/contexts/CanvasContext';
 import { SectionItem as SectionItemType, TextSectionItem } from '@/types/canvas';
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogHeader, DialogFooter } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown';
+import { useSectionItemAIEdit } from '@/contexts/SectionItemAIEditContext';
 
 interface SectionItemProps {
   item: SectionItemType;
@@ -44,6 +45,8 @@ export function SectionItem({
   const sectionItem = item as TextSectionItem;
   const isHovered = hoveredItemId === item.id;
   const router = useRouter()
+  const { suggestion, status, clearSuggestions, acceptSuggestion, rejectSuggestion } = useSectionItemAIEdit();
+  const isAIEditing = status === 'Thinking' || suggestion !== null;
 
   const handleCanvasLink = async () => {
     try {
@@ -64,6 +67,8 @@ export function SectionItem({
       canvasTheme={canvasTheme}
       className={`mb-2 p-3 transition-all duration-300 relative ${
         isEditing ? 'border-primary/50 bg-primary/5 shadow-md' : ''
+      } ${
+        isAIEditing ? 'border-blue-500/50 bg-blue-500/5 shadow-md' : ''
       } ${
         isHovered ? (canvasTheme === 'light' ? 'bg-gray-100' : 'bg-gray-900') : '!bg-transparent'
       } ${className}`}
@@ -86,6 +91,56 @@ export function SectionItem({
           {sectionItem.content}
         </ReactMarkdown>
       </div>
+
+      {isAIEditing && (
+        <div className="mt-4">
+          {status === 'Thinking' && !suggestion && (
+            <div className="text-sm text-muted-foreground animate-pulse">
+              AI is thinking...
+            </div>
+          )}
+          {suggestion !== null && (
+            <>
+              <div className="text-sm font-medium mb-2">Suggested Edit:</div>
+              <div 
+                className={`text-sm whitespace-pre-wrap mb-2 ${
+                  canvasTheme === 'light' ? 'text-gray-700' : 'text-gray-100'
+                }`}
+              >
+                <ReactMarkdown>
+                  {suggestion}
+                </ReactMarkdown>
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={rejectSuggestion}
+                  className="flex items-center gap-1"
+                >
+                  <X className="h-4 w-4" />
+                  Reject
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    // acceptSuggestion({
+                    //   currentContent: item,
+                    //   section,
+                    //   item: sectionItem,
+                    //   newContent: suggestion
+                    // });
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Check className="h-4 w-4" />
+                  Accept
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       <div
         className={`
