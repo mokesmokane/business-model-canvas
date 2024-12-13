@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { 
   Sparkles,
@@ -15,6 +15,8 @@ import {
   ListOrdered,
   XCircle,
   Type,
+  ChevronRight,
+  ChevronLeft,
 } from 'lucide-react'
 import { createRequestSuggestEditMessage, createTextMessage, useChat } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
@@ -31,6 +33,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 
@@ -62,6 +65,19 @@ export function AIItemAssistButton({
   const { sendMessage, isLoading } = useChat()
   const { formData, canvasTheme } = useCanvas()
   const { requestSuggestions, resetState } = useSectionItemAIEdit()
+  const [isMobile, setIsMobile] = useState(false)
+  const [currentMenu, setCurrentMenu] = useState<'main' | 'edit' | string>('main')
+
+  // Check if mobile on mount and window resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768) // 768px is typical mobile breakpoint
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const [showEditOptions, setShowEditOptions] = useState(false)
   const [lengthValue, setLengthValue] = useState([4])
@@ -358,6 +374,7 @@ Elaborate significantly—extend this to about 100% longer`
         setIsDropdownOpen(isOpen)
         if (!isOpen) {
           setShowEditOptions(false)
+          setCurrentMenu('main')
           resetState()
           onDropdownStateChange(false)
         } else {
@@ -378,43 +395,79 @@ Elaborate significantly—extend this to about 100% longer`
       <DropdownMenuContent 
         canvasTheme={canvasTheme}
         align="end" 
-        className={`w-48 transition-all duration-200 ease-in-out`}
+        className={`transition-all duration-200 ease-in-out ${
+          isMobile && (currentMenu === 'customInstruct') ? 'w-[260px]' : currentMenu === 'formatText' ? 'w-[350px]' : 'w-48'
+        }`}
       >
-        {(showEditOptions ? editActions : mainActions).map(({ key, label, icon: Icon, subMenu, renderContent }) => (
-          subMenu ? (
-            <DropdownMenuSub key={key}>
-              <DropdownMenuSubTrigger className="flex items-center gap-2">
+        {isMobile ? (
+          // Mobile: Flat menu structure
+          currentMenu === 'main' ? (
+            (showEditOptions ? editActions : mainActions).map(({ key, label, icon: Icon, subMenu }) => (
+              <DropdownMenuItem
+                key={key}
+                onClick={(e) => {
+                  if (key === 'suggestEdit') {
+                    e.preventDefault()
+                    setShowEditOptions(true)
+                    return
+                  }
+                  if (subMenu) {
+                    e.preventDefault()
+                    setCurrentMenu(key)
+                    return
+                  }
+                  handleAction(key)
+                }}
+                className="flex items-center gap-2"
+              >
                 <Icon className={`h-4 w-4 ${
                   canvasTheme === 'light'
                     ? 'text-gray-600'
                     : 'text-gray-400'
                 }`} />
                 {label}
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                {renderContent?.()}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          ) : (
-            <DropdownMenuItem
-              key={key}
-              onClick={(e) => {
-                if (key === 'suggestEdit') {
-                  e.preventDefault()
-                }
-                handleAction(key)
-              }}
-              className="flex items-center gap-2"
-            >
-              <Icon className={`h-4 w-4 ${
-                canvasTheme === 'light'
-                  ? 'text-gray-600'
-                  : 'text-gray-400'
-              }`} />
-              {label}
-            </DropdownMenuItem>
-          )
-        ))}
+                {subMenu && <ChevronRight className="ml-auto h-4 w-4" />}
+              </DropdownMenuItem>
+            ))
+          ) : (editActions.find(a => a.key === currentMenu)?.renderContent?.())
+        ) : (
+          // Desktop: Original nested menu structure
+          (showEditOptions ? editActions : mainActions).map(({ key, label, icon: Icon, subMenu, renderContent }) => (
+            subMenu ? (
+              <DropdownMenuSub key={key}>
+                <DropdownMenuSubTrigger className="flex items-center gap-2">
+                  <Icon className={`h-4 w-4 ${
+                    canvasTheme === 'light'
+                      ? 'text-gray-600'
+                      : 'text-gray-400'
+                  }`} />
+                  {label}
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  {renderContent?.()}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+            ) : (
+              <DropdownMenuItem
+                key={key}
+                onClick={(e) => {
+                  if (key === 'suggestEdit') {
+                    e.preventDefault()
+                  }
+                  handleAction(key)
+                }}
+                className="flex items-center gap-2"
+              >
+                <Icon className={`h-4 w-4 ${
+                  canvasTheme === 'light'
+                    ? 'text-gray-600'
+                    : 'text-gray-400'
+                }`} />
+                {label}
+              </DropdownMenuItem>
+            )
+          ))
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

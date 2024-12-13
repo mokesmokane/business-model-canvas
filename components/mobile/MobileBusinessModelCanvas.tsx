@@ -40,6 +40,17 @@ export function MobileBusinessModelCanvas({ canvasId }: { canvasId: string }) {
   if (!formData) return null;
   if (isLoading) return <div className="flex justify-center items-center h-[calc(100vh-64px)]"><Loader2 className="animate-spin" /></div>;
   
+  const sortedSections = Array.from(formData.sections.entries())
+    .map(([key, section]) => {
+      const sectionConfig = formData.canvasType.sections.find(s => s.name === section.name);
+      return {
+        key,
+        section,
+        gridIndex: sectionConfig?.gridIndex || 0
+      };
+    })
+    .sort((a, b) => a.gridIndex - b.gridIndex);
+
   return (
     <div className={`flex flex-col h-[calc(100vh-64px)] ${
       canvasTheme === 'light' ? 'bg-white' : 'bg-gray-950'
@@ -50,11 +61,9 @@ export function MobileBusinessModelCanvas({ canvasId }: { canvasId: string }) {
           onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
           className="h-full"
         >
-          {Array.from(formData.sections.entries()).map(([key, section]) => {
+          {sortedSections.map(({ key, section }) => {
             const sectionConfig = formData.canvasType.sections.find(s => s.name === section.name);
             if (!sectionConfig) return null;
-            const sectionData = formData.sections.get(key);
-            if (!sectionData) return null;
             return (
               <SwiperSlide key={key}>
                 <CanvasSection
@@ -63,7 +72,7 @@ export function MobileBusinessModelCanvas({ canvasId }: { canvasId: string }) {
                   title={section.name}
                   icon={sectionConfig?.icon || ''}
                   sectionKey={key}
-                  section={sectionData}
+                  section={section}
                 /> 
               </SwiperSlide>
             );
@@ -72,7 +81,7 @@ export function MobileBusinessModelCanvas({ canvasId }: { canvasId: string }) {
       </div>
 
       <div className={`fixed bottom-16 left-0 right-0 flex justify-center gap-2 py-2 z-10 bg-transparent`}>
-        {Array.from(formData.sections.entries()).map((_, index) => (
+        {sortedSections.map((_, index) => (
           <div
             key={index}
             className={`h-2 w-2 rounded-full transition-all ${
