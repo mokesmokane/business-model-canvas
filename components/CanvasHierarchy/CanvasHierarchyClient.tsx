@@ -6,6 +6,7 @@ import { useCanvasService } from '@/contexts/CanvasServiceContext';
 import { buildCanvasHierarchy } from '@/types/canvas';
 import { CanvasMetadata } from '@/services/canvasService';
 import { useAuth } from '@/contexts/AuthContext';
+import { CanvasHierarchyNode } from '@/types/canvas';
 
 interface CanvasHierarchyClientProps {
   canvasId: string;
@@ -15,7 +16,7 @@ export function CanvasHierarchyClient({ canvasId }: CanvasHierarchyClientProps) 
   const { user, loading: authLoading } = useAuth();
   const canvasService = useCanvasService();
   const [error, setError] = useState<string | null>(null);
-  const [hierarchy, setHierarchy] = useState<CanvasMetadata[]>([]);
+  const [hierarchy, setHierarchy] = useState<CanvasHierarchyNode[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +26,8 @@ export function CanvasHierarchyClient({ canvasId }: CanvasHierarchyClientProps) 
         setLoading(false);
         return;
       }
+
+      await canvasService.initialize(user.uid);
 
       try {
         const allCanvases = await canvasService.getAllCanvasesMetadata();
@@ -36,7 +39,7 @@ export function CanvasHierarchyClient({ canvasId }: CanvasHierarchyClientProps) 
         }
 
         const hierarchyData = buildCanvasHierarchy(startCanvas, allCanvases);
-        setHierarchy(hierarchyData);
+        setHierarchy([hierarchyData]);
       } catch (error) {
         console.error('Error loading canvas hierarchy:', error);
         setError('Error loading canvas hierarchy');

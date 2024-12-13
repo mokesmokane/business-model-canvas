@@ -31,10 +31,9 @@ export default function Page() {
   }, [])
 
   const content = (
-    <div className="flex-1 container mx-auto py-8 overflow-auto">
-      <h1 className="text-3xl font-bold mb-8">Canvas Hierarchy</h1>
+    <div className="flex-1 overflow-hidden">
       {!canvasId ? (
-        <div className="text-muted-foreground">Please provide a canvas ID in the URL</div>
+        <div className="text-muted-foreground p-8">Please provide a canvas ID in the URL</div>
       ) : (
         <CanvasHierarchyClient canvasId={canvasId} />
       )}

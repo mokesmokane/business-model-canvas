@@ -84,7 +84,7 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
   }, [])
 
   return (
-    <div className="w-full h-[800px] bg-muted/40 rounded-lg border">
+    <div className="w-full h-[calc(100vh-4rem)] bg-muted/40 rounded-lg border">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -95,7 +95,7 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
         fitView
         className="bg-background"
       >
-        <Background />
+        {/* <Background /> */}
         <Controls />
       </ReactFlow>
     </div>

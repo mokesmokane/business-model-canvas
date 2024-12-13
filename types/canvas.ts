@@ -180,72 +180,69 @@ export interface CanvasHierarchyNode {
   parentId?: string;
   children?: CanvasHierarchyNode[];
 }
-
 export function buildCanvasHierarchy(
   startCanvas: CanvasMetadata,
   allCanvases: Map<string, CanvasMetadata>
-): CanvasHierarchyNode[] {
-  // First, crawl up to find the root canvas(es)
-  const findRootCanvas = (canvas: CanvasMetadata): CanvasMetadata => {
-    if (!canvas.parentCanvasId || !allCanvases.has(canvas.parentCanvasId)) {
-      return canvas;
+): CanvasHierarchyNode {
+  const nodes = new Map<string, CanvasHierarchyNode>();
+
+  // 1. Find the root canvas of the hierarchy
+  function findRootCanvas(canvas: CanvasMetadata): CanvasMetadata {
+    let current = canvas;
+    while (current.parentCanvasId && allCanvases.has(current.parentCanvasId)) {
+      const parent = allCanvases.get(current.parentCanvasId)!;
+      current = parent; // move up one level
     }
-    const parentCanvas = allCanvases.get(canvas.parentCanvasId);
-    return parentCanvas ? findRootCanvas(parentCanvas) : canvas;
-  };
+    return current;
+  }
 
   const rootCanvas = findRootCanvas(startCanvas);
-  const processedIds = new Set<string>();
 
-  // Helper function to build node hierarchy
-  const buildNode = (canvas: CanvasMetadata): CanvasHierarchyNode => {
-    if (processedIds.has(canvas.id)) {
-      return {
-        id: canvas.id,
-        title: canvas.name,
-        type: canvas.canvasType.name,
-      };
+  // 2. Recursive function to build the hierarchy from a given canvas downwards
+  function buildHierarchy(canvasId: string): CanvasHierarchyNode {
+    // If the node is already created, return it to avoid duplication
+    if (nodes.has(canvasId)) {
+      return nodes.get(canvasId)!;
     }
-    
-    processedIds.add(canvas.id);
-    
-    // Get child canvases from section item links
-    const childCanvases: CanvasMetadata[] = [];
-    canvas.sections.forEach(section => {
-      section.sectionItems.forEach(item => {
-        if (item.canvasLink && allCanvases.has(item.canvasLink.canvasId)) {
-          const linkedCanvas = allCanvases.get(item.canvasLink.canvasId);
-          if (linkedCanvas) {
-            childCanvases.push(linkedCanvas);
-          }
-        }
-      });
-    });
-    
+
+    // Get the current canvas metadata
+    const canvas = allCanvases.get(canvasId);
+    if (!canvas) {
+      throw new Error(`Canvas with ID ${canvasId} not found in the lookup.`);
+    }
+
+    // Create a new node for this canvas
     const node: CanvasHierarchyNode = {
       id: canvas.id,
       title: canvas.name,
       type: canvas.canvasType.name,
+      parentId: canvas.parentCanvasId || undefined,
+      children: []
     };
-    
-    if (canvas.parentCanvasId) {
-      node.parentId = canvas.parentCanvasId;
-    }
-    
-    if (childCanvases.length > 0) {
-      node.children = childCanvases.map(child => buildNode(child));
-    }
-    
-    return node;
-  };
 
-  // If the root canvas is the same as our start canvas, just return a single node
-  if (rootCanvas.id === startCanvas.id) {
-    return [buildNode(rootCanvas)];
+    // Store it in the map
+    nodes.set(canvasId, node);
+
+    // Recursively build and link children from the canvas's sections
+    Array.from(canvas.sections.values()).forEach(section => {
+      if (!section.sectionItems) return;
+      
+      section.sectionItems.forEach(item => {
+        if (item.canvasLink && allCanvases.has(item.canvasLink.canvasId)) {
+          const childNode = buildHierarchy(item.canvasLink.canvasId);
+          // Add the child if not already present
+          if (!node.children!.some(c => c.id === childNode.id)) {
+            node.children!.push(childNode);
+          }
+        }
+      });
+    });
+
+    return node;
   }
 
-  // Otherwise, we need to build the full hierarchy from the root down to include our canvas
-  const hierarchy = [buildNode(rootCanvas)];
+  // 3. Build the entire hierarchy starting from the root
+  const hierarchy = buildHierarchy(rootCanvas.id);
+
   return hierarchy;
 }
-  
