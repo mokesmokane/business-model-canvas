@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, query } from 'firebase/firestore';
 import { Canvas, Section } from '@/types/canvas';
 import { CanvasSection, CanvasType } from '@/types/canvas-sections';
 import { SerializedCanvas, SerializedSections } from '@/types/canvas';
@@ -75,6 +75,16 @@ export const serializeCanvas = (canvas: Canvas): SerializedCanvas => {
     return sectionsMap;
   };
   
+// Add new interface for canvas metadata
+export interface CanvasMetadata {
+  id: string;
+  name: string;
+  description: string;
+  canvasType: CanvasType;
+  parentCanvasId: string | null;
+  sections: Map<string, Section>;
+}
+
 export class CanvasService {
   private static instance: CanvasService;
   private currentUserId: string | null = null;
@@ -124,6 +134,29 @@ export class CanvasService {
     await addCanvasToFolder(userId, data.folderId, {id: newCanvas.id, name: newCanvas.name, canvasTypeId: newCanvas.canvasType.id});
 
     return newCanvas;
+  }
+
+  async getAllCanvasesMetadata(): Promise<Map<string, CanvasMetadata>> {
+    const userId = this.getUserId();
+    const canvasesRef = collection(db, 'userCanvases', userId, 'canvases');
+    const canvasesSnapshot = await getDocs(query(canvasesRef));
+    
+    const canvasesMap = new Map<string, CanvasMetadata>();
+    
+    canvasesSnapshot.forEach((doc) => {
+      const data = doc.data() as SerializedCanvas;
+      const metadata: CanvasMetadata = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        canvasType: data.canvasType,
+        parentCanvasId: data.parentCanvasId,
+        sections: deserializeSections(data.sections), // We need sections to check for canvas links
+      };
+      canvasesMap.set(doc.id, metadata);
+    });
+    
+    return canvasesMap;
   }
 
   // Add other canvas-related methods here

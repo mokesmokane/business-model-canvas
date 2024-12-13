@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { CreditCard, LogOut, Menu, Settings, User} from "lucide-react"
+import { CreditCard, LogOut, Menu, Settings, User, Network} from "lucide-react"
 import Link from 'next/link'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useAuth } from "@/contexts/AuthContext"
@@ -144,6 +144,10 @@ export function MobileHeader() {
         {formData && (formData?.parentCanvasId || getChildCanvases(formData).length > 0) && (
           <>
             <DropdownMenuLabel>Linked Canvases</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => router.push(`/canvas-hierarchy?canvasId=${formData.id}`)}>
+              <Network className="h-4 w-4 mr-2" />
+              View Canvas Network
+            </DropdownMenuItem>
             {formData.parentCanvasId && (
               <DropdownMenuItem onClick={handleParentCanvasClick}>
                 <ArrowUpRight className="h-4 w-4 mr-2" />

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input'
 import { CompanyEditDialog } from './CompanyEditDialog'
 import { Canvas, TextSectionItem, Section, SectionItem } from '@/types/canvas'
 import { useCanvas } from '@/contexts/CanvasContext'
-import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight, ArrowRight, FileText, Upload, Loader2, Minimize2, Maximize2, Eye, EyeOff } from 'lucide-react'
+import { Grid2x2, Moon, Sun, Printer, ExternalLink, ArrowUpRight, ArrowDownRight, ArrowRight, FileText, Upload, Loader2, Minimize2, Maximize2, Eye, EyeOff, Network } from 'lucide-react'
 import LayoutEditor from './LayoutEditor'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -424,6 +424,7 @@ export function Header() {
               {(formData?.parentCanvasId || getChildCanvases(formData).length > 0) && (
                 <>
                   <DropdownMenuLabel>Linked Canvases</DropdownMenuLabel>
+                  
                   {formData?.parentCanvasId && (
                     <DropdownMenuItem 
                       onClick={handleParentCanvasClick}
@@ -471,6 +472,14 @@ export function Header() {
                       })}
                     </>
                   )}
+
+              <DropdownMenuItem 
+                onClick={() => router.push(`/canvas-hierarchy?canvasId=${formData.id}`)}
+                canvasTheme={canvasTheme}
+              >
+                <Network className="h-4 w-4 mr-2" />
+                Canvas Network
+              </DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               )}
