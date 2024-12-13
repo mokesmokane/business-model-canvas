@@ -14,6 +14,7 @@ import {
   SplitSquareHorizontal,
   ListOrdered,
   XCircle,
+  Type,
 } from 'lucide-react'
 import { createRequestSuggestEditMessage, createTextMessage, useChat } from '@/contexts/ChatContext'
 import { useCanvas } from '@/contexts/CanvasContext'
@@ -60,7 +61,7 @@ export function AIItemAssistButton({
 }: AIItemAssistButtonProps) {
   const { sendMessage, isLoading } = useChat()
   const { formData, canvasTheme } = useCanvas()
-  const { requestSuggestions } = useSectionItemAIEdit()
+  const { requestSuggestions, resetState } = useSectionItemAIEdit()
 
   const [showEditOptions, setShowEditOptions] = useState(false)
   const [lengthValue, setLengthValue] = useState([4])
@@ -90,6 +91,22 @@ export function AIItemAssistButton({
     'College',
     'Graduate School'
   ]
+
+  const formatOptions = [
+    { value: 'key-points', label: 'Highlight Key Points', description: 'Bold important concepts and italicize supporting details' },
+    { value: 'emphasis', label: 'Add Emphasis', description: 'Strategically bold and italicize for better readability' },
+    { value: 'structured', label: 'Structure Format', description: 'Bold headings and italicize quotes/definitions' },
+    { value: 'minimal', label: 'Minimal Highlights', description: 'Light formatting for essential elements only' },
+    { value: 'remove', label: 'Remove Formatting', description: 'Remove all markdown formatting' }
+  ]
+
+  const formatInstructions: Record<string, string> = {
+    'key-points': 'Add markdown formatting by making key concepts and main points bold (**) and supporting details or explanations italic (_). Focus on highlighting the most important information.',
+    'emphasis': 'Add markdown formatting to create natural emphasis in the text. Use bold (**) for strong emphasis and italic (_) for subtle emphasis. Format it in a way that helps with reading flow and comprehension.',
+    'structured': 'Add markdown formatting in a structured way: make all headings and section titles bold (**), use italics (_) for quotes, definitions, and specialized terms.',
+    'minimal': 'Add minimal markdown formatting, using bold (**) only for the most critical points and italic (_) very sparingly for special emphasis.',
+    'remove': 'Remove all markdown formatting (**, _, ##, etc.) from the text while preserving the actual content.'
+  }
 
   const editActions: ActionItem[] = [
     { 
@@ -189,10 +206,35 @@ export function AIItemAssistButton({
           </Button>
         </div>
       )
+    },
+    { 
+      key: 'formatText', 
+      label: 'Format Text', 
+      icon: Type,
+      subMenu: true,
+      renderContent: () => (
+        <div className="p-2 space-y-2">
+          <div className="flex flex-col gap-2">
+            {formatOptions.map((option) => (
+              <Button
+                key={option.value}
+                onClick={() => handleAction('formatText', option.value)}
+                variant="outline"
+                className="w-full justify-start text-left"
+              >
+                <div>
+                  <div>{option.label}</div>
+                  <div className="text-xs text-muted-foreground">{option.description}</div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )
     }
   ]
 
-  const handleAction = async (action: string, args?: any) => {
+  const handleAction = async (action: string, args?: string | number) => {
     console.log('action', action)
     if (action === 'suggestEdit') {
       setShowEditOptions(true)
@@ -200,18 +242,20 @@ export function AIItemAssistButton({
     }
 
     setIsDropdownOpen(false)
+    setShowEditOptions(false)
     onDropdownStateChange(false)
+    resetState()
 
     if (action === 'diveIn') {
       onDiveIn()
     } else if (action === 'addEmojis') {
       var instruction = 'Add emojis to the item'
       if(args === 'words') {
-        instruction = 'Add emojis to the item throughout the text where appropriate. Be liberal with it.  '
+        instruction = 'Add emojis to the item throughout the text where appropriate. Be liberal with it. If its a list or a title, add an emoji before rather than after the text. If its in the middle of a sentence or paragraph, add an emoji after the text.'
       } else if(args === 'sections') {
-        instruction = 'Add an emoji to each paragraph'
+        instruction = 'Add an emoji to the start of each paragraph'
       } else if(args === 'lists') {
-        instruction = 'Add an emoji to each list item'
+        instruction = 'Add an emoji to the start of each list item'
       } else if(args === 'remove') {
         instruction = 'Remove all emojis'
       }
@@ -280,7 +324,18 @@ Elaborate significantly—extend this to about 100% longer`
         currentContent: formData,
         section: section,
         item: item,
-        instruction: args
+        instruction: args as string
+      })
+    } else if (action === 'formatText') {
+      if(!formData || !item) {
+        return
+      }
+
+      requestSuggestions({
+        currentContent: formData,
+        section: section,
+        item: item,
+        instruction: `Format this text using markdown: ${formatInstructions[args as keyof typeof formatInstructions]}`
       })
     }
       
@@ -303,6 +358,7 @@ Elaborate significantly—extend this to about 100% longer`
         setIsDropdownOpen(isOpen)
         if (!isOpen) {
           setShowEditOptions(false)
+          resetState()
           onDropdownStateChange(false)
         } else {
           onDropdownStateChange(true)

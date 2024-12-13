@@ -85,7 +85,7 @@ export async function POST(req: Request) {
         Considerations for this section are: ${sectionConsiderations}
         The section currently has these items: ${currentSection.sectionItems.map((item:SectionItem) => JSON.stringify((item as TextSectionItem).content)).join('\n')}
 
-        JUST RETURN THE EDIT, DO NOT INCLUDE ANY OTHER TEXT
+        JUST RETURN THE EDIT, DO NOT INCLUDE ANY OTHER TEXT. DO NOT PUT THE EDIT IN QUOTES.
         `
       },
       {

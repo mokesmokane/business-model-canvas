@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { Canvas, Section, SectionItem, AIAgent, AISuggestion } from '@/types/canvas';
 import { getAuth } from 'firebase/auth';
+import { useCanvas } from './CanvasContext';
   
 interface SectionItemAIEditContextType {
   suggestion: string | null;
@@ -13,12 +14,11 @@ interface SectionItemAIEditContextType {
   }) => Promise<void>;
   clearSuggestions: () => void;
   acceptSuggestion: (params: {
-    currentContent: Canvas;
     section: string;
     item: SectionItem;
-    newContent: string;
   }) => Promise<void>;
   rejectSuggestion: () => void;
+  resetState: () => void;
 }
 
 const SectionItemAIEditContext = createContext<SectionItemAIEditContextType | undefined>(undefined);
@@ -36,6 +36,7 @@ interface SectionItemAIEditProviderProps {
 }
 
 export function SectionItemAIEditProvider({ children }: SectionItemAIEditProviderProps) {
+  const {updateItem} = useCanvas()
   const [suggestion, setSuggestion] = useState<string|null>(null);
   const [status, setStatus] = useState<string|null>(null);
 
@@ -137,22 +138,24 @@ export function SectionItemAIEditProvider({ children }: SectionItemAIEditProvide
     setSuggestion(null);
   };
 
+  const resetState = useCallback(() => {
+    setSuggestion(null);
+    setStatus(null);
+  }, []);
+
   const acceptSuggestion = async ({
-    currentContent,
     section,
-    item,
-    newContent,
+    item
   }: {
-    currentContent: Canvas;
     section: string;
     item: SectionItem;
-    newContent: string;
   }) => {
-    clearSuggestions();
+    updateItem(section, item)
+    resetState();
   };
 
   const rejectSuggestion = () => {
-    clearSuggestions();
+    resetState();
   };
 
   const value = {
@@ -162,6 +165,7 @@ export function SectionItemAIEditProvider({ children }: SectionItemAIEditProvide
     clearSuggestions,
     acceptSuggestion,
     rejectSuggestion,
+    resetState,
   };
 
   return (

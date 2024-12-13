@@ -8,14 +8,27 @@ import { createNewCanvas } from '@/types/canvas';
 import { addCanvasToFolder, } from './folderService';
 import { TextSectionItem } from '@/types/canvas';
 
+const removeUndefined = (obj: any): any => {
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUndefined(item));
+  }
+  if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([_, value]) => value !== undefined)
+        .map(([key, value]) => [key, removeUndefined(value)])
+    );
+  }
+  return obj;
+};
 // Add this helper function at the top of the file
 export const serializeCanvas = (canvas: Canvas): SerializedCanvas => {
-    return {
+    return  removeUndefined({
       ...canvas,
       sections: serializeSections(canvas.sections),
       createdAt: canvas.createdAt?.toISOString(),
       updatedAt: canvas.updatedAt?.toISOString(),
-    };
+    });
   };
   
   // Add this helper function to deserialize data from Firestore

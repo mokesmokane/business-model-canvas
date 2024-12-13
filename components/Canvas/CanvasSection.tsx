@@ -306,9 +306,8 @@ export function CanvasSection({
             : 'space-y-2'
           }>
             {sectionItemsArray.map((item, index) => (
-              <SectionItemAIEditProvider>
+              <SectionItemAIEditProvider key={item.id || index}>
                 <SectionItem
-                  key={index}
                   item={item}
                   section={sectionKey}
                   onDiveIn={handleDiveIn}
