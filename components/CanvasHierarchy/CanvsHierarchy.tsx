@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState, useEffect } from 'react'
 import ReactFlow, {
   Background,
   Controls,
@@ -67,7 +67,9 @@ interface CanvasHierarchyProps {
 }
 
 export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
-  // Create a layout using dagre
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null)
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null)
+  // Create initial layout
   const { initialNodes, initialEdges } = useMemo(() => {
     const dagreGraph = new dagre.graphlib.Graph()
     dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -86,19 +88,41 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
         id: canvas.id,
         type: 'canvas',
         position: { x: 0, y: 0 }, // Will be calculated by dagre
-        data: { canvas },
+        data: { 
+          canvas,
+          isHighlighted: hoveredNode ? canvas.id === hoveredNode : false,
+          isParentHighlighted: false,
+          highlightedSection: null,
+          highlightItem: null,
+          onNodeMouseEnter: (itemId?: string) => {
+            console.log('onNodeMouseEnter', itemId)
+            setHoveredNode(canvas.id)
+            setHoveredItem(itemId || null)
+          },
+          onNodeMouseLeave: () => setHoveredNode(null),
+        },
       }
       
       nodes.push(node)
       dagreGraph.setNode(canvas.id, { width: 100, height: 40 }) // Width and height reduced by 50%
       
       if (canvas.parentId) {
+        console.log('Creating edge with data:', {
+          parentId: canvas.parentId,
+          parentSection: canvas.parentSection,
+          parentSectionItem: canvas.parentSectionItem
+        })
+
         const edge: Edge = {
           id: `${canvas.parentId}-${canvas.id}`,
           source: canvas.parentId,
           target: canvas.id,
           type: 'custom',
           label: canvas.parentSection || '',
+          data: {
+            sourceSection: canvas.parentSection,
+            sourceItem: canvas.parentSectionItem || null
+          }
         }
         edges.push(edge)
         dagreGraph.setEdge(canvas.parentId, canvas.id)
@@ -129,6 +153,42 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
 
+  // Modified effect to only highlight sections and items
+  useEffect(() => {
+    if (!hoveredNode) {
+      setNodes(currentNodes => 
+        currentNodes.map(node => ({
+          ...node,
+          data: {
+            ...node.data,
+            highlightedSection: null,
+            highlightItem: null,
+            isHighlighted: false,
+            isParentHighlighted: false
+          }
+        }))
+      )
+      return
+    }
+
+    const parentEdge = edges.find(edge => edge.target === hoveredNode)
+    const sourceSection = parentEdge?.data?.sourceSection
+    const sourceItem = parentEdge?.data?.sourceItem
+
+    setNodes(currentNodes => 
+      currentNodes.map(node => ({
+        ...node,
+        data: {
+          ...node.data,
+          highlightedSection: node.id === parentEdge?.source ? sourceSection : null,
+          highlightItem: node.id === parentEdge?.source ? sourceItem : null,
+          isHighlighted: node.id === hoveredNode,
+          isParentHighlighted: node.id === parentEdge?.source
+        }
+      }))
+    )
+  }, [hoveredNode, edges, setNodes])
+
   const onInit = useCallback((reactFlowInstance: any) => {
     reactFlowInstance.fitView()
   }, [])
@@ -151,6 +211,14 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
         }}
         defaultViewport={{ zoom: 0.01, x: 0, y: 0 }} // Set initial zoom level
         className="bg-background"
+        onNodeMouseEnter={(_, node) => {
+          console.log('ReactFlow node mouse enter:', node.id)
+          setHoveredNode(node.id)
+        }}
+        onNodeMouseLeave={(_, node) => {
+          console.log('ReactFlow node mouse leave:', node.id)
+          setHoveredNode(null)
+        }}
       >
         <Controls />
       </ReactFlow>
