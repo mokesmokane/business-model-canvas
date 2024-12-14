@@ -1,5 +1,5 @@
 import { db } from '@/lib/firebase';
-import { collection, doc, setDoc, getDocs, query } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, query, getDoc } from 'firebase/firestore';
 import { Canvas, Section } from '@/types/canvas';
 import { CanvasSection, CanvasType } from '@/types/canvas-sections';
 import { SerializedCanvas, SerializedSections } from '@/types/canvas';
@@ -134,6 +134,13 @@ export class CanvasService {
     await addCanvasToFolder(userId, data.folderId, {id: newCanvas.id, name: newCanvas.name, canvasTypeId: newCanvas.canvasType.id});
 
     return newCanvas;
+  }
+
+  async getCanvas(canvasId: string): Promise<Canvas | null> {
+    const userId = this.getUserId();
+    const docRef = doc(collection(db, 'userCanvases', userId, 'canvases'), canvasId);
+    const docSnap = await getDoc(docRef);
+    return docSnap.exists() ? deserializeCanvas(docSnap.data() as SerializedCanvas) : null;
   }
 
   async getAllCanvasesMetadata(): Promise<Map<string, CanvasMetadata>> {

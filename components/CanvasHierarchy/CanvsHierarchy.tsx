@@ -8,6 +8,10 @@ import ReactFlow, {
   Node,
   useEdgesState,
   useNodesState,
+  getBezierPath,
+  EdgeTypes,
+  BaseEdge,
+  EdgeLabelRenderer,
 } from 'reactflow'
 import dagre from 'dagre'
 import { CanvasHierarchyNode } from '@/types/canvas'
@@ -18,6 +22,46 @@ const nodeTypes = {
   canvas: CanvasNode,
 }
 
+const CustomEdge = ({
+    id,
+    sourceX,
+    sourceY,
+    targetX,
+    targetY,
+    label,
+    ...props
+  }: any) => {
+    const [edgePath, labelX, labelY] = getBezierPath({
+      sourceX,
+      sourceY,
+      targetX,
+      targetY,
+    });
+  
+    return (
+      <>
+        <BaseEdge path={edgePath} {...props} />
+        <EdgeLabelRenderer>
+          <div
+            style={{
+              position: 'absolute',
+              transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+              pointerEvents: 'all', // allow interaction if needed
+            }}
+            className="text-xs text-muted-foreground bg-white px-1 py-0.5 rounded"
+          >
+            {label || ''}
+          </div>
+        </EdgeLabelRenderer>
+      </>
+    );
+  };
+  
+
+const edgeTypes = {
+  custom: CustomEdge,
+};
+
 interface CanvasHierarchyProps {
   canvases: CanvasHierarchyNode[]
 }
@@ -27,7 +71,11 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
   const { initialNodes, initialEdges } = useMemo(() => {
     const dagreGraph = new dagre.graphlib.Graph()
     dagreGraph.setDefaultEdgeLabel(() => ({}))
-    dagreGraph.setGraph({ rankdir: 'TB', nodesep: 50, ranksep: 100 })
+    dagreGraph.setGraph({ 
+      rankdir: 'TB', 
+      nodesep: 250,  // Reduced by 50%
+      ranksep: 350   // Reduced by 50%
+    })
 
     // Create nodes
     const nodes: Node[] = []
@@ -42,13 +90,15 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
       }
       
       nodes.push(node)
-      dagreGraph.setNode(canvas.id, { width: 200, height: 80 })
+      dagreGraph.setNode(canvas.id, { width: 100, height: 40 }) // Width and height reduced by 50%
       
       if (canvas.parentId) {
         const edge: Edge = {
           id: `${canvas.parentId}-${canvas.id}`,
           source: canvas.parentId,
           target: canvas.id,
+          type: 'custom',
+          label: canvas.parentSection || '',
         }
         edges.push(edge)
         dagreGraph.setEdge(canvas.parentId, canvas.id)
@@ -91,11 +141,17 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onInit={onInit}
         fitView
+        fitViewOptions={{
+          padding: 0.2, // Add padding around the viewport
+          minZoom: 0.01, // Allow zooming out further
+          maxZoom: 2
+        }}
+        defaultViewport={{ zoom: 0.01, x: 0, y: 0 }} // Set initial zoom level
         className="bg-background"
       >
-        {/* <Background /> */}
         <Controls />
       </ReactFlow>
     </div>

@@ -13,7 +13,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <SubscriptionProvider>
           <TooltipProvider> 
             <ExpandedProvider>
-              {children}
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+              >
+                {children}
+              </ThemeProvider>
             </ExpandedProvider>
           </TooltipProvider>
         </SubscriptionProvider>

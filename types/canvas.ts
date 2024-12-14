@@ -178,8 +178,10 @@ export interface CanvasHierarchyNode {
   title: string;
   type: string;
   parentId?: string;
+  parentSection?: string;
   children?: CanvasHierarchyNode[];
 }
+
 export function buildCanvasHierarchy(
   startCanvas: CanvasMetadata,
   allCanvases: Map<string, CanvasMetadata>
@@ -199,7 +201,7 @@ export function buildCanvasHierarchy(
   const rootCanvas = findRootCanvas(startCanvas);
 
   // 2. Recursive function to build the hierarchy from a given canvas downwards
-  function buildHierarchy(canvasId: string): CanvasHierarchyNode {
+  function buildHierarchy(canvasId: string, parentSection?: string): CanvasHierarchyNode {
     // If the node is already created, return it to avoid duplication
     if (nodes.has(canvasId)) {
       return nodes.get(canvasId)!;
@@ -217,6 +219,7 @@ export function buildCanvasHierarchy(
       title: canvas.name,
       type: canvas.canvasType.name,
       parentId: canvas.parentCanvasId || undefined,
+      parentSection: parentSection,
       children: []
     };
 
@@ -229,7 +232,7 @@ export function buildCanvasHierarchy(
       
       section.sectionItems.forEach(item => {
         if (item.canvasLink && allCanvases.has(item.canvasLink.canvasId)) {
-          const childNode = buildHierarchy(item.canvasLink.canvasId);
+          const childNode = buildHierarchy(item.canvasLink.canvasId, section.name);
           // Add the child if not already present
           if (!node.children!.some(c => c.id === childNode.id)) {
             node.children!.push(childNode);

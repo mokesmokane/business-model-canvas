@@ -36,12 +36,7 @@ export function MainContent() {
   return (
     <div className={`h-screen flex flex-col ${user && isVerified ? 'overflow-hidden' : ''}`}>
       {user && isVerified ? (
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        
             <CanvasFoldersProvider>
             <CanvasContextProvider>
             <AIAgentProvider>
@@ -68,7 +63,6 @@ export function MainContent() {
               </AIAgentProvider>    
               </CanvasContextProvider>
             </CanvasFoldersProvider>
-        </ThemeProvider>
       ) : (
         <LandingPage />
       )}
