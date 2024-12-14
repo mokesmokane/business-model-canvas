@@ -96,50 +96,52 @@ export function CanvasNode({ data }: CanvasNodeProps) {
                       gap: '0.25rem',
                     }}
                   >
-                    {Array.from(canvasData.sections.values()).map((section, index) => (
-                      <div
-                        key={index}
-                        className={`flex flex-col p-1 rounded-sm border border-dashed
-                          ${section.name === highlightedSection 
-                            ? 'border-blue-500 bg-blue-50' 
-                            : 'border-primary/20 bg-primary/5'}`}
-                        style={{
-                          gridArea: canvasData.canvasLayout.areas?.[index] || 'auto',
-                        }}
-                      >
-                        <div className="flex items-start gap-0.5">
-                          {canvasData.canvasType.sections[index]?.icon && (
-                            <DynamicIcon 
-                              name={canvasData.canvasType.sections[index].icon} 
-                              className="w-2 h-2 text-primary"
-                            />
-                          )}
-                          <span className="text-[0.5rem] text-primary truncate">
-                            {section.name}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap gap-0.5 mt-0.5">
-                          {Array.from(section.sectionItems).map((item, itemIndex) => (
-                            <div 
-                              key={itemIndex} 
-                              className="flex items-center gap-0.5 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setSelectedItem({ item, sectionName: section.name })
-                              }}
-                            >
-                              <span className={`text-[0.5rem] px-1 py-0.5 rounded-sm
-                                ${section.name === highlightedSection && item.id === highlightItem
-                                  ? 'bg-blue-300 text-blue-800'
-                                  : 'bg-gray-300 text-gray-300'}`}
+                    {Array.from(canvasData.sections.values())
+                      .sort((a, b) => a.gridIndex - b.gridIndex)
+                      .map((section, index) => (
+                        <div
+                          key={index}
+                          className={`flex flex-col p-1 rounded-sm border border-dashed
+                            ${section.name === highlightedSection 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-primary/20 bg-primary/5'}`}
+                          style={{
+                            gridArea: canvasData.canvasLayout.areas?.[index] || 'auto',
+                          }}
+                        >
+                          <div className="flex items-start gap-0.5">
+                            {canvasData.canvasType.sections[index]?.icon && (
+                              <DynamicIcon 
+                                name={canvasData.canvasType.sections[index].icon} 
+                                className="w-2 h-2 text-primary"
+                              />
+                            )}
+                            <span className="text-[0.5rem] text-primary truncate">
+                              {section.name}
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap gap-0.5 mt-0.5">
+                            {Array.from(section.sectionItems).map((item, itemIndex) => (
+                              <div 
+                                key={itemIndex} 
+                                className="flex items-center gap-0.5 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSelectedItem({ item, sectionName: section.name })
+                                }}
                               >
-                                {itemIndex + 1}
-                              </span>
-                            </div>
-                          ))}
+                                <span className={`text-[0.5rem] px-1 py-0.5 rounded-sm
+                                  ${section.name === highlightedSection && item.id === highlightItem
+                                    ? 'bg-blue-300 text-blue-800'
+                                    : 'bg-gray-300 text-gray-300'}`}
+                                >
+                                  {itemIndex + 1}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
                   </div>
                 </div>
                 <div className="mt-0.5">
