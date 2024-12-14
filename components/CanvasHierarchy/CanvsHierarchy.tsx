@@ -40,13 +40,19 @@ const CustomEdge = ({
   
     return (
       <>
-        <BaseEdge path={edgePath} {...props} />
+        <path 
+          d={edgePath} 
+          className="react-flow__edge-path" 
+          stroke="currentColor" 
+          fill="none"
+          strokeWidth={1}
+        />
         <EdgeLabelRenderer>
           <div
             style={{
               position: 'absolute',
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
-              pointerEvents: 'all', // allow interaction if needed
+              pointerEvents: 'all',
             }}
             className="text-xs text-muted-foreground bg-white px-1 py-0.5 rounded"
           >
@@ -88,6 +94,7 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
         id: canvas.id,
         type: 'canvas',
         position: { x: 0, y: 0 }, // Will be calculated by dagre
+        connectable: false,
         data: { 
           canvas,
           isHighlighted: hoveredNode ? canvas.id === hoveredNode : false,
@@ -195,6 +202,18 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
 
   return (
     <div className="w-full h-[calc(100vh-4rem)] bg-muted/40 rounded-lg border">
+      <style>
+        {`
+          .react-flow__edge-path {
+            marker-end: none !important;
+            marker-start: none !important;
+          }
+          .react-flow__edge.selected .react-flow__edge-path {
+            marker-end: none !important;
+            marker-start: none !important;
+          }
+        `}
+      </style>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -204,12 +223,13 @@ export function CanvasHierarchy({ canvases }: CanvasHierarchyProps) {
         edgeTypes={edgeTypes}
         onInit={onInit}
         fitView
+        nodesConnectable={false}
         fitViewOptions={{
-          padding: 0.2, // Add padding around the viewport
-          minZoom: 0.01, // Allow zooming out further
+          padding: 0.2,
+          minZoom: 0.01,
           maxZoom: 2
         }}
-        defaultViewport={{ zoom: 0.01, x: 0, y: 0 }} // Set initial zoom level
+        defaultViewport={{ zoom: 0.01, x: 0, y: 0 }}
         className="bg-background"
         onNodeMouseEnter={(_, node) => {
           console.log('ReactFlow node mouse enter:', node.id)
