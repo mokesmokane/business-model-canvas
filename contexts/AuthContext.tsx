@@ -194,6 +194,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  if (loading) {
+    return null; // or a loading spinner
+  }
+
   return (
     <AuthContext.Provider value={{ 
       user, 

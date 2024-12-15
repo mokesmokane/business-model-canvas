@@ -4,11 +4,16 @@ import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import { CanvasTypeProvider } from '@/contexts/CanvasTypeContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { Suspense } from 'react';
+import LoadingSpinner from '@/components/LoadingSpinner';
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
   weight: "100 900",
 });
+
 const geistMono = localFont({
   src: "./fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
@@ -22,20 +27,24 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-          <Providers>
-            <LayoutProvider>
+        <AuthProvider>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Providers>
+              <LayoutProvider>
                 <CanvasTypeProvider>
                   {children}
                 </CanvasTypeProvider>
-            </LayoutProvider>
-          </Providers>
+              </LayoutProvider>
+            </Providers>
+          </Suspense>
+        </AuthProvider>
       </body>
     </html>
-  );
+  )
 }

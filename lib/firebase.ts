@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app";
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getApps, initializeApp } from 'firebase/app'
+import { getAuth, connectAuthEmulator, browserLocalPersistence } from 'firebase/auth'
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -18,10 +18,13 @@ const firebaseConfig = {
 };
 
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+// Initialize Firebase only if it hasn't been initialized
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+export const auth = getAuth(app)
+export const db = getFirestore(app)
+
+// Enable persistence to help with auth state
+auth.setPersistence(browserLocalPersistence)
 
 // Initialize Analytics only on client side
 // let analytics = null;
