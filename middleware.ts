@@ -2,23 +2,18 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Get the auth cookie
-  const authCookie = request.cookies.get('auth')
   const path = request.nextUrl.pathname
 
   // Public paths that don't require authentication
-  const publicPaths = ['/login', '/signup', '/reset-password']
+  const publicPaths = ['/login', '/signup', '/reset-password', '/verify-email', '/auth/action']
   
-  if (!authCookie && !publicPaths.includes(path)) {
-    // Redirect to login if no auth cookie and trying to access protected route
-    return NextResponse.redirect(new URL('/login', request.url))
+  // If the path is public, allow access
+  if (publicPaths.includes(path)) {
+    return NextResponse.next()
   }
 
-  if (authCookie && publicPaths.includes(path)) {
-    // Redirect to home if authenticated and trying to access public route
-    return NextResponse.redirect(new URL('/', request.url))
-  }
-
+  // For non-public paths, let the client-side Firebase Auth handle the authentication
+  // This will automatically redirect to login if not authenticated
   return NextResponse.next()
 }
 
