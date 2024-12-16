@@ -427,19 +427,21 @@ EXAMPLE: {
     if (response.tool_calls) {
       const toolResponse = JSON.parse(response.tool_calls[0].function.arguments)
       if (response.tool_calls[0].function.name === "suggestCanvasTypes") {
+        console.log('toolResponse', toolResponse)
       return NextResponse.json({ 
         message: "Here are my suggestions:",
         canvasTypeSuggestions: toolResponse.canvasTypes 
         })
       } else if (response.tool_calls[0].function.name === "suggestCanvasLayouts") {
 
+        console.log('response', response)
         return NextResponse.json({ 
           message: "Here are the suggestions I came up with:",
           canvasLayoutSuggestions: toolResponse.canvasLayouts 
         })
       }
     }
-
+    console.log('response', response)
     return NextResponse.json({ 
       message: response.content,
       suggestions: null 

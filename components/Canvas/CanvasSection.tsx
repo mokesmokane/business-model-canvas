@@ -221,61 +221,63 @@ export function CanvasSection({
                   </div>
                 )}
                 <div className="flex-1" />
-                {!isGenerating && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className={`${
-                          canvasTheme === 'light'
-                            ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
-                            : 'bg-gray-950 text-gray-300 border-gray-800 hover:bg-gray-800'
-                        }`}
-                      >
-                        <Grid2x2 className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48" canvasTheme={canvasTheme}>
-                      <DropdownMenuLabel>View Options</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => setViewType({ type: 'list' })}>
-                        <List className="h-4 w-4 mr-2" />
-                        List View {viewType.type === 'list' && '✓'}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel>Grid Layout</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 2 })}>
-                        <Grid className="h-4 w-4 mr-2" />
-                        2 Columns {viewType.type === 'grid' && viewType.columns === 2 && '✓'}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 3 })}>
-                        <Grid className="h-4 w-4 mr-2" />
-                        3 Columns {viewType.type === 'grid' && viewType.columns === 3 && '✓'}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 4 })}>
-                        <Grid className="h-4 w-4 mr-2" />
-                        4 Columns {viewType.type === 'grid' && viewType.columns === 4 && '✓'}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-                {questionsArray.length > 0 && !isGenerating && (
-                  <Button 
-                    canvasTheme={canvasTheme}
-                    variant="outline" 
-                    size="icon"
-                    onClick={() => setIsQuestionsDialogOpen(true)}
-                  >
-                    <MessageCircleQuestion />
-                  </Button>
-                )}
-                {!isGenerating && (
-                  <AISectionAssistButton 
-                    section={title} 
-                    sectionKey={sectionKey} 
-                    onExpandSidebar={() => {setIsWide(true); setIsExpanded(true)}} 
-                  />
-                )}
+                <div className="flex items-center gap-2">
+                  {!isGenerating && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className={`flex-shrink-0 w-8 h-8 ${
+                            canvasTheme === 'light'
+                              ? 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+                              : 'bg-gray-950 text-gray-300 border-gray-800 hover:bg-gray-800'
+                          }`}
+                        >
+                          <Grid2x2 className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48" canvasTheme={canvasTheme}>
+                        <DropdownMenuLabel>View Options</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => setViewType({ type: 'list' })}>
+                          <List className="h-4 w-4 mr-2" />
+                          List View {viewType.type === 'list' && '✓'}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel>Grid Layout</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 2 })}>
+                          <Grid className="h-4 w-4 mr-2" />
+                          2 Columns {viewType.type === 'grid' && viewType.columns === 2 && '✓'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 3 })}>
+                          <Grid className="h-4 w-4 mr-2" />
+                          3 Columns {viewType.type === 'grid' && viewType.columns === 3 && '✓'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setViewType({ type: 'grid', columns: 4 })}>
+                          <Grid className="h-4 w-4 mr-2" />
+                          4 Columns {viewType.type === 'grid' && viewType.columns === 4 && '✓'}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                  {questionsArray.length > 0 && !isGenerating && (
+                    <Button 
+                      canvasTheme={canvasTheme}
+                      variant="outline" 
+                      size="icon"
+                      className="flex-shrink-0 w-8 h-8"
+                    >
+                      <MessageCircleQuestion className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {!isGenerating && (
+                    <AISectionAssistButton 
+                      section={title} 
+                      sectionKey={sectionKey} 
+                      onExpandSidebar={() => {setIsWide(true); setIsExpanded(true)}} 
+                    />
+                  )}
+                </div>
               </CardTitle>
             </TooltipTrigger>
             {(sectionItemsArray.length > 0) && (

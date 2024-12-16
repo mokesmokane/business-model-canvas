@@ -70,7 +70,7 @@ export function BreadcrumbNav({ path, onNavigate, isExpanded }: BreadcrumbNavPro
     }
     if (path.length === 0) {
       //navigate to the canvases page
-      router.push('/')
+      router.push('/dashboard')
       return
     }
     onNavigate(folder)

@@ -1,5 +1,5 @@
 import { Message, CanvasTypeSuggestionMessage, SuggestionMessage, QuestionMessage, AdminMessage, useChat, TrailPeroidEndedMessage, SubscriptionRequiredMessage, SuggestEditMessage } from "@/contexts/ChatContext"
-import { Bot, User, AlertTriangle, X, Check, ThumbsUp } from "lucide-react"
+import { Bot, User, AlertTriangle, X, Check, ThumbsUp, Plus, Loader2, AlertCircle } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { motion, AnimatePresence } from "framer-motion"
 import AISuggestionItem from "../AISuggestionItem"
@@ -10,11 +10,15 @@ import { Section, TextSectionItem } from "@/types/canvas"
 import { useCanvas } from "@/contexts/CanvasContext"
 import { Button } from "@/components/ui/button"
 import { v4 as uuidv4 } from 'uuid'
-import { CanvasType } from "@/types/canvas-sections"
+import { CanvasLayoutDetails, CanvasType } from "@/types/canvas-sections"
 import { useCanvasFolders } from "@/contexts/CanvasFoldersContext"
 import { useRouter } from 'next/navigation'
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { useState } from 'react'
+import { canvasTypeService, CanvasTypeService } from '@/services/canvasTypeService';
+import { toast } from "react-hot-toast"
+import DynamicIcon from '@/components/Util/DynamicIcon'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 
 interface MessageRendererProps {
@@ -65,6 +69,10 @@ export function MessageRenderer({ message, messageIndex, messageHistory}: Messag
 
     if (message.type === 'suggestEdit') {
       return <SuggestEditMessageDetails message={message as SuggestEditMessage} />
+    }
+
+    if (message.type === 'admin') {
+      return <AdminMessageDetails message={message as AdminMessage} />
     }
 
     return null
@@ -286,6 +294,162 @@ export function SuggestEditMessageDetails({ message }: { message: SuggestEditMes
                     </div>
                 </CardContent>
             </Card>
+        </div>
+    )
+}
+
+export function AdminMessageDetails({ message }: { message: AdminMessage }) {
+    const [saving, setSaving] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    
+    const handleSaveCanvasType = async (canvasType: CanvasType) => {
+        setSaving(true)
+        setError(null)
+        try {
+            await canvasTypeService.saveCanvasType(canvasType)
+            toast.success("Canvas type saved successfully")
+        } catch (err) {
+            setError("Failed to save canvas type")
+            console.error(err)
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const handleSaveLayout = async (layout: CanvasLayoutDetails) => {
+        setSaving(true)
+        setError(null)
+        try {
+            await canvasTypeService.saveLayout(layout)
+            toast.success("Canvas layout saved successfully")
+        } catch (err) {
+            setError("Failed to save layout")
+            console.error(err)
+        } finally {
+            setSaving(false)
+        }
+    }
+
+    const renderSuggestion = () => {
+        if (message.canvasTypeSuggestions.length > 0) {
+            const suggestion = message.canvasTypeSuggestions[0] as CanvasType
+            return (
+                <Card className="mt-4">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <DynamicIcon name={suggestion.icon} className="h-5 w-5" />
+                            {suggestion.name}
+                        </CardTitle>
+                        <CardDescription>{suggestion.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {suggestion.defaultLayout && (
+                            <div className="mt-2">
+                                <div className="w-full h-32">
+                                    <div
+                                        className="w-full h-full grid gap-1"
+                                        style={{
+                                            gridTemplateColumns: suggestion.defaultLayout.layout.gridTemplate.columns,
+                                            gridTemplateRows: suggestion.defaultLayout.layout.gridTemplate.rows,
+                                        }}
+                                    >
+                                        {suggestion.sections.map((section, index) => (
+                                            <div
+                                                key={index}
+                                                className="flex items-center justify-center gap-2 rounded-md border-2 border-dashed border-primary/20 bg-primary/5"
+                                                style={{
+                                                    gridArea: suggestion.defaultLayout?.layout.areas?.[index] || 'auto',
+                                                }}
+                                            >
+                                                <DynamicIcon name={section.icon} className="w-4 h-4 text-primary" />
+                                                <span className="text-xs text-primary">{section.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div className="mt-4 flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                onClick={() => handleSaveCanvasType(suggestion)}
+                                disabled={saving}
+                            >
+                                {saving ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Plus className="h-4 w-4 mr-2" />
+                                )}
+                                Add Canvas Type
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )
+        }
+      
+        if (message.canvasLayoutSuggestions.length > 0) {
+            const layout = message.canvasLayoutSuggestions[0]
+            return (
+                <Card className="mt-4">
+                    <CardHeader>
+                        <CardTitle>{layout.areas}</CardTitle>
+                        <CardDescription>{layout.rationale}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="mt-2">
+                            <div className="w-full h-32">
+                                <div
+                                    className="w-full h-full grid gap-1"
+                                    style={{
+                                        gridTemplateColumns: layout.gridTemplate.columns,
+                                        gridTemplateRows: layout.gridTemplate.rows,
+                                    }}
+                                >
+                                    {layout.areas.map((area, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center justify-center rounded-md border-2 border-dashed border-primary/20 bg-primary/5"
+                                            style={{ gridArea: area }}
+                                        >
+                                            <span className="text-xs text-primary">Section {index + 1}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="mt-4 flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                // onClick={() => handleSaveLayout(layout)}
+                                disabled={saving}
+                            >
+                                {saving ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Plus className="h-4 w-4 mr-2" />
+                                )}
+                                Add Layout
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            )
+        }
+
+        return <p className="mt-2">{message.content}</p>
+    }
+
+    return (
+        <div className="mt-2">
+            {error && (
+                <Alert variant="destructive" className="mb-4">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
+            {renderSuggestion()}
         </div>
     )
 }

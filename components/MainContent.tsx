@@ -18,9 +18,11 @@ import { AiGenerationProvider } from "@/contexts/AiGenerationContext"
 import { MobileBottomNav } from "./mobile/MobileBottomNav"
 import { UserCanvasSelector } from "./UserCanvasSelector"
 import { Sidebar } from "./Sidebar/Sidebar"
+import { useRouter } from 'next/navigation'
 
 export function MainContent() {
   const { user, isVerified } = useAuth()
+  const router = useRouter()
   const [isMobile, setIsMobile] = useState(false)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
 
@@ -33,6 +35,16 @@ export function MainContent() {
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  useEffect(() => {
+    // Check if user needs onboarding
+    if (user && isVerified) {
+      const hasCompletedOnboarding = localStorage.getItem('onboarding_completed')
+      if (!hasCompletedOnboarding) {
+        router.push('/onboarding')
+      }
+    }
+  }, [user, isVerified, router])
 
   if (!user || !isVerified) {
     return null // or a loading state, or redirect

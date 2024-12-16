@@ -281,8 +281,12 @@ export default function TabbedEditCanvasTypePage() {
               <TooltipProvider>
                   <IconSelector
                     value={canvasType.icon}
-                onChange={(icon) => setCanvasType({ ...canvasType, icon })}
-                />
+                    onChange={(icon) => setCanvasType({ ...canvasType, icon })}
+                    context={{
+                      name: canvasType.name,
+                      description: canvasType.description
+                    }}
+                  />
               </TooltipProvider>
             </div>
             <div>

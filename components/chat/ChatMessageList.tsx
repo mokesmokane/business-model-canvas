@@ -131,6 +131,20 @@ export function ChatMessageList({
           label: 'Create New Canvas'
         }
       ]
+    },
+    admin: {
+      icon: Shield,
+      iconClassName: 'text-red-500 dark:text-red-400',
+      label: 'Admin Tools',
+      action: 'admin',
+      requiresContext: false,
+      sectionOptions: [],
+      interactionOptions: [
+        {
+          interaction: 'admin',
+          label: 'Admin Tools'
+        }
+      ]
     }
   }
 

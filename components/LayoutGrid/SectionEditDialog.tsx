@@ -36,6 +36,12 @@ export function SectionEditDialog({ open, onOpenChange, section, onSave }: Secti
             <IconSelector
               value={editedSection.icon}
               onChange={(icon) => setEditedSection({ ...editedSection, icon })}
+              context={{
+                sectionName: editedSection.name,
+                sectionDescription: editedSection.placeholder,
+                name: editedSection.name,
+                description: editedSection.placeholder
+              }}
             />
           </div>
           <div>

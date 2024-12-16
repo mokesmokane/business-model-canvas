@@ -63,7 +63,9 @@ export function AISectionAssistButton({ section, sectionKey, onExpandSidebar }: 
         variant="outline"
         size="icon"
         canvasTheme={canvasTheme}
-        className="ml-2 hover:bg-gray-800/50 hover:text-gray-100 group"
+        className={`flex-shrink-0 w-8 h-8 hover:bg-gray-800/50 hover:text-gray-100 group ${  // Add fixed dimensions
+          isThisButtonLoading ? 'cursor-not-allowed' : ''
+        }`}
         disabled={isLoading}
       >
         <Sparkles className={`h-4 w-4 ${isThisButtonLoading ? 'animate-spin' : ''}`} />

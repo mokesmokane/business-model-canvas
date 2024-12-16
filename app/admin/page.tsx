@@ -24,6 +24,8 @@ import { TAG_INFO } from '@/src/constants/tags';
 import { TagSuggesterService } from '@/services/tagSuggesterService';
 import { TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tooltip } from '@/components/ui/tooltip';
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export default function AdminPage() {
   const { user, isAdminUser } = useAuth();
@@ -38,6 +40,9 @@ export default function AdminPage() {
   const [selectedName, setSelectedName] = useState<string>('');
   const [aiAgents, setAiAgents] = useState<Record<string,AIAgent>>({});
   const [loading, setLoading] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [showCustomCanvases, setShowCustomCanvases] = useState(true);
 
   const aiAgentService = new AIAgentService();
 
@@ -175,6 +180,22 @@ export default function AdminPage() {
     return entries.sort((a, b) => a[1].name.localeCompare(b[1].name));
   };
 
+  const filteredCanvasTypes = Object.entries(canvasTypes).filter(([_, type]) => {
+    const nameMatch = type.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const tagMatch = selectedTags.length === 0 || 
+      (type.tags && selectedTags.every(tag => type?.tags?.includes(tag)));
+    const customMatch = showCustomCanvases || !type.isCustom;
+    return nameMatch && tagMatch && customMatch;
+  });
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
+
   if (!isAdminUser) {
     return null;
   }
@@ -209,9 +230,41 @@ export default function AdminPage() {
         {activeTab === 'types' && (
           <section>
             <h2 className="text-2xl font-semibold mb-4">Canvas Types</h2>
+            
+            <div className="space-y-4 mb-6">
+              <div className="flex items-center gap-4">
+                <Input
+                  placeholder="Search by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="max-w-sm"
+                />
+                <Button
+                  variant={showCustomCanvases ? "default" : "outline"}
+                  onClick={() => setShowCustomCanvases(!showCustomCanvases)}
+                >
+                  {showCustomCanvases ? "Show All" : "Hide Custom Canvases"}
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {TAG_INFO.map((tag) => (
+                  <Badge
+                    key={tag.name}
+                    variant={selectedTags.includes(tag.name) ? "default" : "outline"}
+                    className={`cursor-pointer ${selectedTags.includes(tag.name) ? tag.color : ''}`}
+                    onClick={() => toggleTag(tag.name)}
+                  >
+                    {tag.name}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>ID</TableHead>
                   <TableHead>Icon</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Description</TableHead>
@@ -223,8 +276,9 @@ export default function AdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortCanvasTypeByName(Object.entries(canvasTypes)).map(([id, type]) => (
+                {sortCanvasTypeByName(filteredCanvasTypes).map(([id, type]) => (
                   <TableRow key={id} className="h-40">
+                    <TableCell>{id}</TableCell>
                     <TableCell>
                       <DynamicIcon 
                         name={type.icon || 'image'} 
@@ -276,6 +330,8 @@ export default function AdminPage() {
                       >
                         {type.defaultLayout?.layout.areas.map((area, index) => {
                           const [row, col, rowSpan, colSpan] = area.split('/').map(n => n.trim());
+                          // Find the corresponding section for this area
+                          const section = type.sections[index];
                           return (
                             <div
                               key={index}
@@ -284,7 +340,20 @@ export default function AdminPage() {
                                 gridArea: `${row} / ${col} / ${rowSpan} / ${colSpan}`,
                               }}
                             >
-                              {/* Optionally, you can add an icon or text here */}
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <DynamicIcon 
+                                      name={section?.icon || 'square'} 
+                                      className="w-6 h-6 text-gray-500" 
+                                      size={24}
+                                    />
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    {section?.name || `Section ${index + 1}`}
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
                           );
                         })}

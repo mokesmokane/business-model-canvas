@@ -16,12 +16,13 @@ import { AiGenerationProvider } from '@/contexts/AiGenerationContext'
 import { ChatProvider } from '@/contexts/ChatContext'
 import { BusinessModelCanvasComponent } from '@/components/business-model-canvas'
 import { useState } from 'react'
+import { CanvasTypeProvider } from '@/contexts/CanvasTypeContext'
+import { LayoutProvider } from '@/contexts/LayoutContext'
 
 export default function CanvasPage() {
   const params = useParams()
   const { loadCanvas } = useCanvas()
   const [isMobile, setIsMobile] = useState(false)
-
 
   useEffect(() => {
     const checkMobile = () => {
@@ -46,32 +47,36 @@ export default function CanvasPage() {
       enableSystem
       disableTransitionOnChange
     >
-        <CanvasFoldersProvider>
-          <CanvasContextProvider>
-            <AIAgentProvider>
-              <CanvasProvider>
-                <AiGenerationProvider>
-                  <ChatProvider>
-                    {isMobile ? (
-                      <div className="flex flex-col h-screen overflow-hidden">
-                        <MobileHeader />
-                        <MobileBusinessModelCanvas canvasId={params.id as string} />
-                        <MobileBottomNav />
-                      </div>
-                    ) : (
-                      <div className="flex flex-col h-screen overflow-hidden">
-                        <SiteHeader />
-                        <div className="flex-1 overflow-hidden">
-                          <BusinessModelCanvasComponent canvasId={params.id as string} />
+      <LayoutProvider>
+        <CanvasTypeProvider>
+          <CanvasFoldersProvider>
+            <CanvasContextProvider>
+              <AIAgentProvider>
+                <CanvasProvider>
+                  <AiGenerationProvider>
+                    <ChatProvider>
+                      {isMobile ? (
+                        <div className="flex flex-col h-screen overflow-hidden">
+                          <MobileHeader />
+                          <MobileBusinessModelCanvas canvasId={params.id as string} />
+                          <MobileBottomNav />
                         </div>
-                      </div>
-                    )}
-                  </ChatProvider>
-                </AiGenerationProvider>
-              </CanvasProvider>
-            </AIAgentProvider>
-          </CanvasContextProvider>
-        </CanvasFoldersProvider>
+                      ) : (
+                        <div className="flex flex-col h-screen overflow-hidden">
+                          <SiteHeader />
+                          <div className="flex-1 overflow-hidden">
+                            <BusinessModelCanvasComponent canvasId={params.id as string} />
+                          </div>
+                        </div>
+                      )}
+                    </ChatProvider>
+                  </AiGenerationProvider>
+                </CanvasProvider>
+              </AIAgentProvider>
+            </CanvasContextProvider>
+          </CanvasFoldersProvider>
+        </CanvasTypeProvider>
+      </LayoutProvider>
     </ThemeProvider>
   )
 } 

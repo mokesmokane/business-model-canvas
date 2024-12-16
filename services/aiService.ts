@@ -78,22 +78,27 @@ export async function sendAdminChatRequest(messageEnvelope: MessageEnvelope, idT
 
   let data = await response.json()
 
-  
-
-  let result = {
+  if(data.canvasTypeSuggestions) {
+   return {
     role: 'assistant',
     content: data.message,
     canvasTypeSuggestions: data.canvasTypeSuggestions?.map((s: any) => ({
       ...s,
       id: uuidv4()
-    })),
-    canvasLayoutSuggestions: data.canvasLayoutSuggestions?.map((s: any) => ({
-      ...s,
-      id: uuidv4()
-    }))
+    })) 
+   }
   }
 
-  
+  if(data.canvasLayoutSuggestions) {
+    return {
+      role: 'assistant',
+      content: data.message,
+      canvasLayoutSuggestions: data.canvasLayoutSuggestions?.map((s: any) => ({
+        ...s,
+        id: uuidv4()
+      })) 
+    }
+  }
 
-  return result
+  return data
 }

@@ -125,14 +125,14 @@ export const createCanvasTypeSuggestionMessage = (
 
 export interface AdminMessage extends BaseMessage {
   type: 'admin';
-  canvasTypeSuggestions?: CanvasTypeSuggestion[];
-  canvasLayoutSuggestions?: CanvasLayoutSuggestion[];
+  canvasTypeSuggestions: CanvasTypeSuggestion[];
+  canvasLayoutSuggestions: CanvasLayoutSuggestion[];
 }
 
 export const createAdminMessage = (
   content: string,
-  canvasTypeSuggestions?: CanvasTypeSuggestion[],
-  canvasLayoutSuggestions?: CanvasLayoutSuggestion[]
+  canvasTypeSuggestions: CanvasTypeSuggestion[],
+  canvasLayoutSuggestions: CanvasLayoutSuggestion[]
 ): AdminMessage => ({
   type: 'admin',
   role: 'assistant',
@@ -394,7 +394,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               defaultLayout: suggestion.defaultLayout,
               sections: suggestion.sections,
               rationale: suggestion.rationale
-            } as CanvasTypeSuggestion)),
+            } as CanvasTypeSuggestion)) || [],
             canvasLayoutSuggestions: aiResponse.canvasLayoutSuggestions?.map((suggestion: any) => ({
               gridTemplate: {
                 columns: suggestion.gridTemplate.columns,
@@ -402,7 +402,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
               },
               areas: suggestion.areas,
               rationale: suggestion.rationale
-            } as CanvasLayoutSuggestion))
+            } as CanvasLayoutSuggestion)) || []
           }
           addMessage(formattedResponse)
         } catch (error) {
