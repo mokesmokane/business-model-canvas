@@ -23,6 +23,7 @@ export function MainContent() {
   const { user, isVerified } = useAuth()
   const [isMobile, setIsMobile] = useState(false)
   const [showAuthDialog, setShowAuthDialog] = useState(false)
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
@@ -33,39 +34,38 @@ export function MainContent() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  if (!user || !isVerified) {
+    return null // or a loading state, or redirect
+  }
+
   return (
-    <div className={`h-screen flex flex-col ${user && isVerified ? 'overflow-hidden' : ''}`}>
-      {user && isVerified ? (
-        
-            <CanvasFoldersProvider>
-            <CanvasContextProvider>
-            <AIAgentProvider>
-                <CanvasProvider>
-                <AiGenerationProvider>
+    <div className="h-screen flex flex-col overflow-hidden">
+      <CanvasFoldersProvider>
+        <CanvasContextProvider>
+          <AIAgentProvider>
+            <CanvasProvider>
+              <AiGenerationProvider>
                 <ChatProvider>
                   {isMobile ? (
-                  <>
-                    <MobileHeader />                      
-                    <UserCanvasSelector />
-                    <MobileBottomNav />
-                  </>
-                ) : (
-                  <div className="flex flex-col h-screen overflow-hidden">
-                    <SiteHeader />
-                    <div className="flex-1 overflow-hidden">
+                    <>
+                      <MobileHeader />                      
                       <UserCanvasSelector />
+                      <MobileBottomNav />
+                    </>
+                  ) : (
+                    <div className="flex flex-col h-screen overflow-hidden">
+                      <SiteHeader />
+                      <div className="flex-1 overflow-hidden">
+                        <UserCanvasSelector />
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
                 </ChatProvider> 
-                </AiGenerationProvider>
-                </CanvasProvider>
-              </AIAgentProvider>    
-              </CanvasContextProvider>
-            </CanvasFoldersProvider>
-      ) : (
-        <LandingPage />
-      )}
+              </AiGenerationProvider>
+            </CanvasProvider>
+          </AIAgentProvider>    
+        </CanvasContextProvider>
+      </CanvasFoldersProvider>
     </div>
   )
 } 

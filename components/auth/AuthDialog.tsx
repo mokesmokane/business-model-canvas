@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface AuthDialogProps {
   isOpen: boolean;
@@ -13,7 +14,7 @@ interface AuthDialogProps {
 }
 
 export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmail }: AuthDialogProps) {
-
+  const router = useRouter();
   const [isSignUp, setIsSignUp] = React.useState(openSignUp);
   const [email, setEmail] = React.useState(initialEmail || '');
   const [password, setPassword] = React.useState('');
@@ -48,6 +49,7 @@ export function AuthDialog({ isOpen, openSignUp, onClose, onSuccess, initialEmai
         }
         onSuccess();
         onClose();
+        router.push('/dashboard');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

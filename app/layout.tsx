@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Providers } from "@/components/providers/Providers";
-import { LayoutProvider } from '@/contexts/LayoutContext';
-import { CanvasTypeProvider } from '@/contexts/CanvasTypeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { Suspense } from 'react';
 import LoadingSpinner from '@/components/LoadingSpinner';
@@ -36,11 +34,7 @@ export default function RootLayout({
         <AuthProvider>
           <Suspense fallback={<LoadingSpinner />}>
             <Providers>
-              <LayoutProvider>
-                <CanvasTypeProvider>
-                  {children}
-                </CanvasTypeProvider>
-              </LayoutProvider>
+              {children}
             </Providers>
           </Suspense>
         </AuthProvider>

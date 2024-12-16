@@ -22,7 +22,7 @@ export default function LoginPage() {
 
     try {
       await signIn(email, password)
-      router.push('/')
+      router.push('/dashboard')
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to sign in')
     } finally {
